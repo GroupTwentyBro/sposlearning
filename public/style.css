@@ -199,29 +199,17 @@ icon {
     position: relative;
     cursor: help;
 
-    /* --- REMOVE OLD --- */
-    /* text-decoration: underline dotted; */
-
-    /* --- ADD NEW --- */
-    text-decoration: none; /* Remove any default underline */
-
-    /* This creates a 1px "dot" (a tiny dash) that repeats */
+    text-decoration: none;
     background-image: linear-gradient(to right, #888 1px, transparent 1px);
-
-    /* THIS is how you control frequency.
-      It means: "make the pattern 3px wide, and 1px tall"
-      This results in a 1px dot and 2px of empty space.
-    */
     background-size: 3px 1px;
-
-    background-position: 0 100%; /* Position it at the bottom */
-    background-repeat: repeat-x; /* Repeat it horizontally */
+    background-position: 0 100%;
+    background-repeat: repeat-x;
 }
 
 /* The rest of your hint rules are unchanged and perfect */
-.hint::after {
+.hint .hint-content {
     white-space: pre-wrap;
-    content: attr(hint);
+
     position: absolute;
     z-index: 10;
     bottom: 125%;
@@ -229,6 +217,7 @@ icon {
     transform: translateX(-50%);
     width: max-content;
     max-width: 70vw;
+
     background-color: #333333EE;
     color: white;
     padding: 4px 8px;
@@ -236,13 +225,14 @@ icon {
     font-size: 0.9rem;
     text-decoration: none;
     text-align: left;
+
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition: opacity 0.2s ease;
 }
 
-.hint:hover::after {
+.hint:hover .hint-content {
     opacity: 1;
     visibility: visible;
 }
