@@ -1,0 +1,258 @@
+body {
+    background-color: #0b1215;
+    color: white;
+    font-family: "Raleway";
+}
+
+h1 {
+    font-weight: bolder;
+}
+
+h2 {
+    font-weight: bold;
+}
+
+p {
+    font-size: 14pt;
+}
+
+hr {
+    width: 100%;
+}
+
+.content {
+    padding: 40px;
+    width: 70%;
+
+}
+
+code {
+    color: #ff006e;
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 16%);
+    padding: 3px 5px;
+    border-radius: 12px;
+    font-family: "Fira Code", monospace;
+}
+
+icon {
+    font-family: "Material Symbols Outlined";
+    font-size: 32pt;
+}
+
+.navbar {
+    height: 100px;
+    width: 100%;
+}
+
+.search {
+    display: flex;
+    margin: auto;
+    height: 100%;
+    width: 90%;
+    border: 3px solid hsl(198, 31%, 18%);
+    background-color: hsl(198, 31%, 12%);
+    border-radius: 40px;
+    vertical-align: middle;
+    padding: 0 20px;
+    align-items: center;
+}
+
+.search icon {
+    display: flex;
+    height: 100%;
+    vertical-align: middle;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.search input {
+    width: 100%;
+    border: none;
+    background-color: hsl(198, 31%, 12%);
+    color: white;
+    padding: 10px;
+    margin: 0 5px;
+    font-size: 22pt;
+    vertical-align: middle;
+}
+
+.search input:focus {
+    outline: none;
+    color: white;
+}
+
+#page-form input {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: white;
+}
+
+#page-form select {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: white;
+}
+
+#page-form textarea {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: white;
+}
+
+#page-form #editor-files input {
+    background-color: #0b1215;
+    border: none;
+    color: white;
+}
+
+#page-form #editor-files input button {
+    background-color: hsl(198, 31%, 18%);
+    border: 1px solid hsl(198, 31%, 12%);
+    color: white;
+}
+
+.dev-disclamer {
+    width: 98%;
+    margin: auto;
+    background-color: rgba(255, 0, 114, 0.38);
+    border: 2px solid rgba(255, 0, 114, 0.64);
+}
+.dev-message {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem 0 1rem;
+    margin: 0;
+}
+.dev-message > icon {
+    flex-shrink: 0;
+}
+
+.dev-message > p {
+    flex-grow: 1;
+    margin: 0;
+    font-weight: bold;
+}
+
+.ver-tag {
+    color: gray;
+    margin: 0;
+    padding: 5px;
+    font-size: 10pt;
+}
+
+.admin-controls {
+    background-color: hsl(198, 31%, 12%);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    padding: 5px 10px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    margin: 5px 10px;
+}
+
+.btn-admin {
+    background-color: hsl(198, 31%, 18%);
+}
+
+#edit-form input {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: white;
+}
+
+#edit-form select {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: white;
+}
+
+#edit-form textarea {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: white;
+}
+
+#edit-form #editor-files input {
+    background-color: #0b1215;
+    border: none;
+    color: white;
+}
+
+#edit-form #editor-files input button {
+    background-color: hsl(198, 31%, 18%);
+    border: 1px solid hsl(198, 31%, 12%);
+    color: white;
+}
+
+/*
+ * Tooltip Hint
+ * ----------------------------- */
+
+.hint {
+    position: relative;
+    cursor: help;
+
+    /* --- REMOVE OLD --- */
+    /* text-decoration: underline dotted; */
+
+    /* --- ADD NEW --- */
+    text-decoration: none; /* Remove any default underline */
+
+    /* This creates a 1px "dot" (a tiny dash) that repeats */
+    background-image: linear-gradient(to right, #888 1px, transparent 1px);
+
+    /* THIS is how you control frequency.
+      It means: "make the pattern 3px wide, and 1px tall"
+      This results in a 1px dot and 2px of empty space.
+    */
+    background-size: 3px 1px;
+
+    background-position: 0 100%; /* Position it at the bottom */
+    background-repeat: repeat-x; /* Repeat it horizontally */
+}
+
+/* The rest of your hint rules are unchanged and perfect */
+.hint::after {
+    content: attr(data-hint);
+    position: absolute;
+    z-index: 10;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    max-width: 30vw;
+    background-color: #333333EE;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.hint:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+textarea {
+    tab-size: 4;
+    -moz-tab-size: 4; /* Fix for older Firefox versions */
+}
+
+/* This targets the code blocks on your public pages */
+.content pre code {
+    tab-size: 4;
+    -moz-tab-size: 4; /* Fix for older Firefox versions */
+}

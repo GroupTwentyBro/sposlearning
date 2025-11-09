@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SPOŠLearning</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="style.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body>
+    <div class="navbar">
+        <div class="search">
+            <icon>search</icon>
+            <input id="search-input" placeholder="Načítání stránkek..." type="text" disabled>
+        </div>
+    </div>
+    <div class="dev-disclamer">
+        <div class="dev-message">
+            <icon>
+                warning
+            </icon>
+            <p>
+                SPOŠLearning je momentálně ve vývoji, i když už je ve funkční fázi. Kvůli tomu ale nezaručujeme plnou funkčnost, ani kompletní obsah. Jakmile bude SPOŠLearning hotový do plně funkční fáze, budeme vás informovat na Discordu.
+            </p>
+        </div>
+        <p class="ver-tag">SPOŠLearning verze beta 0.2</p>
+    </div>
+    <div class="content" id="main-content">
+
+        <div id="welcome-message">
+            <h1>Vítej na SPOŠLearningu!</h1>
+            <hr>
+            <p>
+                SPOŠLearning je platforma udržovaná žákem z 1.I která ukládá všechny zápisy a procvičování na jedno místo.
+                Hledáš zápisky z češtiny? Jsou tu. Vysvětlení <code>&lt;h1&gt;</code> HTML tagu? Máme to.
+                Řešení úkolů z programování? Samozřejmě že tu jsou. Jednoduše řečeno, je tu všechno co se učíme.
+            </p>
+            <h2>Proč používat SPOŠLearning když máme Discord server?</h2>
+            <hr>
+            <p>
+                Já nic nevnucuju, používej si co chceš. Důvod proč jsem udělal SPOŠLearning je ten že
+                na Discordu bylo všechno dost nepřehledné a každý si tam mohl posílat co chtěl.
+                Vetšina byla i v pohodě (díky Roberte za super AI práci), ale třeba zápis na Linux příkazy kde je
+                tmavé pozadí a svítivě zelený text, plus ještě věci co jsme se ještě neučili a chybí dost věcí co jsme se učili,
+                tak to se mi zrovna moc nezamlouvá (to nech radši na mě Roberte).
+            </p>
+            <h2>Můžu na SPOŠLearning přidávat i já?</h2>
+            <hr>
+            <p>
+                Ano, na SPOŠLearning může přidávat kdokoliv, když mi svůj nápad/práci pošle na Discord.
+                Rozdíl oproti Discordu pak je že všechny materiály a témata pak kontroluji
+                já a dva nejúspěšnější žáci v daném předmětu ze třídy. Pokud poté tvoje práce projde,
+                tak na SPOŠLearningu bude. Pokud však neprojde, můžeme buď navrhnout pár úprav, upravit sami,
+                nebo se alespoň tvým návrhem inspirovat.<br><br>
+
+                Do budoucna bychom chtěli udělat lepší systém, kde každý bude moct přidávat cokoliv,
+                ale admini to pak budou muset schválit než se to objeví.
+                Toto ale momentálně není hlavní zaměření a zatím SPOŠLearning bude fungovat tak, jak je napsáno v předchozím odstavci.
+            </p>
+        </div>
+        <div id="search-results" style="display: none;"></div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <script src="/js/firebaseConfig.js" type="module"></script>
+    <script src="/js/search.js" type="module"></script>
+</body>
+</html>

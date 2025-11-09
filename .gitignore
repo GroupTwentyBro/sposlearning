@@ -1,0 +1,21 @@
+# Node.js
+node_modules
+npm-debug.log
+*.log
+
+# Firebase
+.firebase/emulators
+.firebase/hosting.*.cache
+firebase-debug.log
+
+# Operating System
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Local Environment files
+functions/.env.local
+functions/.env.*.local
