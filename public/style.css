@@ -335,3 +335,30 @@ textarea {
     margin: 0;
     padding: 0;
 }
+
+.info-disclamer {
+    width: 98%;
+    margin: auto;
+    background-color: hsla(180, 100%, 50%, 0.38);
+    border: 2px solid hsla(180, 100%, 50%, 0.64);
+}
+.info-message {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem 0 1rem;
+    margin: 0;
+}
+.info-message > icon {
+    flex-shrink: 0;
+}
+
+.info-message > p {
+    flex-grow: 1;
+    margin: 0;
+    font-weight: bold;
+}
+
+.info-message a {
+    color: #ff006e;
+}
