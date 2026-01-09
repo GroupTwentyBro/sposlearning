@@ -352,31 +352,31 @@ textarea {
 
 #search-result-list a {
     margin: 10px;
-    background-color: hsl(198, 31%, 12%);
+    background-color: #0000;
     border: 1px solid hsl(198, 31%, 18%);
     color: white;
 }
 
 #search-results select {
-    background-color: hsl(198, 31%, 12%);
+    background-color: #0000;
     border: 1px solid hsl(198, 31%, 18%);
     color: white;
 }
 
 #search-results textarea {
-    background-color: hsl(198, 31%, 12%);
+    background-color: #0000;
     border: 1px solid hsl(198, 31%, 18%);
     color: white;
 }
 
 #search-results #editor-files input {
-    background-color: #0b1215;
+    background-color: #0000;
     border: none;
     color: white;
 }
 
 #search-results #editor-files input button {
-    background-color: hsl(198, 31%, 18%);
+    background-color: #0000;
     border: 1px solid hsl(198, 31%, 12%);
     color: white;
 }
@@ -431,4 +431,130 @@ textarea {
 
 #button-bar {
     margin: 0 1vw;
+}
+
+@media only screen and (max-width: 500px) {
+    :root {
+        --fs-unimportant: 0.8rem;
+    }
+
+    .content {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .search {
+        width: 98%;
+    }
+
+    .dev-disclamer {
+        width: 98%;
+        padding: 5px;
+        font-size: var(--fs-unimportant);
+    }
+
+    .dev-message {
+        padding: 0;
+        font-size: var(--fs-unimportant);
+    }
+
+    .dev-message > p {
+        font-size: var(--fs-unimportant);
+        font-weight: normal;
+    }
+
+    .dev-message > icon {
+        display: none;
+    }
+
+    .ver-tag {
+        display: none;
+        padding: 0;
+    }
+
+    .info-disclamer {
+        width: 98%;
+        padding: 5px;
+        font-size: var(--fs-unimportant);
+    }
+
+    .info-message {
+        padding: 0;
+        font-size: var(--fs-unimportant);
+    }
+
+    .info-message > p {
+        font-size: var(--fs-unimportant);
+        font-weight: normal;
+    }
+
+    .info-message > icon {
+        display: none;
+    }
+
+    #search-results {
+        width: 98%;
+    }
+}
+
+/* --- Tree View Styles --- */
+
+.search-tree, .search-tree ul {
+    list-style: none;
+    padding-left: 20px;
+    margin: 0;
+}
+
+/* Remove padding for the very first level */
+.search-tree {
+    padding-left: 0;
+}
+
+.search-tree li {
+    margin: 5px 0;
+    position: relative;
+}
+
+/* The vertical tree line */
+.search-tree ul {
+    border-left: 1px solid white;
+}
+
+/* Styling for clickable Page results */
+.search-result-link {
+    display: block;
+    background-color: var(--primary-boxbg-clr);
+    border: 1px solid var(--primary-boxfg-clr);
+    color: var(--root-fg-clr);
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.search-result-link:hover {
+    background-color: var(--primary-bg-clr);
+    border-color: var(--primary-hl-clr);
+    color: white;
+}
+
+/* Styling for "Folder" labels (intermediate paths that aren't clicked) */
+.search-result-folder {
+    display: block;
+    padding: 5px 12px;
+    color: var(--primary-hl-clr); /* Use highlight color for folders */
+    font-weight: bold;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Optional: Add a little connector line for visual structure */
+.search-tree ul li::before {
+    content: "";
+    position: absolute;
+    top: 20px; /* Adjust based on height of item */
+    left: -20px;
+    width: 20px;
+    height: 1px;
+    background-color: white;
 }

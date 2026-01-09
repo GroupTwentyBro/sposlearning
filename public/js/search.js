@@ -1,11 +1,13 @@
 // public/js/search.js
 
 import { app } from './firebaseConfig.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 // --- Global cache for all pages ---
 const db = getFirestore(app);
 let allPages = [];
+let currentPage = null;
 
 // --- Get Elements from the HTML ---
 const searchInput = document.getElementById('search-input');
@@ -49,7 +51,7 @@ async function fetchAllPages() {
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
 
-    if (searchTerm.length < 1) {
+    if (searchTerm.length < 3) {
         welcomeMessage.style.display = 'block';
         searchResultsContainer.style.display = 'none';
         searchResultsContainer.innerHTML = '';
@@ -57,8 +59,8 @@ function handleSearch(e) {
     }
 
     const results = allPages.filter(page =>
-        page.title.toLowerCase().includes(searchTerm) || // Search the title
-        page.content.includes(searchTerm) // Search the content
+        page.path.toLowerCase().includes(searchTerm) // || // Search the title
+        // page.content.includes(searchTerm) // Search the content
     );
 
     welcomeMessage.style.display = 'none';
@@ -77,25 +79,148 @@ function renderResults(results) {
         return;
     }
 
-    const resultList = document.createElement('div');
-    resultList.className = 'search-result-list';
+    // 1. Convert flat results to a tree structure
+    const treeRoot = buildTree(results);
 
-    results.forEach(page => {
-        // We no longer need to format the title, just use it
-        const title = page.title;
+    // 2. Generate DOM from tree
+    const treeContainer = document.createElement('ul');
+    treeContainer.className = 'search-tree';
 
-        // Create a clickable link
-        const link = document.createElement('a');
-        link.href = `/${page.path}`; // Use the fullPath for the link
-        link.className = 'search-result list-group-item list-group-item-action';
-        link.textContent = title;
-
-        resultList.appendChild(link);
+    // Append all top-level nodes
+    Object.keys(treeRoot).sort().forEach(key => {
+        treeContainer.appendChild(createTreeDOM(treeRoot[key]));
     });
 
-    searchResultsContainer.appendChild(resultList);
+    searchResultsContainer.appendChild(treeContainer);
+}
+
+function buildTree(pages) {
+    const root = {};
+
+    pages.forEach(page => {
+        // Split path by '/', filter out empty strings
+        const parts = page.path.split('/').filter(p => p);
+
+        let currentLevel = root;
+
+        parts.forEach((part, index) => {
+            // Create node if it doesn't exist
+            if (!currentLevel[part]) {
+                currentLevel[part] = {
+                    children: {},
+                    name: part,
+                    pageData: null // Will hold title/path if this node is a page
+                };
+            }
+
+            // If this is the last part of the path, it represents the actual page found
+            if (index === parts.length - 1) {
+                currentLevel[part].pageData = page;
+            }
+
+            // Move deeper
+            currentLevel = currentLevel[part].children;
+        });
+    });
+
+    return root;
+}
+
+/**
+ * Helper: Recursively creates DOM elements for the tree
+ */
+function createTreeDOM(node) {
+    const li = document.createElement('li');
+
+    // 1. Create the content for this node
+    let contentElement;
+
+    if (node.pageData) {
+        // It's a clickable page
+        contentElement = document.createElement('a');
+        contentElement.href = `/${node.pageData.path}`;
+        contentElement.className = 'search-result-link';
+        contentElement.textContent = node.pageData.title;
+    } else {
+        // It's just a folder structure (intermediate path not found in search results)
+        contentElement = document.createElement('span');
+        contentElement.className = 'search-result-folder';
+        contentElement.textContent = node.name; // Use the path segment name
+    }
+
+    li.appendChild(contentElement);
+
+    // 2. If it has children, recurse
+    const childKeys = Object.keys(node.children);
+    if (childKeys.length > 0) {
+        const ul = document.createElement('ul');
+        childKeys.sort().forEach(key => {
+            ul.appendChild(createTreeDOM(node.children[key]));
+        });
+        li.appendChild(ul);
+    }
+
+    return li;
+}
+
+function setupAdminTools() {
+    const adminBar = document.getElementById('admin-bar');
+
+    // 1. Render the "Always Visible" part (The Home Button)
+    // We use a container 'admin-controls' to keep styling consistent
+    adminBar.innerHTML = `
+        <div class="admin-controls">
+            <a href="/" class="btn btn-sm btn-primary">Domů</a>
+            
+            <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;"></div>
+        </div>
+    `;
+
+    // 2. Check Auth state to add the rest
+    const auth = getAuth(app);
+    onAuthStateChanged(auth, (user) => {
+        const loggedInContainer = document.getElementById('logged-in-buttons');
+
+        if (user) {
+            // User is logged in -> Add the extra buttons
+            let editButton = '';
+            let deleteButton = '';
+
+            // Only show Edit/Delete if we are on a valid page (currentPage exists)
+            if (currentPage) {
+                // Edit Button logic
+                if (currentPage.data.type === 'markdown' || currentPage.data.type === 'html') {
+                    editButton = `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary" id="edit-button">Upravit</a>`;
+                }
+                // Delete Button logic
+                deleteButton = `<button id="delete-button" class="btn btn-sm btn-danger">Smazat</button>`;
+            }
+
+            // Inject buttons
+            loggedInContainer.innerHTML = `
+                <span class="text-light d-none d-sm-inline">Vítej, admine!</span>
+                ${editButton}
+                ${deleteButton}
+                <a href="/admin/dashboard" class="btn btn-sm btn-dark btn-admin">Admin Panel</a>
+            `;
+
+            // Add event listener for delete (if it exists)
+            const delBtn = document.getElementById('delete-button');
+            if (delBtn) {
+                delBtn.addEventListener('click', handleDeletePage);
+            }
+        } else {
+            // User is not logged in -> Clear the container just in case
+            loggedInContainer.innerHTML = '';
+        }
+    });
 }
 
 // --- 4. Initialize the search functionality ---
+async function initializePage() {
+    setupAdminTools();
+}
+
+initializePage();
 fetchAllPages();
 searchInput.addEventListener('input', handleSearch);
