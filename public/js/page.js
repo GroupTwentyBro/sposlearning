@@ -133,12 +133,12 @@ function renderError(slug) {
  */
 function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
+    const logoutButton = document.getElementById('logout-button');
 
     // 1. Render the "Always Visible" part (The Home Button)
     // We use a container 'admin-controls' to keep styling consistent
     adminBar.innerHTML = `
         <div class="admin-controls">
-            <a href="/" class="btn btn-sm btn-primary">Domů</a>
             
             <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;"></div>
         </div>
@@ -166,10 +166,10 @@ function setupAdminTools() {
 
             // Inject buttons
             loggedInContainer.innerHTML = `
-                <span class="text-light d-none d-sm-inline">Vítej, admine!</span>
                 ${editButton}
                 ${deleteButton}
-                <a href="/admin/dashboard" class="btn btn-sm btn-dark btn-admin">Admin Panel</a>
+                <a href="/admin/dashboard" class="btn btn-sm btn-white">Dashboard</a>
+                <button class="btn btn-sm btn-danger" id="logout-button">Logout</button>
             `;
 
             // Add event listener for delete (if it exists)
@@ -180,6 +180,16 @@ function setupAdminTools() {
         } else {
             // User is not logged in -> Clear the container just in case
             loggedInContainer.innerHTML = '';
+        }
+    });
+
+
+    logoutButton.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            console.log('User logged out.');
+        } catch (error) {
+            console.error('Logout error:', error);
         }
     });
 }

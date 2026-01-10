@@ -13,13 +13,21 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
 </head>
 <body>
+    <div class="control-bar">
+        <div class="user-controls">
+            <a href="/" class="btn btn-sm btn-primary">Domů</a>
+        </div>
+        <div id="admin-bar"></div>
+    </div>
+
     <div class="navbar">
         <div class="search">
             <icon>search</icon>
-            <input id="search-input" placeholder="Načítání stránkek..." type="text" disabled>
+            <input id="search-input" placeholder="Načítání stránek..." type="text" disabled>
         </div>
     </div>
-    <div class="dev-disclamer">
+    <!--
+    <div class="dev-disclamer" id="disclamer-dev">
         <div class="dev-message">
             <icon>
                 warning
@@ -30,7 +38,8 @@
         </div>
         <p class="ver-tag">SPOŠLearning verze beta 0.3</p>
     </div>
-    <div class="info-disclamer">
+    -->
+    <div class="info-disclamer" id="disclamer-info">
         <div class="info-message">
             <icon>
                 info
@@ -40,7 +49,7 @@
             </p>
         </div>
     </div>
-    <div class="content" id="main-content">
+    <div class="content mainpage" id="main-content">
 
         <div id="welcome-message">
             <h1>Vítej na SPOŠLearningu!</h1>
@@ -55,7 +64,7 @@
             <p>
                 Já nic nevnucuju, používej si co chceš. Důvod proč jsem udělal SPOŠLearning je ten že
                 na Discordu bylo všechno dost nepřehledné a každý si tam mohl posílat co chtěl.
-                Vetšina byla i v pohodě (díky Roberte za super AI práci), ale třeba
+                Vetšina byla i v pohodě (díky Roberte za super práci), ale třeba
                 <span class="hint">zápis na Linux příkazy kde je
                 tmavé pozadí a svítivě zelený text<span class="hint-content">článek <a href="/joke/linux" target="_blank">zde</a></span>, plus ještě věci co jsme se ještě neučili a chybí dost věcí co jsme se učili,</span>
                 tak to se mi zrovna moc nezamlouvá (to nech radši na mě Roberte).
@@ -63,21 +72,14 @@
             <h2>Můžu na SPOŠLearning přidávat i já?</h2>
             <hr>
             <p>
-                Ano, na SPOŠLearning může přidávat kdokoliv, když mi svůj nápad/práci pošle na Discord.
-                Rozdíl oproti Discordu pak je že všechny materiály a témata pak kontroluji
-                já a dva nejúspěšnější žáci v daném předmětu ze třídy. Pokud poté tvoje práce projde,
-                tak na SPOŠLearningu bude. Pokud však neprojde, můžeme buď navrhnout pár úprav, upravit sami,
-                nebo se alespoň tvým návrhem inspirovat.<br><br>
-
-                Do budoucna bychom chtěli udělat lepší systém, kde každý bude moct přidávat cokoliv,
-                ale admini to pak budou muset schválit než se to objeví.
-                Toto ale momentálně není hlavní zaměření a zatím SPOŠLearning bude fungovat tak, jak je napsáno v předchozím odstavci.
+                Do budoucna bychom chtěli udělat systém, kde každý bude moct přidávat cokoliv,
+                ale administrátoři to pak budou muset schválit než se to objeví.
+                Momentálně to tu ale funguje tak, že pokud chcete přidávat,
+                tak se ozvěte na email <a href="mailto:itsteddy@zohomail.eu">itsteddy@zohomail.eu</a>
+                jak již zmíněno v kartě výše.
             </p>
         </div>
-        <div id="search-results" style="display: none;
-        background-color: hsl(198, 31%, 18%);
-    border: 1px solid hsl(198, 31%, 12%);
-    color: white;"></div>
+        <div id="search-results" style="display: none;"></div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <script src="/js/firebaseConfig.js" type="module"></script>
