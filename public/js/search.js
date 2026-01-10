@@ -1,6 +1,6 @@
 // public/js/search.js
 
-import { app } from './firebaseConfig.js';
+import {app, auth} from './firebaseConfig.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
@@ -13,6 +13,7 @@ let currentPage = null;
 const searchInput = document.getElementById('search-input');
 const welcomeMessage = document.getElementById('welcome-message');
 const searchResultsContainer = document.getElementById('search-results');
+
 
 /**
  * 1. Fetches all pages from Firestore on page load.
@@ -51,7 +52,7 @@ async function fetchAllPages() {
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
 
-    if (searchTerm.length < 3) {
+    if (searchTerm.length < 2) {
         welcomeMessage.style.display = 'block';
         searchResultsContainer.style.display = 'none';
         searchResultsContainer.innerHTML = '';
@@ -94,26 +95,38 @@ function renderResults(results) {
     searchResultsContainer.appendChild(treeContainer);
 }
 
-function buildTree(pages) {
+function buildTree(results) {
     const root = {};
 
-    pages.forEach(page => {
+    results.forEach(page => {
         // Split path by '/', filter out empty strings
         const parts = page.path.split('/').filter(p => p);
 
         let currentLevel = root;
+        let currentPathAccumulator = ''; // To reconstruct the full path as we go deep
 
         parts.forEach((part, index) => {
+            // Reconstruct the path for the current level (e.g., "prg" then "prg/arrays")
+            currentPathAccumulator += (index > 0 ? '/' : '') + part;
+
             // Create node if it doesn't exist
             if (!currentLevel[part]) {
                 currentLevel[part] = {
                     children: {},
                     name: part,
-                    pageData: null // Will hold title/path if this node is a page
+                    pageData: null
                 };
+
+                // --- THE FIX IS HERE ---
+                // Even if "prg" wasn't in the search results, check if it exists in our global database.
+                // If it does, attach the data so it becomes a clickable link.
+                const parentPageExists = allPages.find(p => p.path === currentPathAccumulator);
+                if (parentPageExists) {
+                    currentLevel[part].pageData = parentPageExists;
+                }
             }
 
-            // If this is the last part of the path, it represents the actual page found
+            // Ensure the specific result we found is definitely set (overwrites the check above if needed)
             if (index === parts.length - 1) {
                 currentLevel[part].pageData = page;
             }
@@ -165,12 +178,12 @@ function createTreeDOM(node) {
 
 function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
+    const logoutButton = document.getElementById('logout-button');
 
     // 1. Render the "Always Visible" part (The Home Button)
     // We use a container 'admin-controls' to keep styling consistent
     adminBar.innerHTML = `
         <div class="admin-controls">
-            <a href="/" class="btn btn-sm btn-primary">Domů</a>
             
             <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;"></div>
         </div>
@@ -198,10 +211,10 @@ function setupAdminTools() {
 
             // Inject buttons
             loggedInContainer.innerHTML = `
-                <span class="text-light d-none d-sm-inline">Vítej, admine!</span>
                 ${editButton}
                 ${deleteButton}
-                <a href="/admin/dashboard" class="btn btn-sm btn-dark btn-admin">Admin Panel</a>
+                <a href="/admin/dashboard" class="btn btn-sm btn-white">Dashboard</a>
+                <button class="btn btn-sm btn-danger" id="logout-button">Logout</button>
             `;
 
             // Add event listener for delete (if it exists)
@@ -212,6 +225,16 @@ function setupAdminTools() {
         } else {
             // User is not logged in -> Clear the container just in case
             loggedInContainer.innerHTML = '';
+        }
+    });
+
+
+    logoutButton.addEventListener('click', async () => {
+        try {
+            await signOut(auth);
+            console.log('User logged out.');
+        } catch (error) {
+            console.error('Logout error:', error);
         }
     });
 }

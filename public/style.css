@@ -45,6 +45,7 @@ body {
     background-color: var(--root-bg-clr);
     color: var(--root-fg-clr);
     font-family: "Raleway";
+    margin-bottom: 40px;
 }
 
 h1 {
@@ -191,23 +192,55 @@ icon {
     padding: 5px;
     font-size: var(--fs-footer);
 }
+.control-bar {
+    display: flex;
+    position: fixed;
+    bottom: 15px;
+    width: 95%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: hsl(from var(--primary-boxbg-clr) h s l / 80%);
+    padding: 5px 5px;
+    z-index: 999;
+    border-radius: 20px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.control-bar .btn {
+    border-radius: 20px;
+    padding: 5px 10px !important;
+    transition: 300ms ease;
+}
 
 .admin-controls {
-    background-color: hsl(198, 31%, 12%);
-    border: none;
-    border-radius: 10px;
     color: var(--root-fg-clr);
-    padding: 5px 10px;
+    padding: 0 5px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    font-size: 0.9rem;
-    margin: 5px 10px;
+}
+
+.user-controls {
+    position: relative;
+    background-color: hsl(198, 31%, 12%);
+    border: none;
+    border-radius: 10px;
+    color: var(--root-fg-clr);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
 }
 
 .btn-admin {
     background-color: hsl(198, 31%, 18%);
+}
+
+.btn-white {
+    background: #FFF;
+    color: black;
 }
 
 #edit-form input {
@@ -342,12 +375,21 @@ textarea {
 }
 
 #search-results {
-    display: block;
+    display: block; /* Managed by JS, but default block */
     position: fixed;
-    left: calc(50% - (65% / 2));
+    left: 50%;
+    transform: translateX(-50%);
     width: 65%;
-    top: 70px;
-    background-color: #0000;
+    top: 60px; /* Moved down slightly to clear navbar */
+    max-height: 80vh;
+    overflow-y: auto;
+
+    /* purely transparent container, content handles the background */
+    background-color: hsl(from var(--primary-boxbg-clr) h s l / 50%);
+    border: 1px solid hsl(from var(--primary-hl-clr) h s l / 50%);
+    border-radius: 15px;
+    padding: 15px;
+    z-index: 1000;
 }
 
 #search-result-list a {
@@ -493,7 +535,7 @@ textarea {
     }
 
     #search-results {
-        width: 98%;
+        width: 95%;
     }
 }
 
@@ -501,60 +543,360 @@ textarea {
 
 .search-tree, .search-tree ul {
     list-style: none;
-    padding-left: 20px;
     margin: 0;
+    padding: 0;
 }
 
-/* Remove padding for the very first level */
-.search-tree {
-    padding-left: 0;
+/* Indent Child Lists */
+.search-tree ul {
+    padding-left: 20px; /* Controls indentation depth */
 }
 
 .search-tree li {
-    margin: 5px 0;
     position: relative;
+
+    /* CRITICAL FIX: Use padding, not margin.
+       This ensures the 'boxes' touch so the line is continuous. */
+    margin: 0;
+    padding-bottom: 8px; /* Vertical spacing between items */
+    padding-top: 8px;
+    padding-left: 25px; /* Space for the curve */
 }
 
-/* The vertical tree line */
-.search-tree ul {
-    border-left: 1px solid white;
+/* 1. THE VERTICAL LINE (The Backbone)
+   Runs from the top of the item to the bottom, connecting to the next item.
+*/
+.search-tree li::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    /* Connects perfectly to the item below because we removed margins */
+    height: 100%;
+    width: 2px;
+    background-color: var(--primary-hl-clr);
+
+    /* Sit behind the curve */
+    z-index: 1;
 }
 
-/* Styling for clickable Page results */
+/* 2. THE CURVE (The Connector)
+   Creates the rounded "L" shape pointing to the button.
+*/
+.search-tree li::after {
+    content: "";
+    position: absolute;
+
+    /* Position the curve to align with the center of the text */
+    top: 0;
+    left: 0;
+
+    /* Dimensions make the shape */
+    height: 26px; /* How far down the curve goes (adjust to match button center) */
+    width: 35px;  /* Width: goes UNDER the button to ensure connection */
+
+    /* The Styling */
+    border-bottom: 2px solid var(--primary-hl-clr);
+    border-left: 2px solid var(--primary-hl-clr);
+    border-bottom-left-radius: 15px; /* Modern rounded corner */
+
+    /* IMPORTANT: Hide the sharp corner of the vertical line behind this curve */
+    background-color: transparent;
+    z-index: 1;
+}
+
+/* 3. THE "LAST CHILD" FIX
+   If it's the last item, we stop the vertical line so it doesn't dangle.
+*/
+.search-tree li:last-child::before {
+    /* Hide the main vertical line... */
+    display: none;
+}
+
+.search-tree li:last-child::after {
+    /* ...but keep the curve, which acts as the vertical line for this item only */
+    border-left: 2px solid var(--primary-hl-clr);
+    height: 26px; /* Matches the curve height above */
+}
+
+/* --- The Entries (Links) --- */
 .search-result-link {
-    display: block;
+    display: flex;
+    align-items: center;
+    position: relative;
+
+    /* Z-Index 2 ensures button floats ON TOP of the connector lines */
+    z-index: 2;
+
     background-color: var(--primary-boxbg-clr);
     border: 1px solid var(--primary-boxfg-clr);
     color: var(--root-fg-clr);
-    padding: 8px 12px;
-    border-radius: 5px;
+
+    padding: 8px 20px;
+    border-radius: 50px; /* Fully rounded pill */
+
     text-decoration: none;
-    transition: background-color 0.2s;
+    font-weight: 500;
+
+    /* Smooth Animations */
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .search-result-link:hover {
     background-color: var(--primary-bg-clr);
     border-color: var(--primary-hl-clr);
-    color: white;
+    color: var(--primary-hl-clr);
+
+    /* Move right on hover - line stays connected because it's wide enough */
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-/* Styling for "Folder" labels (intermediate paths that aren't clicked) */
+/* --- Folder Labels --- */
 .search-result-folder {
-    display: block;
+    display: inline-block;
+    position: relative;
+    z-index: 2;
     padding: 5px 12px;
-    color: var(--primary-hl-clr); /* Use highlight color for folders */
-    font-weight: bold;
+
+    /* Align with the tree line */
+    vertical-align: middle;
+
+    color: var(--root-fg-clr);
+    font-family: "Fira Code", monospace;
     font-size: 0.9em;
-    opacity: 0.8;
+    font-weight: bold;
+
+    background-color: var(--primary-boxbg-clr);
+    border-radius: 8px;
 }
 
-/* Optional: Add a little connector line for visual structure */
-.search-tree ul li::before {
+.input-group {
+    display: flex;
+    align-items: stretch; /* Ensures button and input are same height */
+    gap: 5px; /* Optional space between input and button */
+    width: 100%;
+}
+
+.input-group input {
+    flex-grow: 1; /* Input takes up all remaining space */
+    border-top-right-radius: 0; /* Optional: merge visually */
+    border-bottom-right-radius: 0;
+}
+
+.input-group button {
+    flex-shrink: 0; /* Prevents button from getting squished */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px; /* Add horizontal padding for clickability */
+
+    /* Optional: styling to match input height if you merge them */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background-color: var(--primary-boxbg-clr);
+    border: 1px solid var(--primary-boxfg-clr);
+    color: white;
+    cursor: pointer;
+}
+
+/* Ensure the icon fits nicely */
+.input-group button icon {
+    font-size: 1.5rem;
+}
+
+/* --- Custom Modal Styles --- */
+.custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Dimmed background */
+    z-index: 9999; /* Sit on top of everything */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.custom-modal-content {
+    background-color: var(--root-bg-clr);
+    border: 1px solid var(--primary-boxfg-clr);
+    width: 90%;
+    max-width: 600px;
+    height: 80vh; /* Fixed height */
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--primary-boxfg-clr);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--primary-boxbg-clr);
+    border-radius: 15px 15px 0 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--root-fg-clr);
+    cursor: pointer;
+    padding: 0;
+}
+
+.modal-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    border-top: 1px solid var(--primary-boxfg-clr);
+    background-color: var(--primary-boxbg-clr);
+    border-radius: 0 0 15px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.selection-display {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* --- Tree Styles for Modal (Reusing your logic) --- */
+.modal-tree ul {
+    list-style: none;
+    padding-left: 20px;
+}
+.modal-tree { padding-left: 0; margin: 0; }
+
+.modal-tree li {
+    position: relative;
+    padding: 2px 0 2px 25px; /* Indent for visual hierarchy */
+}
+
+/* Vertical Line */
+.modal-tree li::before {
     content: "";
     position: absolute;
-    top: 20px; /* Adjust based on height of item */
-    left: -20px;
-    width: 20px;
-    height: 1px;
-    background-color: white;
+    top: 0; left: 6px; bottom: 0;
+    width: 2px;
+    background-color: var(--primary-boxfg-clr);
+}
+.modal-tree li:last-child::before { display: none; }
+
+/* Horizontal Curve (Simplified for modal selection) */
+.modal-tree li::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 6px;
+    height: 18px; width: 15px;
+    border-left: 2px solid var(--primary-boxfg-clr);
+    border-bottom: 2px solid var(--primary-boxfg-clr);
+    border-bottom-left-radius: 10px;
+}
+
+.tree-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: fit-content;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.tree-item:hover {
+    background-color: var(--primary-boxbg-clr);
+}
+
+.tree-item.selected {
+    background-color: var(--primary-hl-clr);
+    color: var(--primary-bg-clr); /* Contrast text */
+    font-weight: bold;
+}
+
+.tree-item icon {
+    font-size: 1.2rem;
+}
+
+/* Specific styling for Files vs Folders */
+.tree-item.folder icon {
+    color: var(--primary-hl-clr); /* Folders get the highlight color */
+}
+
+.tree-item.file icon {
+    color: var(--root-fg-clr); /* Files are white/standard text color */
+    opacity: 0.7; /* Make files slightly dimmer */
+    font-size: 1.1rem; /* Files slightly smaller icon */
+}
+
+/* Ensure the lines connect properly to files too */
+.tree-item.file {
+    /* Optional: Make files look less 'heavy' than folders */
+    font-weight: normal;
+}
+
+/* By default, hide the children lists */
+.tree-children {
+    display: none;
+    padding-left: 20px;
+}
+
+/* When active, show them */
+.tree-children.expanded {
+    display: block;
+}
+
+/* The arrow icon */
+.tree-toggle-icon {
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    vertical-align: middle;
+    color: var(--primary-hl-clr);
+    margin-right: 5px;
+}
+
+/* Rotate arrow when expanded */
+.tree-toggle-icon.expanded {
+    transform: rotate(90deg);
+}
+
+/* Spacer for files (so text aligns with folders that have arrows) */
+.tree-spacer {
+    display: inline-block;
+    width: 24px; /* Matches the size of the chevron icon approximately */
+}
+
+/* Adjust the Item container to align flex items */
+.tree-item {
+    display: inline-flex;
+    align-items: center;
+    /* ... existing styles ... */
 }
