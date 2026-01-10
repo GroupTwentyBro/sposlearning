@@ -2,6 +2,7 @@
     /* ROOT CLRS */
     --root-bg-clr: hsl(201, 100%, 9%);
     --root-fg-clr: white;
+    --root-fgd-clr: #AAA;
     --root-ul-sd-clr: gray;
 
     /* PRIMARY CLRS */
@@ -73,7 +74,7 @@ hr {
 }
 
 code {
-    color: var(--secondary-hl-clr);
+    color: var(--root-fgd-clr);
     background-color: var(--primary-boxbg-clr);
     border: 1px solid var(--primary-boxfg-clr);
     padding: 1px 2px;

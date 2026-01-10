@@ -44,9 +44,8 @@ onAuthStateChanged(auth, (user) => {
         console.log('Welcome, admin user:', user.email);
         initializeDashboard();
     } else {
-        /* console.log('No user logged in, redirecting...');
-        window.location.href = '../admin'; */
-        initializeDashboard();
+        console.log('No user logged in, redirecting...');
+        window.location.href = '../admin';
     }
 });
 
