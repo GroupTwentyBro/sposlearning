@@ -2,7 +2,8 @@
 
 import { app } from './firebaseConfig.js';
 // Added Auth imports
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider,
+    reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 // Imports are complete
 import { getFirestore, collection, query, where, getDoc, getDocs, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
@@ -138,7 +139,6 @@ function renderError(slug) {
  */
 function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
-    const logoutButton = document.getElementById('logout-button');
 
     // 1. Render the "Always Visible" part (The Home Button)
     // We use a container 'admin-controls' to keep styling consistent
@@ -177,6 +177,18 @@ function setupAdminTools() {
                 <button class="btn btn-sm btn-danger" id="logout-button">Logout</button>
             `;
 
+            const logoutButton = document.getElementById('logout-button');
+            logoutButton.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    console.log('User logged out.');
+                    // Optional: redirect to home after logout
+                    window.location.reload();
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+
             // Add event listener for delete (if it exists)
             const delBtn = document.getElementById('delete-button');
             if (delBtn) {
@@ -187,16 +199,6 @@ function setupAdminTools() {
             loggedInContainer.innerHTML = '';
         }
     });
-
-
-    logoutButton.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            console.log('User logged out.');
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-    });
 }
 
 /**
@@ -205,18 +207,82 @@ function setupAdminTools() {
 async function handleDeletePage() {
     if (!currentPage) return;
 
-    const title = currentPage.data.title;
-    if (confirm(`Opravdu chcete smazat stránku "${title}"?\n\nTato akce je nevratná.`)) {
-        try {
-            // Delete the document from Firestore using its unique ID
-            await deleteDoc(doc(db, 'pages', currentPage.id));
-            alert('Stránka byla smazána.');
-            window.location.href = '/'; // Redirect to home page
-        } catch (error) {
-            console.error('Error deleting page:', error);
-            alert('Chyba: Stránka nemohla být smazána.');
+    const auth = getAuth(app);
+    const user = auth.currentUser;
+
+    if (!user) {
+        alert("Musíte být přihlášeni.");
+        return;
+    }
+
+    // Use our new custom modal instead of prompt()
+    const password = await requestPassword();
+
+    if (!password) return; // User cancelled or entered nothing
+
+    try {
+        // Show a temporary "processing" state if you like
+        const credential = EmailAuthProvider.credential(user.email, password);
+
+        // Re-authenticate
+        await reauthenticateWithCredential(user, credential);
+
+        // Proceed with deletion
+        await deleteDoc(doc(db, 'pages', currentPage.id));
+
+        alert('Stránka byla úspěšně smazána.');
+        window.location.href = '/';
+
+    } catch (error) {
+        console.error('Error during deletion:', error);
+
+        if (error.code === 'auth/wrong-password') {
+            alert('Chybné heslo. Stránka nebyla smazána.');
+        } else if (error.code === 'auth/too-many-requests') {
+            alert('Příliš mnoho pokusů. Zkuste to později.');
+        } else {
+            alert('Chyba: ' + error.message);
         }
     }
+}
+
+/**
+ * Custom Promise-based password prompt
+ */
+function requestPassword() {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('password-modal-overlay');
+        const input = document.getElementById('modal-password-input');
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+
+        overlay.style.display = 'flex';
+        input.value = '';
+        input.focus();
+
+        const handleConfirm = () => {
+            const val = input.value;
+            cleanup();
+            resolve(val);
+        };
+
+        const handleCancel = () => {
+            cleanup();
+            resolve(null);
+        };
+
+        const cleanup = () => {
+            overlay.style.display = 'none';
+            confirmBtn.removeEventListener('click', handleConfirm);
+            cancelBtn.removeEventListener('click', handleCancel);
+        };
+
+        confirmBtn.addEventListener('click', handleConfirm);
+        cancelBtn.addEventListener('click', handleCancel);
+
+        // Allow pressing "Enter" to submit
+        input.onkeydown = (e) => { if (e.key === 'Enter') handleConfirm(); };
+    });
 }
 
 
