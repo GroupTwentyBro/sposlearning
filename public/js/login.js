@@ -25,7 +25,7 @@ loginForm.addEventListener('submit', async (e) => {
 
         console.log('User logged in:', userCredential.user);
 
-        window.location.href = 'admin/dashboard.html';
+        window.location.href = '/admin/dashboard';
 
     } catch (error) {
         console.error('Login error:', error);
