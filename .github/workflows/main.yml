@@ -19,8 +19,5 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /www/ # Forpsi usually expects public files here
-        exclude: |
-          **/.git*
-          **/.github*
-          README.md
+        server-dir: /www/
+        local-dir: ./public/
