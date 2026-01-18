@@ -1,0 +1,78 @@
+#page-form input,
+#edit-form input,
+#login-form input {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: var(--root-fg-clr);
+}
+
+#page-form select,
+#edit-form select,
+#login-form select {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: var(--root-fg-clr);
+}
+
+#page-form textarea,
+#edit-form textarea,
+#login-form textarea {
+    background-color: hsl(198, 31%, 12%);
+    border: 1px solid hsl(198, 31%, 18%);
+    color: var(--root-fg-clr);
+}
+
+#page-form #editor-files input,
+#edit-form #editor-files input,
+#login-form #editor-files input {
+    background-color: #0b1215;
+    border: none;
+    color: var(--root-fg-clr);
+}
+
+#page-form #editor-files input button,
+#edit-form #editor-files input button,
+#login-form #editor-files input button {
+    background-color: hsl(198, 31%, 18%);
+    border: 1px solid hsl(198, 31%, 12%);
+    color: var(--root-fg-clr);
+}
+
+#login-form input,
+#login-form select,
+#login-form textarea,
+#login-form #editor-files input,
+#login-form #editor-files input button {
+    color: white;
+}
+
+.input-group {
+    display: flex;
+    align-items: stretch;
+    gap: 5px;
+    width: 100%;
+}
+
+.input-group input {
+    flex-grow: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background-color: var(--box-overlay-clr);
+    border: 1px solid var(--box-overlay-border-clr);
+    color: white;
+    cursor: pointer;
+}
+
+.input-group button icon {
+    font-size: 1.5rem;
+}
