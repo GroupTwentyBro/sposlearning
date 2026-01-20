@@ -37,7 +37,7 @@ async function loadFeedback() {
 
             // Create Element
             const a = document.createElement('a');
-            a.href = `./feedback/post?id=${id}`;
+            a.href = `./post?id=${id}`;
             a.className = `feedback-item list-group-item-action ${data.resolved ? 'read' : ''}`;
 
             a.innerHTML = `
