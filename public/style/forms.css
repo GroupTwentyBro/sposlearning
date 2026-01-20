@@ -1,6 +1,7 @@
 #page-form input,
 #edit-form input,
-#login-form input {
+#login-form input,
+#feedback-form input {
     background-color: var(--box-overlay-clr);
     border: 1px solid var(--box-overlay-border-clr);
     border-radius: var(--box-border-radius);
@@ -18,7 +19,8 @@
 
 #page-form textarea,
 #edit-form textarea,
-#login-form textarea {
+#login-form textarea,
+#feedback-form textarea {
     background-color: var(--box-overlay-clr);
     border: 1px solid var(--box-overlay-border-clr);
     border-radius: var(--box-border-radius);
