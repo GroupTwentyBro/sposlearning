@@ -53,7 +53,7 @@ input {
 code {
     color: var(--primary-hl-clr);
     background-color: hsl(213, 30%, 15%);
-    border-radius: 50px;
+    border-radius: 20px;
     padding: 2px 8px;
     font-family: "Fira Code", monospace;
 }
