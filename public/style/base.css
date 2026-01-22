@@ -51,11 +51,13 @@ input {
     border-radius: var(--box-border-radius);
 }
 
-code {
-    color: var(--primary-hl-clr);
+:not(pre) > code {
     background-color: var(--code-bg-clr);
-    border-radius: 20px;
-    padding: 2px 8px;
+    color: var(--trietary-hl-clr);
+    padding: 0.2em 0.4em;
+    border-radius: 6px;
+    font-size: 0.9em;
+    border: 1px solid var(--box-overlay-border-clr);
     font-family: "Fira Code", monospace;
 }
 
@@ -89,9 +91,25 @@ spacer {
     color: var(--root-txt-clr);
 }
 
+.content pre {
+    background-color: var(--code-bg-clr);
+    border: 1px solid var(--box-overlay-border-clr);
+    border-radius: var(--box-border-radius);
+    padding: 1.2rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
 .content pre code {
     tab-size: 4;
     -moz-tab-size: 4;
+    background-color: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    font-family: "Fira Code", monospace;
+    font-size: 0.95em;
+    color: inherit;
 }
 
 .inline-code {
