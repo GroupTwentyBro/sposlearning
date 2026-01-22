@@ -130,13 +130,14 @@ ol > li {
     counter-increment: my-list-counter;
     position: relative;
     margin-bottom: 20px;
-    padding-top: 5px;
+    /* Removed padding-top: 5px; This was pushing text down relative to the icon */
 }
 
 ol > li:before {
     position: absolute;
     left: -45px;
-    top: 0;
+    /* Adjust top slightly to center vertically with the first line of text text */
+    top: -2px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -157,6 +158,10 @@ ol > li::before {
 }
 
 ol > li > :first-child {
+    margin-top: 0;
+}
+
+ol > li > div > :first-child {
     margin-top: 0;
 }
 
