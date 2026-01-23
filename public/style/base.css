@@ -151,7 +151,7 @@ spacer {
 }
 
 /* Container must be relative so children can be absolute */
-.icon-stack {
+.pc .icon-stack. {
     position: relative;
     width: 20px;  /* Adjust based on your icon size */
     height: 20px;
