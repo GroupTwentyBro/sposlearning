@@ -28,36 +28,36 @@
     --primary-hl-clr: hsl(260, 100%, 75%); /* High contrast lavender */
 
     /* SECONDARY CLRS - Neon Fuchsia (Hue 300) */
-    --secondary-sd-clr: hsl(300, 100%, 10%);
-    --secondary-bg-clr: hsl(300, 100%, 19%);
-    --secondary-fg-clr: hsl(300, 100%, 32%);
-    --secondary-hl-clr: hsl(300, 100%, 64%);
+    --secondary-sd-clr: hsl(260, 100%, 10%);
+    --secondary-bg-clr: hsl(260, 100%, 19%);
+    --secondary-fg-clr: hsl(260, 100%, 32%);
+    --secondary-hl-clr: hsl(260, 100%, 75%);
 
     /* TRIETARY CLRS - Mint/Teal (Hue 160 - Complementary) */
-    --trietary-sd-clr: hsl(160, 84%, 10%);
-    --trietary-bg-clr: hsl(160, 84%, 19%);
-    --trietary-fg-clr: hsl(160, 84%, 32%);
-    --trietary-hl-clr: hsl(160, 84%, 64%);
+    --trietary-sd-clr: hsl(260, 100%, 10%);
+    --trietary-bg-clr: hsl(260, 100%, 19%);
+    --trietary-fg-clr: hsl(260, 100%, 32%);
+    --trietary-hl-clr: hsl(260, 100%, 75%);
 
     /* DISCL CLRS - Kept semantic but dimmed background */
-    --discl-def-bg-clr: hsl(0, 0%, 19%);
-    --discl-def-fg-clr: hsl(0, 0%, 32%);
+    --discl-def-bg-clr: hsl(260, 100%, 19%);
+    --discl-def-fg-clr: hsl(260, 100%, 32%);
 
     /* Error/Important - Red */
-    --discl-important-bg-clr: hsl(0, 80%, 15%);
-    --discl-important-fg-clr: hsl(0, 100%, 40%);
+    --discl-important-bg-clr: hsl(260, 100%, 19%);
+    --discl-important-fg-clr: hsl(260, 100%, 32%);
 
     /* Success - Green */
-    --discl-importantgreen-bg-clr: hsl(140, 80%, 15%);
-    --discl-importantgreen-fg-clr: hsl(140, 100%, 35%);
+    --discl-importantgreen-bg-clr: hsl(260, 100%, 19%);
+    --discl-importantgreen-fg-clr: hsl(260, 100%, 32%);
 
     /* Warning - Amber */
-    --discl-warning-bg-clr: hsl(40, 100%, 15%);
-    --discl-warning-fg-clr: hsl(40, 100%, 35%);
+    --discl-warning-bg-clr: hsl(260, 100%, 19%);
+    --discl-warning-fg-clr: hsl(260, 100%, 32%);
 
     /* Info - Cyan */
-    --discl-info-bg-clr: hsl(190, 80%, 15%);
-    --discl-info-fg-clr: hsl(190, 100%, 40%);
+    --discl-info-bg-clr: hsl(260, 100%, 19%);
+    --discl-info-fg-clr: hsl(260, 100%, 32%);
 
     /* FONT SIZES */
     --fs-h1: 2.2rem;
