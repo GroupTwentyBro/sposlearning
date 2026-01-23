@@ -220,8 +220,14 @@ function setupAdminTools() {
             let deleteButton = '';
             // (Your existing button logic here...)
             loggedInContainer.innerHTML = `
-            <a href="/admin/dashboard" class="btn btn-sm btn-white">Dashboard</a>
-            <button class="btn btn-sm btn-danger" id="logout-button">Logout</button>
+            <a href="/admin/dashboard" class="btn btn-sm btn-white pc" id="homeButton">Dashboard</a>
+            <button class="btn btn-sm btn-danger pc" id="logout-button">Logout</button>
+            <a href="/admin/dashboard" class="btn btn-sm btn-white mobile">
+                <span class="icon">team_dashboard</span>
+            </a>
+            <button class="btn btn-sm btn-danger mobile" id="logout-button">
+                <span class="icon">logout</span>
+            </button>
             `;
 
             document.getElementById('logout-button').addEventListener('click', () => {

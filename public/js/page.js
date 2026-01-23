@@ -188,18 +188,34 @@ function setupAdminTools() {
             if (currentPage) {
                 // Edit Button logic
                 if (currentPage.data.type === 'markdown' || currentPage.data.type === 'html') {
-                    editButton = `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary" id="edit-button">Upravit</a>`;
+                    editButton = `
+                        <a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc" id="edit-button">Upravit</a>
+                        <a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary mobile" id="edit-button">
+                            <span class="icon">edit_note</span>
+                        </a>
+                    `;
                 }
                 // Delete Button logic
-                deleteButton = `<button id="delete-button" class="btn btn-sm btn-danger">Smazat</button>`;
+                deleteButton = `
+                    <button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>
+                    <button class="btn btn-sm btn-danger mobile" id="delete-button">
+                        <span class="icon">delete</span>
+                    </button>
+                `;
             }
 
             // Inject buttons
             loggedInContainer.innerHTML = `
                 ${editButton}
                 ${deleteButton}
-                <a href="/admin/dashboard" class="btn btn-sm btn-white">Dashboard</a>
-                <button class="btn btn-sm btn-danger" id="logout-button">Logout</button>
+                <a href="/admin/dashboard" class="btn btn-sm btn-white pc" id="homeButton">Dashboard</a>
+                <button class="btn btn-sm btn-danger pc" id="logout-button">Logout</button>
+                <a href="/admin/dashboard" class="btn btn-sm btn-white mobile">
+                    <span class="icon">team_dashboard</span>
+                </a>
+                <button class="btn btn-sm btn-danger mobile" id="logout-button">
+                    <span class="icon">logout</span>
+                </button>
             `;
 
             const logoutButton = document.getElementById('logout-button');
