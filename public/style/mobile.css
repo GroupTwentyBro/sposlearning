@@ -75,6 +75,20 @@
         font-size: var(--icon-tiny);
     }
 
+    .ctrl-btn .icon-stack {
+        width: var(--icon-tiny);
+        height: var(--icon-tiny);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ctrl-btn .icon-stack .icon {
+        font-size: var(--icon-tiny);
+        top: 0;
+        left: 0;
+    }
+
     .pc {
         display: none !important;
     }
