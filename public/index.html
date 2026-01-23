@@ -54,14 +54,12 @@
         <a href="/feedback.html?page=" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Zpětná vazba">
             <span class="icon">chat</span>
         </a>
-        <!--
         <button id="theme-toggle-ctrl" class="btn btn-sm btn-primary ctrl-btn mobile">
             <div class="icon-stack">
                 <icon class="icon-moon">dark_mode</icon>
                 <icon class="icon-sun">light_mode</icon>
             </div>
         </button>
-        -->
     </div>
     <div id="admin-bar"></div>
 </div>
@@ -136,6 +134,7 @@
 <script>
     const themeLink = document.getElementById("theme-link");
     const ldBtn = document.getElementById("theme-toggle");
+    const ldBtnMobile = document.getElementById("theme-toggle-mobile");
     const mikeBtn = document.getElementById("mike-toggle");
 
     function applyTheme(themeName) {
@@ -157,6 +156,16 @@
     applyTheme(currentTheme);
 
     ldBtn.addEventListener("click", function() {
+        const current = localStorage.getItem("theme");
+
+        if (current === "dark") {
+            applyTheme("light");
+        } else {
+            applyTheme("dark");
+        }
+    });
+
+    ldBtnMobile.addEventListener("click", function() {
         const current = localStorage.getItem("theme");
 
         if (current === "dark") {
