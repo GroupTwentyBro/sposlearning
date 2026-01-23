@@ -75,10 +75,13 @@
 
     .ctrl-btn .icon {
         font-size: var(--icon-tiny);
+        line-height: 1;
     }
 
     .ctrl-btn .icon-stack {
         width: var(--icon-tiny);
+        height: var(--icon-tiny);
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -88,6 +91,9 @@
         font-size: var(--icon-tiny);
         top: 0;
         left: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
     }
 
     .pc {
