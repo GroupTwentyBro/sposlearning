@@ -82,7 +82,7 @@
     }
 }
 
-.btn-primary {
+.btn-primary, .btn-danger {
 background: var(--primary-fg-clr) !important;
 border-color: var(--primary-fg-clr) !important;
 }
