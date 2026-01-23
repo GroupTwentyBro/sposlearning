@@ -57,6 +57,12 @@
             <a href="/feedback.html?page=" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Zpětná vazba">
                 <span class="icon">chat</span>
             </a>
+            <button id="theme-toggle-ctrl" class="btn btn-sm btn-primary ctrl-btn theme-btn mobile">
+                <div class="icon-stack">
+                    <span class="icon-moon icon">dark_mode</span>
+                    <span class="icon-sun icon">light_mode</span>
+                </div>
+            </button>
         </div>
         <div id="admin-bar"></div>
     </div>
@@ -79,10 +85,9 @@
             </div>
         </div>
     </div>
-    <button id="theme-toggle" class="btn btn-icon">
+    <button id="theme-toggle" class="btn btn-icon pc">
         <div class="icon-stack">
             <icon class="icon-moon">dark_mode</icon>
-
             <icon class="icon-sun">light_mode</icon>
         </div>
     </button>
@@ -92,7 +97,7 @@
     <script>
         const themeLink = document.getElementById("theme-link");
         const ldBtn = document.getElementById("theme-toggle");
-        const mikeBtn = document.getElementById("mike-toggle");
+        const ldBtnMobile = document.getElementById("theme-toggle-ctrl");
 
         function applyTheme(themeName) {
             if (themeName === 'mike') {
@@ -106,8 +111,18 @@
                 ldBtn.classList.remove("is-dark");
             }
 
+            if (themeName === 'dark') {
+                ldBtn.classList.add("is-dark");
+                if(ldBtnMobile) ldBtnMobile.classList.add("is-dark");
+            } else {
+                ldBtn.classList.remove("is-dark");
+                if(ldBtnMobile) ldBtnMobile.classList.remove("is-dark");
+            }
+
             localStorage.setItem("theme", themeName);
         }
+
+
 
         const currentTheme = localStorage.getItem("theme") || "light";
         applyTheme(currentTheme);
@@ -122,8 +137,14 @@
             }
         });
 
-        mikeBtn.addEventListener("click", function() {
-            applyTheme("mike");
+        ldBtnMobile.addEventListener("click", function() {
+            const current = localStorage.getItem("theme");
+
+            if (current === "dark") {
+                applyTheme("light");
+            } else {
+                applyTheme("dark");
+            }
         });
     </script>
     <script>
