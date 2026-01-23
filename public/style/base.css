@@ -67,7 +67,7 @@ textarea {
     border-radius: var(--box-border-radius);
 }
 
-icon {
+icon, .icon {
     font-family: "Material Symbols Outlined";
     font-size: var(--icon-big);
     font-variation-settings: 'FILL' 1, 'wght' 400;
