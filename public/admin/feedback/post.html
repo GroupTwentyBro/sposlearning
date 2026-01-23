@@ -59,50 +59,36 @@
 </button>
 <script type="module" src="post.js"></script>
 <script>
-    const btn = document.getElementById("theme-toggle");
     const themeLink = document.getElementById("theme-link");
+    const ldBtn = document.getElementById("theme-toggle");
 
-    // 1. Check local storage on load
-    const currentTheme = localStorage.getItem("theme");
-
-    // Function to apply the visual state of the button
-    function updateButtonState(theme) {
-        if (theme === "dark") {
-            btn.classList.add("is-dark"); // This triggers the CSS fade
-        } else {
-            btn.classList.remove("is-dark");
-        }
-    }
-
-    // Initial setup
-    if (currentTheme === "dark") {
-        themeLink.href = "/style/variables-dark.css";
-        updateButtonState("dark");
-    }
-
-    // 2. Button Click Event
-    btn.addEventListener("click", function() {
-
-        // Toggle Logic
-        if (themeLink.href.includes("variables-light.css")) {
-            // Switch to Dark
+    function applyTheme(themeName) {
+        if (themeName === 'mike') {
+            themeLink.href = "/style/variables-mike.css";
+            ldBtn.classList.remove("is-dark");
+        } else if (themeName === 'dark') {
             themeLink.href = "/style/variables-dark.css";
-            localStorage.setItem("theme", "dark");
-            updateButtonState("dark");
+            ldBtn.classList.add("is-dark");
         } else {
-            // Switch to Light
             themeLink.href = "/style/variables-light.css";
-            localStorage.setItem("theme", "light");
-            updateButtonState("light");
+            ldBtn.classList.remove("is-dark");
+        }
+
+        localStorage.setItem("theme", themeName);
+    }
+
+    const currentTheme = localStorage.getItem("theme") || "light";
+    applyTheme(currentTheme);
+
+    ldBtn.addEventListener("click", function() {
+        const current = localStorage.getItem("theme");
+
+        if (current === "dark") {
+            applyTheme("light");
+        } else {
+            applyTheme("dark");
         }
     });
-</script>
-<script>
-    // Run this immediately to prevent flash of wrong theme
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-        document.getElementById("theme-link").href = "/style/variables-dark.css";
-    }
 </script>
 </body>
 </html>
