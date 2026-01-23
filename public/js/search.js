@@ -222,10 +222,10 @@ function setupAdminTools() {
             loggedInContainer.innerHTML = `
             <a href="/admin/dashboard" class="btn btn-sm btn-white pc" id="homeButton">Dashboard</a>
             <button class="btn btn-sm btn-danger pc" id="logout-button">Logout</button>
-            <a href="/admin/dashboard" class="btn btn-sm btn-white mobile">
+            <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
                 <span class="icon">team_dashboard</span>
             </a>
-            <button class="btn btn-sm btn-danger mobile" id="logout-button">
+            <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button">
                 <span class="icon">logout</span>
             </button>
             `;
