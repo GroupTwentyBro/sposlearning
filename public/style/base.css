@@ -153,6 +153,12 @@ spacer {
     justify-content: center;
 }
 
+#theme-toggle:focus,
+#theme-toggle:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
 .icon-stack {
     position: relative;
     width: 20px;
