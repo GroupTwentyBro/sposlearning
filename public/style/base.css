@@ -148,6 +148,9 @@ spacer {
     height: 70px;
     border-radius: 20px;
     color: var(--root-fg-clr);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .icon-stack {
@@ -158,29 +161,26 @@ spacer {
     vertical-align: middle; /* Aligns icon vertically in the button */
 }
 
-/* Common style for both icons */
+.icon-stack icon,
 .icon-stack .icon {
     position: absolute;
     top: 0;
-    left: 0; /* Changed from right:0 to ensure centering */
-    font-size: 20px; /* Force size because parent is font-size: 0 */
+    left: 0;
+    font-size: 20px;
     transition: opacity 0.5s ease, transform 0.5s ease;
+    line-height: 1;
 }
 
-
-/* DEFAULT STATE (Light Theme): */
-/* Moon is visible */
 .icon-moon {
     opacity: 1;
     transform: rotate(0deg);
 }
-/* Sun is hidden */
+
 .icon-sun {
     opacity: 0;
-    transform: rotate(90deg); /* Start slightly rotated for effect */
+    transform: rotate(90deg);
 }
 
-/* DARK STATE (When button has 'is-dark' class): */
 .is-dark .icon-moon {
     opacity: 0;
     transform: rotate(-90deg);
