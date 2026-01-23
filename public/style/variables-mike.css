@@ -82,7 +82,8 @@
     }
 }
 
-.btn-primary, .btn-danger {
-background: var(--primary-fg-clr) !important;
-border-color: var(--primary-fg-clr) !important;
+.btn-primary, .btn-danger, .btn-white, .btn-secondary, .btn-success, .btn-warning, .btn-dark {
+    background: var(--primary-fg-clr) !important;
+    border-color: var(--primary-fg-clr) !important;
+    color: white !important;
 }
