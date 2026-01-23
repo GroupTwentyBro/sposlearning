@@ -70,24 +70,4 @@
         padding: 0.5rem;
         min-width: 32px;
     }
-
-    #homeButton::before {
-        /* 4. Insert the icon using the ligature name */
-        content: "home";
-
-        /* 5. Set the font family to Material Symbols */
-        font-family: 'Material Symbols Outlined';
-
-        /* 6. Make the icon visible (restore font size) */
-        font-size: 20px;
-
-        /* Standard Google Material Icon reset styles */
-        font-weight: normal;
-        font-style: normal;
-        line-height: 1;
-        letter-spacing: normal;
-        text-transform: none;
-        white-space: nowrap;
-        direction: ltr;
-    }
 }
