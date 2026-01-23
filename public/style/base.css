@@ -138,7 +138,7 @@ spacer {
     flex-direction: column;
 }
 
-#theme-toggle {
+#theme-toggle.pc {
     position: fixed;
     top: 0;
     right: 20px;
