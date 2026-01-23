@@ -75,6 +75,9 @@
 
     .ctrl-btn .icon {
         font-size: var(--icon-tiny);
+    }
+
+    .ctrl-btn.theme-btn .icon {
         line-height: 1;
     }
 
