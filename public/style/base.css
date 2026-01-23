@@ -189,3 +189,7 @@ spacer {
     opacity: 1;
     transform: rotate(0deg);
 }
+
+.btn {
+    border-radius: var(--box-border-radius) !important;
+}
