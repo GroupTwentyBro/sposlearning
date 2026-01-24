@@ -11,21 +11,26 @@
         (function() {
             const storedTheme = localStorage.getItem("theme") || "dark";
             const themeLinkHead = document.getElementById("theme-link");
+            const root = document.documentElement;
 
-            if (storedTheme === 'mike') {
+            // 1. Add the missing check for 'hueshift'
+            if (storedTheme === 'hueshift') {
+                themeLinkHead.href = "/style/theme-hueshift.css";
+                // 2. CRITICAL: Restore the hue value variable!
+                root.style.setProperty('--hue-val', localStorage.getItem("hue-val") || 0);
+
+            } else if (storedTheme === 'mike') {
                 themeLinkHead.href = "/style/theme-mike.css";
-
-                // --- THE FIX IS HERE ---
-                // We manually force the background color for Mike theme immediately.
                 // CHANGE '#333333' TO THE EXACT BACKGROUND COLOR OF YOUR MIKE THEME
-                document.documentElement.style.backgroundColor = 'hsl(270, 84%, 5%)';
+                root.style.backgroundColor = 'hsl(270, 84%, 5%)';
 
             } else if (storedTheme === 'light') {
                 themeLinkHead.href = "/style/theme-light.css";
-                document.documentElement.style.backgroundColor = 'hsl(0, 0%, 90%)'; // Force white for light mode
+                root.style.backgroundColor = 'hsl(0, 0%, 90%)'; // Force white for light mode
             } else {
+                // Fallback (Dark Mode)
                 themeLinkHead.href = "/style/theme-dark.css";
-                document.documentElement.style.backgroundColor = 'hsl(229, 84%, 5%)'; // Force dark for dark mode
+                root.style.backgroundColor = 'hsl(229, 84%, 5%)'; // Force dark for dark mode
             }
         })();
     </script>
