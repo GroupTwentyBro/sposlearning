@@ -98,6 +98,7 @@
     function applyTheme(themeName) {
         if (themeName === 'hueshift') {
             themeLink.href = "/style/theme-hueshift.css";
+            root.style.setProperty('--hue-val', localStorage.getItem("hue-val"));
         } else if (themeName === 'mike') {
             themeLink.href = "/style/theme-mike.css";
         } else if (themeName === 'dark') {
@@ -126,6 +127,7 @@
 
     hueshiftToggle.addEventListener("click", function() {
         applyTheme("hueshift");
+        localStorage.setItem("hue-val", hueshiftToggle.value);
     });
 </script>
 </body>
