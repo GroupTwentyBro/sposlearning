@@ -126,8 +126,14 @@
     });
 
     hueshiftToggle.addEventListener("click", function() {
-        applyTheme("hueshift");
         localStorage.setItem("hue-val", hueshiftToggle.value);
+        applyTheme("hueshift");
+    });
+
+    hueshiftToggle.addEventListener('input', (e) => {
+        localStorage.setItem("hue-val", e.target.value);
+        root.style.setProperty('--hue-val', e.target.value);
+        applyTheme("hueshift");
     });
 </script>
 </body>
