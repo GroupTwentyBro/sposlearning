@@ -83,38 +83,6 @@
         <button id="delete-btn" class="btn btn-danger">Delete</button>
     </div>
 </div>
-<button id="theme-toggle" class="btn btn-icon">
-    <div class="icon-stack">
-        <icon class="icon-moon">dark_mode</icon>
-
-        <icon class="icon-sun">light_mode</icon>
-    </div>
-</button>
 <script type="module" src="post.js"></script>
-<script>
-    const ldBtn = document.getElementById("theme-toggle");
-
-    const currentTheme = localStorage.getItem("theme") || "dark";
-    const root = document.documentElement;
-
-    if (currentTheme === 'dark') {
-        ldBtn.classList.add("is-dark");
-    }
-
-    ldBtn.addEventListener("click", function() {
-        const current = localStorage.getItem("theme") || "dark";
-        const themeLink = document.getElementById("theme-link");
-
-        if (current === "dark") {
-            themeLink.href = "/style/theme-light.css";
-            ldBtn.classList.remove("is-dark");
-            localStorage.setItem("theme", "light");
-        } else {
-            themeLink.href = "/style/theme-dark.css";
-            ldBtn.classList.add("is-dark");
-            localStorage.setItem("theme", "dark");
-        }
-    });
-</script>
 </body>
 </html>
