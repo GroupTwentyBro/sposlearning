@@ -85,6 +85,7 @@
     const ldBtn = document.getElementById("theme-toggle");
 
     const currentTheme = localStorage.getItem("theme") || "dark";
+    const root = document.documentElement;
 
     if (currentTheme === 'dark') {
         ldBtn.classList.add("is-dark");
