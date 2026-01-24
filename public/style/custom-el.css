@@ -276,6 +276,6 @@ input[type="range"] {
         hsl(360, 100%, 50%)
     ) !important;
     appearance: none !important; /* Removes default OS styling */
-    height: 20px !important;
-    border-radius: 5px !important;
+    height: 40px !important;
+    border-radius: 20px !important;
 }
