@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback Details - SPOŠLearning</title>
+    <style>
+        body { background-color: inherit !important; }
+    </style>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
     <link href="/style/variables-global.css" rel="stylesheet">
     <script>
         (function() {
             const storedTheme = localStorage.getItem("theme") || "dark";
+            const storedHue = localStorage.getItem("hue-val") || 0;
             const themeLinkHead = document.getElementById("theme-link");
             const root = document.documentElement;
 
@@ -17,7 +21,8 @@
             if (storedTheme === 'hueshift') {
                 themeLinkHead.href = "/style/theme-hueshift.css";
                 // 2. CRITICAL: Restore the hue value variable!
-                root.style.setProperty('--hue-val', localStorage.getItem("hue-val") || 0);
+                root.style.setProperty('--hue-val', storedHue);
+                root.style.backgroundColor = `hsl(${storedHue}, 84%, 5%)`;
 
             } else if (storedTheme === 'mike') {
                 themeLinkHead.href = "/style/theme-mike.css";
