@@ -74,13 +74,15 @@ function initializeDashboard() {
     enableTabIndentation(document.getElementById('html-content'));
 
     // --- 1. Logout ---
-    logoutButton.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            console.log('User logged out.');
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
+    document.getElementById('logout-button').addEventListener('click', () => {
+        signOut(auth)
+            .then(() => {
+                console.log("User signed out successfully");
+                // The onAuthStateChanged listener will trigger automatically and update UI
+            })
+            .catch((error) => {
+                console.error("Error signing out:", error);
+            });
     });
 
     // --- 2. Show/Hide Editors based on Dropdown ---
