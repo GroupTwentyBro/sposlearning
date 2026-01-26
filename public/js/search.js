@@ -84,9 +84,22 @@ function handleSearch(e) {
             if (!currentUser) return false;
         }
 
-        // 2. Search Term Check
-        return page.path.toLowerCase().includes(searchTerm) || page.title.toLowerCase().includes(searchTerm);
-        // || page.content.includes(searchTerm) // Uncomment to search content too
+        const matchedTitlePaths = pages
+            .filter(p => p.title.toLowerCase().includes(searchTerm))
+            .map(p => p.path);
+
+        return pages.filter(page => {
+            // Original checks
+            const matchesPath = page.path.toLowerCase().includes(searchTerm);
+            const matchesTitle = page.title.toLowerCase().includes(searchTerm);
+
+            // New check: Does this page's path include a path from a Title match?
+            const isChildOfTitleMatch = matchedTitlePaths.some(parentPath =>
+                page.path.includes(parentPath)
+            );
+
+            return matchesPath || matchesTitle || isChildOfTitleMatch;
+        });
     });
 
     welcomeMessage.style.display = 'none';
