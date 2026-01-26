@@ -51,8 +51,6 @@ onAuthStateChanged(auth, (user) => {
 
 // --- Main Function ---
 function initializeDashboard() {
-    // Get all HTML elements
-    logoutButton = document.getElementById('logout-button');
     pageForm = document.getElementById('page-form');
     pageTypeSelect = document.getElementById('page-type');
     saveButton = document.getElementById('save-button');
