@@ -85,7 +85,7 @@ function handleSearch(e) {
         }
 
         // 2. Search Term Check
-        return page.path.toLowerCase().includes(searchTerm);
+        return page.path.toLowerCase().includes(searchTerm) || page.title.toLowerCase().includes(searchTerm);
         // || page.content.includes(searchTerm) // Uncomment to search content too
     });
 
