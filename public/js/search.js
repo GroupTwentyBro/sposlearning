@@ -36,10 +36,6 @@ async function fetchAllPages() {
             if (data.type !== 'redirection') {
                 const detectedAccess = getAccessLevel(data);
 
-                if(detectedAccess === 'admin') {
-                    console.log(`Protected Page found: ${data.title}`);
-                }
-
                 allPages.push({
                     title: data.title,
                     path: data.fullPath,
@@ -49,7 +45,6 @@ async function fetchAllPages() {
             }
         });
 
-        console.log(`Loaded ${allPages.length} pages.`);
         searchInput.placeholder = "Hledej v zápisech...";
         searchInput.disabled = false;
 
