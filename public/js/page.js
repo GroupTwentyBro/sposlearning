@@ -86,6 +86,7 @@ async function loadContent() {
 
         onAuthStateChanged(auth, (user) => {
             if (getAccessLevel(pageData) === "admin" && !user) {
+                contentContainer.innerHTML = `<h1>Toto je stránka pouze pro adminy.</h1>`
                 window.location.href = '/';
             } else {
                 // Set the browser tab title
