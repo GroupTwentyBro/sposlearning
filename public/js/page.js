@@ -1,6 +1,6 @@
 // public/js/page.js
 
-import { app } from './firebaseConfig.js';
+import {app, auth} from './firebaseConfig.js';
 // Added Auth imports
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider,
     reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
@@ -78,6 +78,17 @@ async function loadContent() {
         // 4. We found it! Get the data.
         const pageData = pageDoc.data();
         currentPage = { id: pageDoc.id, data: pageData }; // Store the ID (new or old)
+
+        function getAccessLevel(data) {
+            const rawValue = data['access-level'] || data['accessLevel'] || data['access_level'] || 'public';
+            return String(rawValue).toLowerCase().trim();
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (getAccessLevel(pageData) === "admin" && !user) {
+                window.location.href = '/';
+            }
+        });
 
         // Set the browser tab title
         document.title = pageData.title;
