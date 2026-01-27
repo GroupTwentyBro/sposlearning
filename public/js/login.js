@@ -3,15 +3,14 @@ import { auth } from './firebaseConfig.js';
 import {
     signInWithEmailAndPassword,
     setPersistence,
-    browserLocalPersistence
-    GoogleAuthProvider, // <-- Add this
-    signInWithPopup,    // <-- Add this
+    browserLocalPersistence,
+    GoogleAuthProvider,
+    signInWithPopup,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"; // <-- FIX #2
 
 const ALLOWED_ADMINS = [
-    "itsmeteddyhere@gmail.com",
-    "another.admin@example.com"
+    "itsmeteddyhere@gmail.com"
 ];
 
 const loginForm = document.getElementById('login-form');
