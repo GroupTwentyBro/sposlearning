@@ -3,7 +3,7 @@
 import {app, auth} from './firebaseConfig.js';
 // Added Auth imports
 import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider,
-    reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    reauthenticateWithCredential, GoogleAuthProvider, reauthenticateWithPopup } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 // Imports are complete
 import { getFirestore, collection, query, where, getDoc, getDocs, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
@@ -268,18 +268,31 @@ async function handleDeletePage() {
         return;
     }
 
-    // Use our new custom modal instead of prompt()
-    const password = await requestPassword();
-
-    if (!password) return; // User cancelled or entered nothing
-
     try {
-        // Show a temporary "processing" state if you like
-        const credential = EmailAuthProvider.credential(user.email, password);
+        // Check which provider the user used to sign in (google.com or password)
+        // We look at the first provider in the list.
+        const providerId = user.providerData[0]?.providerId;
 
-        // Re-authenticate
-        await reauthenticateWithCredential(user, credential);
+        if (providerId === 'google.com') {
+            // --- GOOGLE FLOW ---
+            // If they are a Google user, we skip the custom modal and
+            // open the Google Re-auth popup window instead.
+            const provider = new GoogleAuthProvider();
 
+            // This opens the "Google Confirmation Page" in a popup
+            await reauthenticateWithPopup(user, provider);
+
+        } else {
+            // --- PASSWORD FLOW (Existing) ---
+            // If they are an email/password user, ask for the password
+            const password = await requestPassword();
+            if (!password) return; // User cancelled
+
+            const credential = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, credential);
+        }
+
+        // If we get here, re-authentication succeeded (no error was thrown)
         // Proceed with deletion
         await deleteDoc(doc(db, 'pages', currentPage.id));
 
@@ -291,6 +304,8 @@ async function handleDeletePage() {
 
         if (error.code === 'auth/wrong-password') {
             alert('Chybné heslo. Stránka nebyla smazána.');
+        } else if (error.code === 'auth/popup-closed-by-user') {
+            alert('Ověření zrušeno uživatelem.');
         } else if (error.code === 'auth/too-many-requests') {
             alert('Příliš mnoho pokusů. Zkuste to později.');
         } else {
