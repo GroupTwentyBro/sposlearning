@@ -59,6 +59,20 @@ async function fetchAllPages() {
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
 
+    if (searchTerm.length === 0) {
+        welcomeMessage.style.display = 'none';
+        if(disclamerInfo) disclamerInfo.style.display = 'none';
+        searchResultsContainer.style.display = 'block';
+
+        const allVisible = allPages.filter(page => {
+            if (page.accessLevel === 'admin' && !currentUser) return false;
+            return true;
+        });
+
+        renderResults(allVisible);
+        return;
+    }
+
     // Basic UI Toggle
     if (searchTerm.length < 2) {
         welcomeMessage.style.display = 'block';
@@ -258,3 +272,4 @@ async function initializePage() {
 initializePage();
 fetchAllPages();
 searchInput.addEventListener('input', handleSearch);
+searchInput.addEventListener('focus', handleSearch);
