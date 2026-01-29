@@ -74,19 +74,6 @@
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
-<script>
-    // 3. The JavaScript to link them
-    const slider = document.getElementById('hueSlider');
-
-    // Select the root element (where the variable is defined)
-    const root = document.documentElement;
-
-    slider.addEventListener('input', (e) => {
-        // Set the CSS variable to the slider's value
-        root.style.setProperty('--hue-val', e.target.value);
-    });
-</script>
-
 <!-- Your dashboard logic -->
 <script src="dashboard.js" type="module"></script>
 <script>
@@ -95,47 +82,68 @@
     const lightBtn = document.getElementById("lighttheme-btn");
     const mikeBtn = document.getElementById("miketheme-btn");
     const hueshiftToggle = document.getElementById("hueSlider");
+    const root = document.documentElement; // Ensure root is defined
 
     function applyTheme(themeName) {
+        let newHref = "";
+
+        // 1. Determine which file we need
         if (themeName === 'hueshift') {
-            themeLink.href = "/style/theme-hueshift.css";
-            root.style.setProperty('--hue-val', localStorage.getItem("hue-val"));
-            root.style.setProperty('--hue-val', localStorage.getItem("hue-val"));
+            newHref = "/style/theme-hueshift.css";
+            // Ensure the hue variable is set
+            root.style.setProperty('--hue-val', localStorage.getItem("hue-val") || 0);
         } else if (themeName === 'mike') {
-            themeLink.href = "/style/theme-mike.css";
+            newHref = "/style/theme-mike.css";
         } else if (themeName === 'dark') {
-            themeLink.href = "/style/theme-dark.css";
+            newHref = "/style/theme-dark.css";
         } else {
-            themeLink.href = "/style/theme-light.css";
+            newHref = "/style/theme-light.css";
+        }
+
+        // 2. THE FIX: Only change the href if it is actually different.
+        // This prevents the browser from reloading the CSS file while you drag the slider.
+        if (themeLink.getAttribute("href") !== newHref) {
+            themeLink.href = newHref;
         }
 
         localStorage.setItem("theme", themeName);
     }
 
+    // Apply saved theme on load
     const currentTheme = localStorage.getItem("theme") || "light";
+    // If loading into hueshift, make sure the slider matches the saved value
+    if (currentTheme === 'hueshift') {
+        hueshiftToggle.value = localStorage.getItem("hue-val") || 0;
+    }
     applyTheme(currentTheme);
+
+    // --- Event Listeners ---
 
     darkBtn.addEventListener("click", function() {
         applyTheme("dark");
-    })
+    });
 
     lightBtn.addEventListener("click", function() {
         applyTheme("light");
-    })
+    });
 
     mikeBtn.addEventListener("click", function() {
         applyTheme("mike");
     });
 
-    hueshiftToggle.addEventListener("click", function() {
-        localStorage.setItem("hue-val", hueshiftToggle.value);
-        applyTheme("hueshift");
-    });
-
+    // We only use 'input' here. 'click' is unnecessary and causes double-firing.
     hueshiftToggle.addEventListener('input', (e) => {
-        localStorage.setItem("hue-val", e.target.value);
-        root.style.setProperty('--hue-val', e.target.value);
-        applyTheme("hueshift");
+        const val = e.target.value;
+
+        // Update storage and CSS variable immediately
+        localStorage.setItem("hue-val", val);
+        root.style.setProperty('--hue-val', val);
+
+        // Only trigger the theme switch if we aren't already using it
+        // (This allows seamless switching if the user starts dragging while in "Dark" mode)
+        if (localStorage.getItem("theme") !== "hueshift") {
+            applyTheme("hueshift");
+        }
     });
 </script>
 </body>
