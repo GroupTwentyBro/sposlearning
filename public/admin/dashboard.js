@@ -53,6 +53,7 @@ function initializeScripts() {
     const darkBtn = document.getElementById("darktheme-btn");
     const lightBtn = document.getElementById("lighttheme-btn");
     const mikeBtn = document.getElementById("miketheme-btn");
+    const teddyBtn = document.getElementById("teddytheme-btn");
     const hueshiftToggle = document.getElementById("hueSlider");
     const root = document.documentElement;
     const themeLink = document.getElementById("theme-link");
@@ -64,6 +65,7 @@ function initializeScripts() {
     if(darkBtn) darkBtn.addEventListener("click", () => window.applyTheme("dark"));
     if(lightBtn) lightBtn.addEventListener("click", () => window.applyTheme("light"));
     if(mikeBtn) mikeBtn.addEventListener("click", () => window.applyTheme("mike"));
+    if(teddyBtn) teddyBtn.addEventListener("click", () => window.applyTheme("teddy"));
 
     if(hueshiftToggle) {
         // Set initial slider value if using hueshift
@@ -92,7 +94,8 @@ window.applyTheme = function(themeName) {
     if (themeName === 'hueshift') {
         newHref = "/style/theme-hueshift.css";
         root.style.setProperty('--hue-val', localStorage.getItem("hue-val") || 0);
-    } else if (themeName === 'mike') newHref = "/style/theme-mike.css";
+    } else if (themeName === 'teddy') newHref = "/style/theme-teddy.css";
+    else if (themeName === 'mike') newHref = "/style/theme-mike.css";
     else if (themeName === 'dark') newHref = "/style/theme-dark.css";
     else newHref = "/style/theme-light.css";
 

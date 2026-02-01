@@ -1,0 +1,80 @@
+:root {
+    /* ROOT CLRS - Based on Dark Amethyst (Hue 261/272) */
+    --root-bg-clr: hsl(261, 60%, 5%); /* Darkened base for depth */
+    --root-fg-clr: #FFFFFF;
+    --root-txt-clr: hsla(0, 0%, 100%, 0.87);
+    --root-box-bg-clr: hsl(261, 60%, 8%);
+    --root-box-fg-clr: hsl(272, 62%, 12%);
+    --root-fgd-clr: hsl(297, 10%, 65%); /* Muted Amethyst Smoke */
+    --root-ul-sd-clr: hsl(292, 47%, 42%);
+    --code-bg-clr: hsl(261, 40%, 12%);
+
+    /* BOX STYLES */
+    --box-overlay-clr: hsla(0, 0%, 100%, 4%);
+    --box-clr: hsl(261, 60%, 10%);
+    --box-border-clr: hsl(272, 62%, 25%); /* Using Dark Amethyst 2 */
+    --box-overlay-fg-clr: hsla(0, 0%, 100%, 50%);
+    --box-overlay-border-clr: hsla(0, 0%, 100%, 8%);
+    --box-txt-clr: hsla(0, 0%, 100%, 0.75);
+
+    /* PRIMARY CLRS - Amethyst Focus */
+    --primary-boxbg-clr: hsl(292, 47%, 15%);
+    --primary-boxfg-clr: hsl(292, 47%, 20%);
+    --primary-sd-clr: hsl(273, 47%, 25%);
+    --primary-bg-clr: hsl(273, 47%, 35%); /* Indigo Velvet */
+    --primary-fg-clr: hsl(292, 47%, 42%); /* Amethyst */
+    --primary-hl-clr: hsl(297, 28%, 54%); /* Amethyst Smoke */
+
+    /* SECONDARY CLRS - Raspberry Plum Focus */
+    --secondary-sd-clr: hsl(319, 54%, 20%);
+    --secondary-bg-clr: hsl(319, 54%, 30%);
+    --secondary-fg-clr: hsl(319, 54%, 43%); /* Raspberry Plum */
+    --secondary-hl-clr: hsl(9, 93%, 66%);    /* Vibrant Coral pop */
+
+    /* TRIETARY CLRS - Sandy Brown Accent */
+    --trietary-sd-clr: hsl(30, 98%, 20%);
+    --trietary-bg-clr: hsl(30, 98%, 35%);
+    --trietary-fg-clr: hsl(30, 98%, 65%); /* Sandy Brown */
+    --trietary-hl-clr: hsl(30, 98%, 85%);
+
+    /* DISCL CLRS - Semantic mappings */
+    --discl-def-bg-clr: hsla(273, 47%, 35%, 0.2);
+    --discl-def-fg-clr: hsl(273, 47%, 45%);
+
+    /* Error/Important - Vibrant Coral */
+    --discl-important-bg-clr: hsla(9, 93%, 66%, 0.15);
+    --discl-important-fg-clr: hsl(9, 93%, 66%);
+
+    /* Success - Amethyst (Purple-ish success) */
+    --discl-importantgreen-bg-clr: hsla(297, 28%, 54%, 0.15);
+    --discl-importantgreen-fg-clr: hsl(297, 28%, 65%);
+
+    /* Warning - Sandy Brown */
+    --discl-warning-bg-clr: hsla(30, 98%, 65%, 0.15);
+    --discl-warning-fg-clr: hsl(30, 98%, 65%);
+
+    /* Info - Amethyst Smoke */
+    --discl-info-bg-clr: hsla(297, 28%, 54%, 0.15);
+    --discl-info-fg-clr: hsl(297, 28%, 54%);
+
+    /* UNDERLINE STYLES */
+    --ul-dotted: linear-gradient(to right, var(--root-ul-sd-clr) 1px, transparent 1px);
+}
+
+.btn-primary, .btn-danger, .btn-white, .btn-secondary, .btn-success, .btn-warning, .btn-dark {
+    background: var(--primary-fg-clr) !important;
+    border-color: var(--primary-fg-clr) !important;
+    color: white !important;
+    transition: filter 0.2s ease;
+}
+
+.btn-primary:hover {
+    filter: brightness(1.2);
+}
+
+body {
+    background-image: url("/media/bg-teddytheme.png") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: cover !important;
+}

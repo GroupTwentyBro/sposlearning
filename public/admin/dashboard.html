@@ -33,7 +33,8 @@
         if (themeName === 'hueshift') {
             newHref = "/style/theme-hueshift.css";
             root.style.setProperty('--hue-val', localStorage.getItem("hue-val") || 0);
-        } else if (themeName === 'mike') newHref = "/style/theme-mike.css";
+        } else if (themeName === 'teddy') newHref = "/style/theme-teddy.css";
+        else if (themeName === 'mike') newHref = "/style/theme-mike.css";
         else if (themeName === 'dark') newHref = "/style/theme-dark.css";
 
         if (themeLink.getAttribute("href") !== newHref) themeLink.href = newHref;
