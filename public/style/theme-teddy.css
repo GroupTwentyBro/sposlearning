@@ -61,15 +61,54 @@
     --ul-dotted: linear-gradient(to right, var(--root-ul-sd-clr) 1px, transparent 1px);
 }
 
-.btn-primary, .btn-danger, .btn-white, .btn-secondary, .btn-success, .btn-warning, .btn-dark {
+/* BUTTON OVERRIDES - Using CSS Variables */
+
+/* Primary & Dark: The main deep Amethysts */
+.btn-primary, .btn-dark {
     background: var(--primary-fg-clr) !important;
     border-color: var(--primary-fg-clr) !important;
-    color: white !important;
-    transition: filter 0.2s ease;
+    color: var(--root-fg-clr) !important;
 }
 
-.btn-primary:hover {
-    filter: brightness(1.2);
+/* Secondary: The Raspberry Plum */
+.btn-secondary {
+    background: var(--secondary-fg-clr) !important;
+    border-color: var(--secondary-fg-clr) !important;
+    color: var(--root-fg-clr) !important;
+}
+
+/* Danger: The Vibrant Coral (mapped to discl-important) */
+.btn-danger {
+    background: var(--discl-important-fg-clr) !important;
+    border-color: var(--discl-important-fg-clr) !important;
+    color: var(--root-fg-clr) !important;
+}
+
+/* Warning: The Sandy Brown */
+.btn-warning {
+    background: var(--trietary-fg-clr) !important;
+    border-color: var(--trietary-fg-clr) !important;
+    color: var(--root-box-fg-clr) !important; /* Dark text for contrast */
+}
+
+/* Success: The Amethyst Smoke (mapped to discl-info/green) */
+.btn-success {
+    background: var(--discl-importantgreen-fg-clr) !important;
+    border-color: var(--discl-importantgreen-fg-clr) !important;
+    color: var(--root-fg-clr) !important;
+}
+
+/* White: High contrast */
+.btn-white {
+    background: var(--root-fg-clr) !important;
+    border-color: var(--root-fg-clr) !important;
+    color: var(--root-box-bg-clr) !important;
+}
+
+/* Interactive States */
+.btn-primary:hover, .btn-secondary:hover, .btn-danger:hover, .btn-success:hover, .btn-warning:hover {
+    filter: brightness(1.1);
+    cursor: pointer;
 }
 
 body {
