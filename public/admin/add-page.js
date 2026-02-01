@@ -12,6 +12,8 @@ import {
     collection, // <--- ADDED
     getDocs     // <--- ADDED
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+import { initThemeListeners, applyTheme } from '/js/theming.js';
 // --- !! IMPORTANT: CONFIGURE CLOUDINARY !! ---
 const CLOUDINARY_CLOUD_NAME = "dmrefvudz"; // <-- PASTE YOUR CLOUD NAME
 const CLOUDINARY_UPLOAD_PRESET = "sposlearning-upload-v1"; // <-- PASTE YOUR UPLOAD PRESET NAME
@@ -245,6 +247,23 @@ function initializeDashboard() {
             renderModalTree(buildTreeFromCache());
         }
     });
+
+    initThemeListeners();
+
+    // Special logic for your unique "theme-toggle" button on this specific page
+    const toggleBtn = document.getElementById("theme-toggle");
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", () => {
+            const current = localStorage.getItem("theme");
+            applyTheme(current === "dark" ? "light" : "dark");
+
+            // Toggle the 'is-dark' class for the icon animation if needed
+            toggleBtn.classList.toggle("is-dark", localStorage.getItem("theme") === "dark");
+        });
+
+        // Initial state set
+        toggleBtn.classList.toggle("is-dark", localStorage.getItem("theme") === "dark");
+    }
 }
 
 async function fetchAndBuildTree() {
