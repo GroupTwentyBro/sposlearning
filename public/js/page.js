@@ -1,37 +1,49 @@
-// public/js/page.js
+import { app, auth } from './firebaseConfig.js';
+import {
+    getAuth,
+    onAuthStateChanged,
+    signOut,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    GoogleAuthProvider,
+    reauthenticateWithPopup
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+    getFirestore,
+    collection,
+    query,
+    where,
+    getDoc,
+    getDocs,
+    doc,
+    deleteDoc
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import {app, auth} from './firebaseConfig.js';
-// Added Auth imports
-import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider,
-    reauthenticateWithCredential, GoogleAuthProvider, reauthenticateWithPopup } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-// Imports are complete
-import { getFirestore, collection, query, where, getDoc, getDocs, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+// Import modular theming functions
+import { initThemeListeners, applyTheme } from './theming.js';
 
-// Initialize
 const db = getFirestore(app);
 const contentContainer = document.getElementById('wiki-content-container');
 
-
-// This will store the loaded page's ID and data
+// Store the current page data globally for admin tools
 let currentPage = null;
 
+/**
+ * 1. MARKDOWN CONFIGURATION
+ * Custom extension to prevent Marked from breaking MathJax delimiters
+ */
 const mathExtension = {
     name: 'math',
     level: 'inline',
     start(src) { return src.indexOf('$'); },
     tokenizer(src) {
-        // Match $$ block math $$
         const blockRule = /^\$\$\s*([\s\S]*?)\s*\$\$/;
         const blockMatch = blockRule.exec(src);
-        if (blockMatch) {
-            return { type: 'text', raw: blockMatch[0], text: blockMatch[0] };
-        }
-        // Match $ inline math $
+        if (blockMatch) return { type: 'text', raw: blockMatch[0], text: blockMatch[0] };
+
         const inlineRule = /^\$((?:[^\$\\]|\\.)*)\$/;
         const inlineMatch = inlineRule.exec(src);
-        if (inlineMatch) {
-            return { type: 'text', raw: inlineMatch[0], text: inlineMatch[0] };
-        }
+        if (inlineMatch) return { type: 'text', raw: inlineMatch[0], text: inlineMatch[0] };
     },
     renderer(token) { return token.text; }
 };
@@ -39,11 +51,11 @@ const mathExtension = {
 marked.use({ extensions: [mathExtension] });
 
 /**
- * Main function to load and render content
+ * 2. CONTENT LOADING LOGIC
  */
 async function loadContent() {
     let fullPath = window.location.pathname.substring(1);
-    fullPath = fullPath.replace(/\/+$/, '');
+    fullPath = fullPath.replace(/\/+$/, ''); // Clean trailing slashes
 
     if (fullPath === '') {
         window.location.href = '/';
@@ -51,315 +63,175 @@ async function loadContent() {
     }
 
     try {
+        // Try New ID format (path|to|page)
         const newDocId = fullPath.replace(/\//g, '|');
         const docRef = doc(db, 'pages', newDocId);
         let docSnap = await getDoc(docRef);
-        let pageDoc = docSnap; // This will hold the final document
+        let pageDoc = docSnap;
 
-        // 2. If not found, try searching by the fullPath field (OLD method)
+        // Fallback to Old Query method (field search)
         if (!docSnap.exists()) {
-            console.log("Page not found with new ID, trying old query method...");
-            const pagesRef = collection(db, 'pages');
-            const q = query(pagesRef, where("fullPath", "==", fullPath));
+            const q = query(collection(db, 'pages'), where("fullPath", "==", fullPath));
             const querySnapshot = await getDocs(q);
-
             if (!querySnapshot.empty) {
-                console.log("Found page with old ID.");
-                pageDoc = querySnapshot.docs[0]; // Get the document from the query
+                pageDoc = querySnapshot.docs[0];
             }
         }
 
-        // 3. Now, check if we found a page by *either* method
         if (!pageDoc.exists()) {
             renderError(fullPath);
             return;
         }
 
-        // 4. We found it! Get the data.
         const pageData = pageDoc.data();
-        currentPage = { id: pageDoc.id, data: pageData }; // Store the ID (new or old)
+        currentPage = { id: pageDoc.id, data: pageData };
 
-        function getAccessLevel(data) {
-            const rawValue = data['access-level'] || data['accessLevel'] || data['access_level'] || 'public';
-            return String(rawValue).toLowerCase().trim();
-        }
+        const accessLevel = (pageData['accessLevel'] || pageData['access-level'] || 'public').toLowerCase();
 
         onAuthStateChanged(auth, (user) => {
-            if (getAccessLevel(pageData) === "admin" && !user) {
-                contentContainer.innerHTML = `<h1>Toto je stránka pouze pro adminy.</h1>`
+            // Security Check
+            if (accessLevel === "admin" && !user) {
                 window.location.href = '/';
-            } else {
-                // Set the browser tab title
-                document.title = pageData.title;
+                return;
+            }
 
-                // 6. Render the content based on its type
-                if (pageData.type === 'markdown') {
-                    contentContainer.innerHTML = marked.parse(pageData.content, { breaks: true });
-                    contentContainer.classList.add('tex2jax_process');
-                    contentContainer.innerHTML = marked.parse(pageData.content, { breaks: true });
-                } else if (pageData.type === 'html') {
-                    contentContainer.innerHTML = pageData.content;
-                } else if (pageData.type === 'files') {
-                    renderFileExplorer(pageData.title, pageData.content);
-                } else if (pageData.type === 'redirection') {
-                    const destination = pageData.content;
+            document.title = pageData.title;
 
-                    // Check if it's an external link
-                    if (destination.startsWith('http://') || destination.startsWith('https://')) {
-                        // It's external. Use replace() to act like a real redirect.
-                        window.location.replace(destination);
-                    } else {
-                        // It's internal. Use href to navigate like a normal link.
-                        window.location.href = destination;
-                    }
-                }
+            // Render by Type
+            if (pageData.type === 'markdown') {
+                contentContainer.innerHTML = marked.parse(pageData.content, { breaks: true });
+                contentContainer.classList.add('tex2jax_process');
+            } else if (pageData.type === 'html') {
+                contentContainer.innerHTML = pageData.content;
+            } else if (pageData.type === 'files') {
+                renderFileExplorer(pageData.title, pageData.content);
+            } else if (pageData.type === 'redirection') {
+                const dest = pageData.content;
+                dest.startsWith('http') ? window.location.replace(dest) : window.location.href = dest;
+            }
 
-                contentContainer.querySelectorAll('pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
+            // Trigger Syntax Highlighting
+            contentContainer.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
 
-                if (window.MathJax && window.MathJax.typesetPromise) {
-                    window.MathJax.typesetPromise([contentContainer]).catch((err) => console.log(err));
-                }
+            // Trigger MathJax
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([contentContainer]).catch(err => console.error(err));
             }
         });
 
     } catch (error) {
-        console.error("Error loading content:", error);
-        renderError(fullPath, error);
+        console.error("Critical Load Error:", error);
+        renderError(fullPath);
     }
 }
 
 /**
- * Helper function to render the new File Explorer page
+ * 3. UI RENDERING HELPERS
  */
 function renderFileExplorer(title, files) {
-    let fileListHtml = files.map(file => {
-        // Simple file size formatter
-        const size = (file.bytes / (1024 * 1024) > 1)
-            ? `${(file.bytes / (1024 * 1024)).toFixed(2)} MB`
+    const fileListHtml = files.map(file => {
+        const size = (file.bytes / 1048576 > 1)
+            ? `${(file.bytes / 1048576).toFixed(2)} MB`
             : `${(file.bytes / 1024).toFixed(0)} KB`;
 
         return `
-            <a href="${file.url}" target="_blank" rel="noopener noreferrer" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+            <a href="${file.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
+               style="background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
                 ${file.name}
-                <span class="badge badge-primary badge-pill">${size}</span>
-            </a>
-        `;
+                <span class="badge" style="background: var(--primary-fg-clr); color: white; border-radius: 20px;">${size}</span>
+            </a>`;
     }).join('');
 
     contentContainer.innerHTML = `
-        <h1>${title}</h1>
-        <p>Soubory ke stažení:</p>
-        <div class="list-group">
-            ${fileListHtml}
-        </div>
-    `;
+        <h1 style="color: var(--primary-hl-clr)">${title}</h1>
+        <p style="color: var(--root-fgd-clr)">Dostupné soubory:</p>
+        <div class="list-group" style="max-width: 600px;">${fileListHtml}</div>`;
 }
 
-/**
- * Helper function to show a 404 error
- */
 function renderError(slug) {
     contentContainer.innerHTML = `
-        <h1>404 - Stránka nenalezena</h1>
+        <h1>404 - Nenalezeno</h1>
         <hr>
-        <p>Bohužel, stránka s názvem "<code>${slug}</code>" neexistuje.</p>
-        <a href="/">Vrátit se domů</a>
-    `;
+        <p>Stránka "<code>${slug}</code>" v databázi neexistuje.</p>
+        <a href="/" class="btn btn-primary">Zpět domů</a>`;
 }
 
-// --- NEW Admin Tools Section ---
-
 /**
- * Adds Edit/Delete buttons if the user is logged in
+ * 4. ADMIN TOOLS & DELETION
  */
 function setupAdminTools() {
+    initThemeListeners(); // Call modular theme setup
     const adminBar = document.getElementById('admin-bar');
+    adminBar.innerHTML = `<div class="admin-controls"><div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;"></div></div>`;
 
-    // 1. Render the "Always Visible" part (The Home Button)
-    // We use a container 'admin-controls' to keep styling consistent
-    adminBar.innerHTML = `
-        <div class="admin-controls">
-            
-            <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;"></div>
-        </div>
-    `;
-
-    // 2. Check Auth state to add the rest
-    const auth = getAuth(app);
     onAuthStateChanged(auth, (user) => {
         const loggedInContainer = document.getElementById('logged-in-buttons');
-
         if (user) {
-            // User is logged in -> Add the extra buttons
-            let editButton = '';
-            let deleteButton = '';
+            let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
+                ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
 
-            // Only show Edit/Delete if we are on a valid page (currentPage exists)
-            if (currentPage) {
-                // Edit Button logic
-                if (currentPage.data.type === 'markdown' || currentPage.data.type === 'html') {
-                    editButton = `
-                        <a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc" id="edit-button">Upravit</a>
-                        <a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary ctrl-btn mobile" id="edit-button">
-                            <span class="icon">edit_note</span>
-                        </a>
-                    `;
-                }
-                // Delete Button logic
-                deleteButton = `
-                    <button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>
-                    <button class="btn btn-sm btn-danger ctrl-btn mobile" id="delete-button">
-                        <span class="icon">delete</span>
-                    </button>
-                `;
-            }
+            let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
 
-            // Inject buttons
             loggedInContainer.innerHTML = `
-                ${editButton}
-                ${deleteButton}
-                <a href="/admin/dashboard" class="btn btn-sm btn-white pc" id="homeButton">Dashboard</a>
+                ${editBtn} ${deleteBtn}
+                <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
                 <button class="btn btn-sm btn-danger pc" id="logout-button">Logout</button>
-                <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
-                    <span class="icon">team_dashboard</span>
-                </a>
-                <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button">
-                    <span class="icon">logout</span>
-                </button>
             `;
 
-            const logoutButton = document.getElementById('logout-button');
-            logoutButton.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    console.log('User logged out.');
-                    // Optional: redirect to home after logout
-                    window.location.reload();
-                } catch (error) {
-                    console.error('Logout error:', error);
-                }
-            });
-
-            // Add event listener for delete (if it exists)
-            const delBtn = document.getElementById('delete-button');
-            if (delBtn) {
-                delBtn.addEventListener('click', handleDeletePage);
-            }
-        } else {
-            // User is not logged in -> Clear the container just in case
-            loggedInContainer.innerHTML = '';
+            document.getElementById('logout-button')?.addEventListener('click', () => signOut(auth).then(() => window.location.reload()));
+            document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
         }
     });
 }
 
-/**
- * Handles the delete page logic
- */
 async function handleDeletePage() {
     if (!currentPage) return;
-
-    const auth = getAuth(app);
     const user = auth.currentUser;
-
-    if (!user) {
-        alert("Musíte být přihlášeni.");
-        return;
-    }
+    const providerId = user.providerData[0]?.providerId;
 
     try {
-        // Check which provider the user used to sign in (google.com or password)
-        // We look at the first provider in the list.
-        const providerId = user.providerData[0]?.providerId;
-
         if (providerId === 'google.com') {
-            // --- GOOGLE FLOW ---
-            // If they are a Google user, we skip the custom modal and
-            // open the Google Re-auth popup window instead.
-            const provider = new GoogleAuthProvider();
-
-            // This opens the "Google Confirmation Page" in a popup
-            await reauthenticateWithPopup(user, provider);
-
+            await reauthenticateWithPopup(user, new GoogleAuthProvider());
         } else {
-            // --- PASSWORD FLOW (Existing) ---
-            // If they are an email/password user, ask for the password
             const password = await requestPassword();
-            if (!password) return; // User cancelled
-
+            if (!password) return;
             const credential = EmailAuthProvider.credential(user.email, password);
             await reauthenticateWithCredential(user, credential);
         }
 
-        // If we get here, re-authentication succeeded (no error was thrown)
-        // Proceed with deletion
         await deleteDoc(doc(db, 'pages', currentPage.id));
-
-        alert('Stránka byla úspěšně smazána.');
+        alert('Smazáno.');
         window.location.href = '/';
-
     } catch (error) {
-        console.error('Error during deletion:', error);
-
-        if (error.code === 'auth/wrong-password') {
-            alert('Chybné heslo. Stránka nebyla smazána.');
-        } else if (error.code === 'auth/popup-closed-by-user') {
-            alert('Ověření zrušeno uživatelem.');
-        } else if (error.code === 'auth/too-many-requests') {
-            alert('Příliš mnoho pokusů. Zkuste to později.');
-        } else {
-            alert('Chyba: ' + error.message);
-        }
+        console.error(error);
+        alert('Chyba při ověřování: ' + error.message);
     }
 }
 
-/**
- * Custom Promise-based password prompt
- */
 function requestPassword() {
     return new Promise((resolve) => {
         const overlay = document.getElementById('password-modal-overlay');
         const input = document.getElementById('modal-password-input');
-        const confirmBtn = document.getElementById('modal-confirm-btn');
-        const cancelBtn = document.getElementById('modal-cancel-btn');
-
         overlay.style.display = 'flex';
-        input.value = '';
         input.focus();
 
-        const handleConfirm = () => {
-            const val = input.value;
-            cleanup();
+        const clean = (val) => {
+            overlay.style.display = 'none';
             resolve(val);
         };
 
-        const handleCancel = () => {
-            cleanup();
-            resolve(null);
-        };
-
-        const cleanup = () => {
-            overlay.style.display = 'none';
-            confirmBtn.removeEventListener('click', handleConfirm);
-            cancelBtn.removeEventListener('click', handleCancel);
-        };
-
-        confirmBtn.addEventListener('click', handleConfirm);
-        cancelBtn.addEventListener('click', handleCancel);
-
-        // Allow pressing "Enter" to submit
-        input.onkeydown = (e) => { if (e.key === 'Enter') handleConfirm(); };
+        document.getElementById('modal-confirm-btn').onclick = () => clean(input.value);
+        document.getElementById('modal-cancel-btn').onclick = () => clean(null);
+        input.onkeydown = (e) => { if (e.key === 'Enter') clean(input.value); };
     });
 }
 
 function setupFeedbackLink() {
     const feedbackLink = document.getElementById("feedback-button");
-    if (feedbackLink && !feedbackLink.href.includes('?page=' + window.location.pathname)) {
-        feedbackLink.href += window.location.pathname;
-    }
+    if (feedbackLink) feedbackLink.href += window.location.pathname;
 }
 
+// Start everything
 async function initializePage() {
     await loadContent();
     setupAdminTools();

@@ -1,6 +1,7 @@
 import { app, auth } from '../js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initThemeListeners } from '../js/theming.js';
 
 const db = getFirestore(app);
 const listContainer = document.getElementById('feedback-list');
@@ -16,11 +17,12 @@ let hideResolved = false;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // Initial load
+        // Initialize theme listeners
+        initThemeListeners();
+
         loadFeedback();
         setupControls();
     } else {
-        // Redirect or handle unauthorized
         window.location.href = '/admin';
     }
 });

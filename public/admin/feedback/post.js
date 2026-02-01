@@ -1,6 +1,7 @@
 import { app, auth } from '../../js/firebaseConfig.js'; // Note the relative path
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initThemeListeners } from '../../js/theming.js';
 
 const db = getFirestore(app);
 const contentArea = document.getElementById('content-area');

@@ -2,7 +2,7 @@
 import { app, auth } from '/js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, deleteDoc, query, where, getDocs, setDoc, getDoc, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
+import { initThemeListeners, applyTheme } from '/js/theming.js';
 // --- Initialize ---
 const db = getFirestore(app);
 
@@ -32,11 +32,29 @@ let isOldDocument = false;
  */
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // User is logged in, load the page data
         loadPageForEditing();
+
+        // Initialize modular theme listeners (for sliders, etc if present)
+        initThemeListeners();
+
+        // Handle the specific sun/moon toggle for this page
+        const toggleBtn = document.getElementById("theme-toggle");
+        if (toggleBtn) {
+            const updateToggleUI = () => {
+                const isDark = localStorage.getItem("theme") === "dark";
+                toggleBtn.classList.toggle("is-dark", isDark);
+            };
+
+            toggleBtn.addEventListener("click", () => {
+                const current = localStorage.getItem("theme");
+                applyTheme(current === "dark" ? "light" : "dark");
+                updateToggleUI();
+            });
+
+            updateToggleUI(); // Initial visual sync
+        }
+
     } else {
-        // Not logged in, redirect to admin login
-        console.log('No user logged in, redirecting...');
         window.location.href = '/admin';
     }
 });

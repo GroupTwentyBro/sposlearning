@@ -1,6 +1,7 @@
 import {app, auth} from './firebaseConfig.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initThemeListeners, applyTheme } from './theming.js';
 
 // --- Global cache ---
 const db = getFirestore(app);
@@ -264,9 +265,48 @@ function setupAdminTools() {
     });
 }
 
+function initHomeTheming() {
+    // 1. Core listeners (handles hue slider and standard buttons)
+    initThemeListeners();
+
+    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
+    const toggles = [
+        { id: "theme-toggle", type: "toggle" },
+        { id: "theme-toggle-ctrl", type: "toggle" },
+        { id: "mike-toggle", type: "mike" }
+    ];
+
+    toggles.forEach(t => {
+        const btn = document.getElementById(t.id);
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+            const current = localStorage.getItem("theme");
+            if (t.type === "mike") {
+                applyTheme("mike");
+            } else {
+                applyTheme(current === "dark" ? "light" : "dark");
+            }
+            syncToggleUI();
+        });
+    });
+
+    syncToggleUI();
+}
+
+function syncToggleUI() {
+    const isDark = localStorage.getItem("theme") === "dark";
+    const pcBtn = document.getElementById("theme-toggle");
+    const mobBtn = document.getElementById("theme-toggle-ctrl");
+
+    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
+    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
+}
+
 // --- Initialize ---
 async function initializePage() {
     setupAdminTools();
+    initHomeTheming();
 }
 
 initializePage();
