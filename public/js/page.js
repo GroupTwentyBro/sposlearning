@@ -88,7 +88,7 @@ async function loadContent() {
 
         const accessLevel = (pageData['accessLevel'] || pageData['access-level'] || 'public').toLowerCase();
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             // Security Check
             if (accessLevel === "admin" && !user) {
                 window.location.href = '/';
@@ -97,26 +97,34 @@ async function loadContent() {
 
             document.title = pageData.title;
 
-            // Render by Type
+            // 1. Prepare the HTML but keep container hidden
+            let htmlToRender = "";
             if (pageData.type === 'markdown') {
-                contentContainer.innerHTML = marked.parse(pageData.content, { breaks: true });
+                htmlToRender = marked.parse(pageData.content, {breaks: true});
                 contentContainer.classList.add('tex2jax_process');
             } else if (pageData.type === 'html') {
-                contentContainer.innerHTML = pageData.content;
+                htmlToRender = pageData.content;
             } else if (pageData.type === 'files') {
-                renderFileExplorer(pageData.title, pageData.content);
-            } else if (pageData.type === 'redirection') {
-                const dest = pageData.content;
-                dest.startsWith('http') ? window.location.replace(dest) : window.location.href = dest;
+                // You might want to update renderFileExplorer to return a string
+                // instead of setting innerHTML directly
+                htmlToRender = getFileExplorerHtml(pageData.title, pageData.content);
             }
 
-            // Trigger Syntax Highlighting
+            // 2. Set the content
+            contentContainer.innerHTML = htmlToRender;
+
+            // 3. Trigger Syntax Highlighting & MathJax
             contentContainer.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-
-            // Trigger MathJax
             if (window.MathJax && window.MathJax.typesetPromise) {
-                window.MathJax.typesetPromise([contentContainer]).catch(err => console.error(err));
+                await window.MathJax.typesetPromise([contentContainer]);
             }
+
+            // 4. ANIMATION TRIGGER
+            const loader = document.querySelector('.dot-container');
+            if (loader) {
+                loader.classList.add('hidden'); // Fade out dot
+            }
+            contentContainer.classList.add('visible'); // Fade in content
         });
 
     } catch (error) {

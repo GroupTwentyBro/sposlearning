@@ -83,6 +83,12 @@ spacer {
     padding: 40px 40px 10px 40px;
     width: 75%;
     color: var(--root-txt-clr);
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.content.visible {
+    opacity: 1;
 }
 
 /* Used only on search page */
@@ -225,6 +231,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: opacity 0.5s ease-in-out, visibility 0.5s;
+    opacity: 1;
+    visibility: visible;
 }
 
 .dot {
@@ -235,6 +244,11 @@ body {
     animation:  bounce 1.5s ease infinite,
     squircle 750ms ease infinite,
     rotate 2s ease infinite;
+}
+
+.dot-container.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 
 @keyframes bounce {
