@@ -91,9 +91,11 @@ spacer {
     opacity: 1;
 }
 
-.content.mainpage {
-    padding: 0 40px;
+.mainpage {
+    margin: auto;
+    width: 75%;
     color: var(--root-txt-clr);
+    padding: 0 40px;
     opacity: 1 !important;
     visibility: visible !important;
     transition: none !important;
