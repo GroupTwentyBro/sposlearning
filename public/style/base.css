@@ -96,6 +96,8 @@ spacer {
     padding: 0 40px;
     color: var(--root-txt-clr);
     opacity: 1 !important;
+    visibility: visible !important;
+    transition: none !important;
 }
 
 .content pre {
