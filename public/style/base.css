@@ -91,7 +91,6 @@ spacer {
     opacity: 1;
 }
 
-/* Used only on search page */
 .content.mainpage {
     padding: 0 40px;
     color: var(--root-txt-clr);
