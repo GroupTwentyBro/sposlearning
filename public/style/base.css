@@ -225,17 +225,25 @@ body {
     height: 100vh;
 }
 
+/* 1. Make the dot container overlay the top of the page */
 .dot-container {
-    margin: 200px auto;
-    height: 100%;
+    position: absolute; /* Take it out of the normal flow */
+    top: 200px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.5s ease-in-out, visibility 0.5s;
-    opacity: 1;
-    visibility: visible;
+    transition: opacity 0.5s ease, visibility 0.5s;
+    z-index: 10; /* Keep it above the content while loading */
 }
 
+/* 2. Hide the loader properly */
+.dot-container.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Prevent it from blocking clicks */
+}
 .dot {
     width: 100px;
     aspect-ratio: 1 / 1;
@@ -244,11 +252,6 @@ body {
     animation:  bounce 1.5s ease infinite,
     squircle 750ms ease infinite,
     rotate 2s ease infinite;
-}
-
-.dot-container.hidden {
-    opacity: 0;
-    visibility: hidden;
 }
 
 @keyframes bounce {
