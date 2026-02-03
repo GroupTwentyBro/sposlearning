@@ -220,6 +220,7 @@ body {
 }
 
 .dot-container {
+    margin: 200px auto;
     height: 100%;
     display: flex;
     align-items: center;
