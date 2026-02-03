@@ -207,3 +207,52 @@ spacer {
 .mobile {
     display: none;
 }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: var(--root-bg-clr);
+    width: 100%;
+    height: 100vh;
+}
+
+.dot-container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 10px 25px hsla(0, 0%, 0%, 40%),
+    inset 0 -10px 25px hsla(0, 0%, 0%, 40%),
+    inset 0 0 30px hsla(0, 0%, 0%, 40%);
+}
+
+.dot {
+    width: 100px;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background-color: var(--primary-hl-clr);
+    animation:  bounce 1.5s ease infinite,
+    squircle 750ms ease infinite,
+    rotate 2s ease infinite;
+}
+
+@keyframes bounce {
+    0% { width: 50px; }
+    50% { width: 200px; }
+    100% { width: 50px; }
+}
+
+@keyframes squircle {
+    0% { border-radius: 50%; }
+    50% { border-radius: 4px; }
+    100% { border-radius: 50%; }
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(360deg); }
+    100% { transform: rotate(0deg); }
+}
