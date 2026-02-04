@@ -3,7 +3,7 @@
         --fs-unimportant: 0.8rem;
     }
 
-    .content, .content.mainpage {
+    .content, .mainpage {
         width: 95%;
         padding: 10px;
     }
