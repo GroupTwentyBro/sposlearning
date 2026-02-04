@@ -34,17 +34,25 @@ async function loadDashboardContent() {
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-        // INJECT THE HTML
+        // 1. INJECT THE HTML
         container.innerHTML = docSnap.data().html;
 
-        // 3. Initialize UI Logic
-        // This attaches logout and other non-theme specific listeners
-        initializeGeneralScripts();
+        // 2. HIDE THE LOADING DOT
+        const loader = document.querySelector('.dot-container');
+        if (loader) {
+            loader.classList.add('hidden'); // This triggers the CSS fade-out
+        }
 
-        // This attaches the modular theme listeners to the newly injected buttons
+        // 3. Initialize UI Logic
+        initializeGeneralScripts();
         initThemeListeners();
+
+        // Optional: Ensure the container is visible if you use the 'visible' class
+        container.classList.add('visible');
     } else {
-        container.innerHTML = "<h3>Error: Dashboard content not found in database.</h3>";
+        container.innerHTML = "<h3>Error: Dashboard content not found.</h3>";
+        // Hide loader even on error so user can see the message
+        document.querySelector('.dot-container')?.classList.add('hidden');
     }
 }
 
