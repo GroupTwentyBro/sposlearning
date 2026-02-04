@@ -54,25 +54,19 @@
     </style>
 </head>
 <body>
-<div class="container mt-4">
-    <a href="/admin/feedback" class="btn btn-secondary mb-3">
-        <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.2rem;">arrow_back</span>
-        Back to Inbox
-    </a>
 
-    <div id="content-area" class="details-box">
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">Loading feedback details...</p>
-        </div>
-    </div>
+<div class="dot-container">
+    <div class="dot"></div>
+</div>
 
-    <div class="mt-4 text-right">
-        <button id="resolve-btn" class="btn btn-success mr-2">Mark as Resolved</button>
-        <button id="delete-btn" class="btn btn-danger">Delete</button>
+<div id="secure-container">
+    <div style="text-align: center; margin-top: 20%; color: gray;">
+        <h2>Verifying Admin Access...</h2>
     </div>
 </div>
 
 <script type="module" src="post.js"></script>
+
+
 </body>
 </html>

@@ -1,199 +1,136 @@
-// public/admin/edit.js
 import { app, auth } from '/js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, deleteDoc, query, where, getDocs, setDoc, getDoc, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners, applyTheme } from '/js/theming.js';
-// --- Initialize ---
+
 const db = getFirestore(app);
+const container = document.getElementById('secure-container');
 
-// --- Get Elements ---
-const pageUrlDisplay = document.getElementById('page-url-display');
-const pageTitle = document.getElementById('page-title');
-const editForm = document.getElementById('edit-form');
-const saveButton = document.getElementById('save-button');
-const status = document.getElementById('page-status');
-
-const editorMarkdown = document.getElementById('editor-markdown');
-const mdContent = document.getElementById('md-content');
-const editorHTML = document.getElementById('editor-html');
-const htmlContent = document.getElementById('html-content');
-
-enableTabIndentation(document.getElementById('md-content'));
-enableTabIndentation(document.getElementById('html-content'));
-
-// --- Global variables to store page info ---
+// Global variables
 let pageDocId = null;
 let pageType = null;
 let pageFullPath = null;
 let isOldDocument = false;
 
-/**
- * 1. Auth Guard: Redirect if not logged in
- */
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        loadPageForEditing();
+        await loadEditorUI(); // First, get the HTML shell from DB
+        await loadPageForEditing(); // Then, get the specific page content
 
-        // Initialize modular theme listeners (for sliders, etc if present)
+        const loader = document.querySelector('.dot-container');
+        if (loader) loader.classList.add('hidden');
+
         initThemeListeners();
-
-        // Handle the specific sun/moon toggle for this page
-        const toggleBtn = document.getElementById("theme-toggle");
-        if (toggleBtn) {
-            const updateToggleUI = () => {
-                const isDark = localStorage.getItem("theme") === "dark";
-                toggleBtn.classList.toggle("is-dark", isDark);
-            };
-
-            toggleBtn.addEventListener("click", () => {
-                const current = localStorage.getItem("theme");
-                applyTheme(current === "dark" ? "light" : "dark");
-                updateToggleUI();
-            });
-
-            updateToggleUI(); // Initial visual sync
-        }
-
     } else {
         window.location.href = '/admin';
     }
 });
 
 /**
- * 2. Load the page data based on the URL parameter
+ * NEW: Fetches the Editor UI from Firestore (admin/editor)
+ */
+async function loadEditorUI() {
+    const docRef = doc(db, "admin", "edit"); // Assuming you store the HTML here
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        container.innerHTML = docSnap.data().html;
+        // Re-enable Tab Indentation for the new elements
+        enableTabIndentation(document.getElementById('md-content'));
+        enableTabIndentation(document.getElementById('html-content'));
+
+        // Re-attach the form submit listener
+        document.getElementById('edit-form').addEventListener('submit', handleSave);
+    } else {
+        container.innerHTML = "<h3>Error: Editor shell not found in DB.</h3>";
+    }
+}
+
+/**
+ * Loads the actual page content into the injected fields
  */
 async function loadPageForEditing() {
+    const pageUrlDisplay = document.getElementById('page-url-display');
+    const pageTitle = document.getElementById('page-title');
+    const status = document.getElementById('page-status');
+    const saveButton = document.getElementById('save-button');
+
     try {
         const params = new URLSearchParams(window.location.search);
         pageFullPath = params.get('path');
 
-        if (!pageFullPath) {
-            throw new Error('No page path specified in URL.');
-        }
-
-        // --- NEW DUAL-LOGIC SEARCH ---
-
-        // 1. Try to get the document using the NEW ID
         const newDocId = pageFullPath.replace(/\//g, '|');
         const docRef = doc(db, 'pages', newDocId);
         let docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-            // Found with NEW ID
             isOldDocument = false;
             pageDocId = docSnap.id;
         } else {
-            // 2. If not found, try searching by the fullPath field (OLD method)
-            console.log("Page not found with new ID, trying old query method...");
             const q = query(collection(db, "pages"), where("fullPath", "==", pageFullPath));
             const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                throw new Error(`Page not found: /${pageFullPath}`);
-            }
-
-            // Found with OLD ID
+            if (querySnapshot.empty) throw new Error(`Page not found: /${pageFullPath}`);
             isOldDocument = true;
-            pageDocId = querySnapshot.docs[0].id; // This is the old, random ID
-            docSnap = querySnapshot.docs[0]; // Use this doc snap
+            pageDocId = querySnapshot.docs[0].id;
+            docSnap = querySnapshot.docs[0];
         }
 
-        // 3. Populate form
         const data = docSnap.data();
         pageType = data.type;
         pageUrlDisplay.value = `/${data.fullPath}`;
         pageTitle.value = data.title;
 
-        // Show the correct editor and fill it
         if (data.type === 'markdown') {
-            mdContent.value = data.content;
-            editorMarkdown.style.display = 'block';
+            document.getElementById('md-content').value = data.content;
+            document.getElementById('editor-markdown').style.display = 'block';
         } else if (data.type === 'html') {
-            htmlContent.value = data.content;
-            editorHTML.style.display = 'block';
+            document.getElementById('html-content').value = data.content;
+            document.getElementById('editor-html').style.display = 'block';
         }
 
     } catch (error) {
-        console.error('Error loading page:', error);
-        status.className = 'text-danger';
-        status.textContent = `Error: ${error.message}`;
-        saveButton.disabled = true;
+        if(status) status.textContent = `Error: ${error.message}`;
+        if(saveButton) saveButton.disabled = true;
     }
 }
 
 /**
- * 3. Handle the form submission
+ * Consolidated Save Handler
  */
-editForm.addEventListener('submit', async (e) => {
+async function handleSave(e) {
     e.preventDefault();
-    if (!pageDocId) return;
+    const saveButton = document.getElementById('save-button');
+    const status = document.getElementById('page-status');
 
     saveButton.disabled = true;
     saveButton.textContent = 'Saving...';
-    status.textContent = '';
 
     try {
-        // Get the new content from the visible editor
-        let newContent = '';
-        if (pageType === 'markdown') {
-            newContent = mdContent.value;
-        } else if (pageType === 'html') {
-            newContent = htmlContent.value;
-        }
+        let newContent = (pageType === 'markdown')
+            ? document.getElementById('md-content').value
+            : document.getElementById('html-content').value;
 
-        // --- NEW SELF-MIGRATION LOGIC ---
+        const updatedData = {
+            title: document.getElementById('page-title').value,
+            content: newContent,
+            lastEditedBy: auth.currentUser.email,
+            lastEditedAt: serverTimestamp()
+        };
+
         if (isOldDocument) {
-            // This is an OLD page. We will create a NEW doc and delete the OLD one.
-            status.textContent = 'Migrating page to new ID structure...';
-
-            // 1. Create the new doc ID
             const newDocId = pageFullPath.replace(/\//g, '|');
-            const newDocRef = doc(db, 'pages', newDocId);
-
-            // 2. Get all page data
-            const oldDocRef = doc(db, 'pages', pageDocId);
-            const oldDocSnap = await getDoc(oldDocRef);
-            const pageData = oldDocSnap.data();
-
-            // 3. Update the data with our changes
-            pageData.title = pageTitle.value;
-            pageData.content = newContent;
-            pageData.lastEditedBy = auth.currentUser.email;
-            pageData.lastEditedAt = serverTimestamp();
-
-            // 4. Save the new document
-            await setDoc(newDocRef, pageData);
-
-            // 5. Delete the old document
-            await deleteDoc(oldDocRef);
-
+            await setDoc(doc(db, 'pages', newDocId), { ...updatedData, fullPath: pageFullPath, type: pageType });
+            await deleteDoc(doc(db, 'pages', pageDocId));
         } else {
-            // This is a NEW page. Just update it normally.
-            const docRef = doc(db, 'pages', pageDocId);
-            await updateDoc(docRef, {
-                title: pageTitle.value,
-                content: newContent,
-                lastEditedBy: auth.currentUser.email,
-                lastEditedAt: serverTimestamp()
-            });
+            await updateDoc(doc(db, 'pages', pageDocId), updatedData);
         }
 
-        status.className = 'text-success';
-        status.textContent = 'Success! Redirecting...';
-
-        // Redirect back to the page
-        setTimeout(() => {
-            window.location.href = `/${pageFullPath}`;
-        }, 1000);
-
+        window.location.href = `/${pageFullPath}`;
     } catch (error) {
-        console.error('Error updating document:', error);
-        status.className = 'text-danger';
         status.textContent = `Error: ${error.message}`;
         saveButton.disabled = false;
-        saveButton.textContent = 'Save Changes';
     }
-});
+}
 
 // --- HELPER FUNCTION FOR TAB INDENTATION ---
 function enableTabIndentation(textarea) {

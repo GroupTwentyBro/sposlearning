@@ -20,118 +20,20 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Add a new page</h1>
-        <a href="/admin/dashboard" class="btn btn-secondary">Dashboard</a>
-    </div>
-    <hr>
-
-    <form id="page-form" class="mt-3">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="page-title">Page Name</label>
-                    <input type="text" class="form-control" id="page-title" placeholder="e.g., '2D Pole'" required>
-                    <small class="form-text text-muted">Used in search results</small>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label for="page-path">Path</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="page-path" placeholder="e.g., /prg/2d-pole/">
-                        <button id="pickpath-button" class="btn btn-secondary" type="button">
-                            <span class="material-symbols-outlined">folder_open</span>
-                        </button>
-                    </div>
-                    <small class="form-text text-muted">Put a slash at the start and end</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group mt-2 mb-0">
-            <div class="custom-control custom-checkbox">
-                <input type="checkbox" class="custom-control-input" id="page-is-admin">
-                <label class="custom-control-label" for="page-is-admin">
-                    <strong>Admin Only</strong>
-                    <span class="text-muted" style="font-weight: normal;">(Hide from public search results)</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="form-group mt-3">
-            <label for="page-type">Select Page Type</label>
-            <select class="form-control" id="page-type">
-                <option value="markdown">Markdown</option>
-                <option value="html">HTML</option>
-                <option value="files">File Explorer</option>
-                <option value="redirection">Redirection</option>
-            </select>
-        </div>
-        <hr>
-
-        <div class="form-group" id="editor-markdown">
-            <label for="md-content">Markdown Content</label>
-            <textarea class="form-control" id="md-content" rows="10" placeholder="## Hello World!"></textarea>
-        </div>
-
-        <div class="form-group" id="editor-html" style="display: none;">
-            <label for="html-content">Raw HTML Content</label>
-            <textarea class="form-control" id="html-content" rows="10" placeholder="<h1>My Custom Page</h1>"></textarea>
-        </div>
-
-        <div class="form-group" id="editor-files" style="display: none;">
-            <label for="file-upload-input">Upload Files</label>
-            <input type="file" class="form-control-file" id="file-upload-input" multiple>
-            <small class="form-text text-muted">Select one or more files to create a file list page.</small>
-        </div>
-
-        <div class="form-group" id="editor-redirection" style="display: none;">
-            <label for="redirect-url">Destination URL</label>
-            <input type="url" class="form-control" id="redirect-url" placeholder="/page/redirection">
-        </div>
-
-        <button type="submit" class="btn btn-primary mt-3" id="save-button">Save Page</button>
-        <p id="page-success-status" class="text-success mt-2"></p>
-        <p id="page-error-status" class="text-danger mt-2"></p>
-    </form>
+<div class="dot-container">
+    <div class="dot"></div>
 </div>
 
-<div id="path-picker-modal" class="custom-modal" style="display: none;">
-    <div class="custom-modal-content">
-        <div class="modal-header">
-            <h3>Select Parent Path</h3>
-            <button id="close-modal-btn" class="btn-icon"><span class="material-symbols-outlined">close</span></button>
-        </div>
-        <div class="modal-body">
-            <div id="path-tree-container">Loading...</div>
-        </div>
-        <div class="modal-footer">
-            <div class="selection-display">
-                <small>Selected Path:</small>
-                <code id="modal-selected-path">/</code>
-            </div>
-            <div class="modal-actions">
-                <button type="button" id="modal-new-folder-btn" class="btn btn-sm btn-dark">
-                    <span class="material-symbols-outlined" style="font-size: 1.2rem; vertical-align: bottom;">create_new_folder</span> New File/Folder
-                </button>
-                <button type="button" id="modal-select-btn" class="btn btn-primary">Select Path</button>
-            </div>
-        </div>
+<div id="secure-container">
+    <div style="text-align: center; margin-top: 20%; color: gray;">
+        <h2>Verifying Admin Access...</h2>
     </div>
 </div>
-
-<button id="theme-toggle" class="btn btn-icon">
-    <div class="icon-stack">
-        <span class="material-symbols-outlined icon-moon">dark_mode</span>
-        <span class="material-symbols-outlined icon-sun">light_mode</span>
-    </div>
-</button>
 
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 <script src="add-page.js" type="module"></script>
+
 </body>
 </html>

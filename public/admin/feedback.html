@@ -63,33 +63,17 @@
     </style>
 </head>
 <body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Feedback Inbox</h1>
-        <a href="/admin/dashboard" class="btn btn-secondary">Dashboard</a>
-    </div>
-    <hr>
 
-    <div class="row mb-3">
-        <div class="col-md-4">
-            <select id="sort-select" class="form-control" style="background-color: var(--root-box-bg-clr); color: var(--root-fg-clr); border-color: var(--box-border-clr);">
-                <option value="desc">Sort by: Recent</option>
-                <option value="asc">Sort by: Oldest</option>
-            </select>
-        </div>
-        <div class="col-md-4 d-flex align-items-center">
-            <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="hide-resolved">
-                <label class="custom-control-label" for="hide-resolved">Hide Resolved</label>
-            </div>
-        </div>
-    </div>
+<div class="dot-container">
+    <div class="dot"></div>
+</div>
 
-    <div id="loading" class="text-center" style="color: var(--root-fgd-clr);">Loading feedback...</div>
-
-    <div id="feedback-list" class="list-group">
+<div id="secure-container">
+    <div style="text-align: center; margin-top: 20%; color: gray;">
     </div>
 </div>
+
 <script type="module" src="/admin/feedback.js"></script>
+
 </body>
 </html>
