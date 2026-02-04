@@ -28,19 +28,20 @@ function getAccessLevel(data) {
  */
 async function fetchAllPages() {
     try {
+        // Firestore Rules will automatically filter this based on auth status!
         const querySnapshot = await getDocs(collection(db, 'pages'));
-        allPages = []; 
+        allPages = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            // We no longer need to check accessLevel here for security,
+            // because if the user wasn't allowed to see it, 'doc' wouldn't exist here.
 
             if (data.type !== 'redirection') {
-                const detectedAccess = getAccessLevel(data);
-
                 allPages.push({
                     title: data.title,
                     path: data.fullPath,
-                    accessLevel: detectedAccess, 
+                    accessLevel: getAccessLevel(data),
                     content: (data.type === 'markdown' || data.type === 'html') ? data.content.toLowerCase() : ''
                 });
             }
@@ -50,10 +51,12 @@ async function fetchAllPages() {
         searchInput.disabled = false;
 
     } catch (err) {
+        // If the rules are set up correctly, this might trigger if a guest
+        // tries to access a restricted collection, but usually, it just returns
+        // the allowed documents.
         console.error("Failed to fetch pages:", err);
     }
 }
-
 /**
  * 2. Handle Search
  */
