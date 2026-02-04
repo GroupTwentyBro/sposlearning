@@ -79,7 +79,7 @@ spacer {
 }
 
 .content {
-    margin: auto auto 4em auto;
+    margin: auto auto 1000px auto;
     padding: 40px 40px 10px 40px;
     width: 75%;
     color: var(--root-txt-clr);
