@@ -79,7 +79,7 @@ spacer {
 }
 
 .content {
-    padding: 40px 40px 100px 40px;
+    padding: 40px 40px 80px 40px;
     width: 75%;
     color: var(--root-txt-clr);
     opacity: 0;
