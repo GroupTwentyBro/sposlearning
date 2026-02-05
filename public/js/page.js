@@ -239,11 +239,86 @@ function setupFeedbackLink() {
     if (feedbackLink) feedbackLink.href += window.location.pathname;
 }
 
+function initHomeTheming() {
+    // 1. Core listeners (handles hue slider and standard buttons)
+    initThemeListeners();
+
+    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
+    const toggles = [
+        { id: "theme-toggle", type: "toggle" },
+        { id: "theme-toggle-ctrl", type: "toggle" },
+        { id: "mike-toggle", type: "mike" }
+    ];
+
+    toggles.forEach(t => {
+        const btn = document.getElementById(t.id);
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+            const current = localStorage.getItem("theme");
+            if (t.type === "mike") {
+                applyTheme("mike");
+            } else {
+                applyTheme(current === "dark" ? "light" : "dark");
+            }
+            syncToggleUI();
+        });function initHomeTheming() {
+    // 1. Core listeners (handles hue slider and standard buttons)
+    initThemeListeners();
+
+    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
+    const toggles = [
+        { id: "theme-toggle", type: "toggle" },
+        { id: "theme-toggle-ctrl", type: "toggle" },
+        { id: "mike-toggle", type: "mike" }
+    ];
+
+    toggles.forEach(t => {
+        const btn = document.getElementById(t.id);
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+            const current = localStorage.getItem("theme");
+            if (t.type === "mike") {
+                applyTheme("mike");
+            } else {
+                applyTheme(current === "dark" ? "light" : "dark");
+            }
+            syncToggleUI();
+        });
+    });
+
+    syncToggleUI();
+}
+
+function syncToggleUI() {
+    const isDark = localStorage.getItem("theme") === "dark";
+    const pcBtn = document.getElementById("theme-toggle");
+    const mobBtn = document.getElementById("theme-toggle-ctrl");
+
+    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
+    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
+}
+    });
+
+    syncToggleUI();
+}
+
+function syncToggleUI() {
+    const isDark = localStorage.getItem("theme") === "dark";
+    const pcBtn = document.getElementById("theme-toggle");
+    const mobBtn = document.getElementById("theme-toggle-ctrl");
+
+    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
+    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
+}
+
 // Start everything
 async function initializePage() {
     await loadContent();
     setupAdminTools();
     setupFeedbackLink();
+    initHomeTheming();
 }
 
 initializePage();
