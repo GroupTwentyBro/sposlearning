@@ -168,26 +168,56 @@ function renderError(slug) {
  * 4. ADMIN TOOLS & DELETION
  */
 function setupAdminTools() {
-    initThemeListeners(); // Call modular theme setup
     const adminBar = document.getElementById('admin-bar');
-    adminBar.innerHTML = `<div class="admin-controls"><div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;"></div></div>`;
+    if(!adminBar) return;
 
     onAuthStateChanged(auth, (user) => {
-        const loggedInContainer = document.getElementById('logged-in-buttons');
+        // Clear bar to prevent duplicates on state change
+        adminBar.innerHTML = '';
+
         if (user) {
+            // --- USER LOGGED IN ---
             let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
                 ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
 
             let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
 
-            loggedInContainer.innerHTML = `
-                ${editBtn} ${deleteBtn}
-                <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
-                <button class="btn btn-sm btn-danger pc" id="logout-button">Logout</button>
-            `;
+            adminBar.innerHTML = `
+                <div class="admin-controls">
+                    <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
+                        ${editBtn} 
+                        ${deleteBtn}
+                        <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+                        <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
+                        
+                        <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
+                            <span class="icon">team_dashboard</span>
+                        </a>
+                        <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
+                            <span class="icon">logout</span>
+                        </button>
+                    </div>
+                </div>`;
 
-            document.getElementById('logout-button')?.addEventListener('click', () => signOut(auth).then(() => window.location.reload()));
+            // Attach Logout Listeners
+            const performLogout = () => signOut(auth).then(() => window.location.reload());
+            document.getElementById('logout-button-pc')?.addEventListener('click', performLogout);
+            document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
+
+            // Attach Delete Listener
             document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
+        } else {
+            // --- GUEST: Show Login Buttons on the right side ---
+            adminBar.innerHTML = `
+                <div class="admin-controls">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
+                        
+                        <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
+                            <span class="icon">login</span>
+                        </a>
+                    </div>
+                </div>`;
         }
     });
 }
