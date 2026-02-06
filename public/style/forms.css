@@ -1,7 +1,8 @@
 #page-form input,
 #edit-form input,
 #login-form input,
-#feedback-form input {
+#feedback-form input,
+#register-form input {
     background-color: var(--box-overlay-clr);
     border: 1px solid var(--box-overlay-border-clr);
     border-radius: var(--box-border-radius);
