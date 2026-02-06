@@ -19,8 +19,28 @@ const ALLOWED_ADMINS = [
 // Initialize UI
 initThemeListeners();
 
+async function checkAdminAndRedirect(user) {
+    try {
+        const adminDocRef = doc(db, "users", user.uid);
+        const adminDocSnap = await getDoc(adminDocRef);
+
+        if (adminDocSnap.exists()) {
+            console.log("Admin verified via database.");
+            window.location.href = '/admin/dashboard';
+        } else {
+            console.log("Regular user detected.");
+            window.location.href = '/';
+        }
+    } catch (error) {
+        console.error("Error checking admin status:", error);
+        // Fallback to home if database check fails (e.g. permission denied)
+        window.location.href = '/';
+    }
+}
+
 // Handle the toggle specifically for the login page sun/moon button
 const toggleBtn = document.getElementById("theme-toggle");
+
 if (toggleBtn) {
     const updateToggleUI = () => {
         const isDark = localStorage.getItem("theme") === "dark";
@@ -49,24 +69,16 @@ loginForm.addEventListener('submit', async (e) => {
 
     try {
         await setPersistence(auth, browserLocalPersistence);
-
-        // 1. Sign in first
         const result = await signInWithEmailAndPassword(auth, email, password);
         const user = result.user;
 
-        // 2. NOW check for verification
         if (!user.emailVerified) {
             errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
             await signOut(auth);
             return;
         }
 
-        // 3. Finally, redirect
-        if (ALLOWED_ADMINS.includes(user.email)) {
-            window.location.href = '/admin/dashboard';
-        } else {
-            window.location.href = '/';
-        }
+        await checkAdminAndRedirect(user);
     } catch (error) {
         console.error('Chyba přihlášení:', error);
         errorMessage.textContent = 'Špatný email nebo heslo';
@@ -77,55 +89,27 @@ if (googleBtn) {
     googleBtn.addEventListener('click', async () => {
         errorMessage.textContent = '';
         const provider = new GoogleAuthProvider();
-
         try {
             await setPersistence(auth, browserLocalPersistence);
             const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // REMOVED: signOut(auth) logic
-            // We keep them logged in regardless of email
-            if (ALLOWED_ADMINS.includes(user.email)) {
-                window.location.href = '/admin/dashboard';
-            } else {
-                // Not an admin, but still logged in!
-                // Redirect to homepage so they can send feedback
-                window.location.href = '/';
-            }
+            await checkAdminAndRedirect(result.user);
         } catch (error) {
-            console.error('Chyba přihlášení přes Google:', error);
             errorMessage.textContent = 'Příhlášení přes Google selhalo.';
         }
     });
 }
 
-
 if (githubBtn) {
     githubBtn.addEventListener('click', async () => {
         errorMessage.textContent = '';
         const provider = new GithubAuthProvider();
-        provider.addScope('user:email'); // Requests permission to see the email
-
+        provider.addScope('user:email');
         try {
             await setPersistence(auth, browserLocalPersistence);
             const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // GitHub users are usually verified by GitHub,
-            // but we still check our Admin list
-            if (ALLOWED_ADMINS.includes(user.email)) {
-                window.location.href = '/admin/dashboard';
-            } else {
-                window.location.href = '/';
-            }
+            await checkAdminAndRedirect(result.user);
         } catch (error) {
-            console.error('GitHub Login Error:', error);
-            // Handle common GitHub errors (like account exists with different credential)
-            if (error.code === 'auth/account-exists-with-different-credential') {
-                errorMessage.textContent = 'Účet s tímto emailem již existuje pod jiným poskytovatelem (např. Google).';
-            } else {
-                errorMessage.textContent = 'Přihlášení přes GitHub selhalo.';
-            }
+            errorMessage.textContent = 'Přihlášení přes GitHub selhalo.';
         }
     });
 }
