@@ -223,47 +223,54 @@ function createTreeDOM(node) {
 
 function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
-    if(!adminBar) return; 
-
-    adminBar.innerHTML = `
-        <div class="admin-controls">
-            <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
-            </div>
-        </div>`;
-
+    const authUiContainer = document.getElementById('auth-ui-container');
     const auth = getAuth(app);
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user; 
-        console.log("Auth State Changed. User is:", user ? "Logged In" : "Logged Out");
 
-        if(searchInput.value.length >= 2) {
-            searchInput.dispatchEvent(new Event('input'));
+    onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+
+        // Reset containers
+        authUiContainer.innerHTML = '';
+        adminBar.innerHTML = '';
+
+        if (user) {
+            // --- USER IS LOGGED IN ---
+            // 1. Desktop Admin Buttons
+            adminBar.innerHTML = `
+                <div class="admin-controls">
+                    <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
+                        <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+                        <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
+                        
+                        <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
+                            <span class="icon">team_dashboard</span>
+                        </a>
+                        <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
+                            <span class="icon">logout</span>
+                        </button>
+                    </div>
+                </div>`;
+
+            // Attach listeners to both logout buttons
+            const logoutAction = () => signOut(auth).catch(err => console.error(err));
+            document.getElementById('logout-button-pc')?.addEventListener('click', logoutAction);
+            document.getElementById('logout-button-mob')?.addEventListener('click', logoutAction);
+
+        } else {
+            // --- USER IS A GUEST ---
+            // Inject Login buttons with your responsive classes
+            authUiContainer.innerHTML = `
+                <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
+                
+                <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
+                    <span class="icon">login</span>
+                </a>
+            `;
         }
 
-        const loggedInContainer = document.getElementById('logged-in-buttons');
-        if (user) {
-            loggedInContainer.innerHTML = `
-            <a href="/admin/dashboard" class="btn btn-sm btn-white pc" id="homeButton">Dashboard</a>
-            <button class="btn btn-sm btn-danger pc" id="logout-button">Logout</button>
-            <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
-                <span class="icon">team_dashboard</span>
-            </a>
-            <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button">
-                <span class="icon">logout</span>
-            </button>
-            `;
-
-            document.getElementById('logout-button').addEventListener('click', () => {
-                signOut(auth)
-                    .then(() => {
-                        console.log("User signed out successfully");
-                    })
-                    .catch((error) => {
-                        console.error("Error signing out:", error);
-                    });
-            });
-        } else {
-            loggedInContainer.innerHTML = '';
+        // Trigger search refresh if user permissions changed while searching
+        if(searchInput.value.length >= 2) {
+            searchInput.dispatchEvent(new Event('input'));
         }
     });
 }
