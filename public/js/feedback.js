@@ -10,11 +10,12 @@ const form = document.getElementById('feedback-form');
 const submitBtn = document.getElementById('submit-btn');
 const statusMsg = document.getElementById('status-message');
 const pageInput = document.getElementById('feedback-page');
+const nameInput = document.getElementById('feedback-name');
+const formWrapper = document.getElementById('feedback-form-wrapper');
 
-// Initialize Modular Theming listeners
 initThemeListeners();
 
-// Theme toggle logic
+// Theme toggle logic (standard)
 const toggleBtn = document.getElementById("theme-toggle");
 if (toggleBtn) {
     const updateToggleUI = () => {
@@ -29,87 +30,62 @@ if (toggleBtn) {
     updateToggleUI();
 }
 
-// Pre-fill page context from URL
 const urlParams = new URLSearchParams(window.location.search);
 const relatedPage = urlParams.get("page");
 if (relatedPage) pageInput.value = relatedPage;
 
-// Listen for Auth State to Autofill
+/**
+ * AUTH & REDIRECT LOGIC
+ */
 onAuthStateChanged(auth, (user) => {
-    const emailInput = document.getElementById('feedback-contact');
-    const nameInput = document.getElementById('feedback-name');
+    if (!user) {
+        // Redirect if not logged in
+        window.location.href = '/login';
+        return;
+    }
 
-    if (user) {
-        if (user.email) {
-            emailInput.value = user.email;
-            emailInput.readOnly = true;
-            emailInput.style.backgroundColor = "var(--root-box-bg-clr)";
-            emailInput.style.opacity = "0.7";
-            emailInput.title = "Přihlášeno jako " + user.email;
-        }
-        if (user.displayName && !nameInput.value) {
-            nameInput.value = user.displayName;
-        }
+    // Show form if logged in
+    formWrapper.style.display = 'block';
+
+    // CHECK PROVIDER TYPE
+    // password = manual sign up | google.com / github.com = external service
+    const providerId = user.providerData[0]?.providerId;
+
+    if (providerId === 'google.com' || providerId === 'github.com') {
+        // Services provide names: Autofill and Disable
+        nameInput.value = user.displayName || '';
+        nameInput.readOnly = true;
+        nameInput.style.opacity = "0.7";
+        nameInput.title = "Jméno je načteno z vašeho účtu.";
     } else {
-        emailInput.readOnly = false;
-        emailInput.style.opacity = "1";
-        emailInput.style.backgroundColor = "";
+        // Regular email/pass: Allow user to set their name
+        nameInput.readOnly = false;
+        nameInput.style.opacity = "1";
     }
 });
 
-/**
- * 1. ANTI-SPAM & JUNK VALIDATION
- */
-const isJunk = (email, name, message) => {
-    // Honeypot check (Assumes you add <input id="hp_field" style="display:none"> to HTML)
+const isJunk = (name, message) => {
     const hp = document.getElementById('hp_field')?.value;
     if (hp) return "Bot detected.";
 
-    const emailLow = email.toLowerCase().trim();
     const nameLow = name.toLowerCase().trim();
-
-    // Comprehensive blocklist
-    const blockedTerms = [
-        'a@a.a', 'null@null.null', 'test@test.com', 'none@none.com', 'asdf@asdf.com',
-        'qwerty@qwerty.com', '123@123.com', 'mail@mail.com', 'xyz@xyz.com',
-        'admin@', 'support@', 'placeholder', 'undefined', 'NaN', '123456'
-    ];
-
-    // Substring patterns
-    const junkPatterns = [
-        /^.{1,3}@.{1,3}\..{1,3}$/,        // Too short (e.g. x@y.z)
-        /^(.)\1+@/i,                      // Repetitive chars (e.g. aaaa@)
-        /asdf|qwerty|zxcvbn|12345/i       // Keyboard mashes
-    ];
-
-    // Entropy check: detect long strings of same characters (e.g. "kkkkkkkkkk")
-    if (/(.)\1{4,}/.test(emailLow) || /(.)\1{4,}/.test(nameLow)) return "Neplatné znaky.";
-
-    if (blockedTerms.some(term => emailLow.includes(term) || nameLow === term)) return "Tento vstup není povolen.";
-    if (junkPatterns.some(pattern => pattern.test(emailLow))) return "Prosím zadejte platné údaje.";
-
-    // Basic format check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailLow)) return "Neplatný formát e-mailu.";
+    if (/(.)\1{4,}/.test(nameLow)) return "Neplatné znaky ve jménu.";
     if (message.length < 10) return "Zpráva je příliš krátká.";
 
-    return null; // Passed validation
+    return null;
 };
 
-/**
- * 2. FORM SUBMISSION
- */
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
 
     const title = document.getElementById('feedback-title').value;
     const page = document.getElementById('feedback-page').value;
-    const name = document.getElementById('feedback-name').value || 'Anonymous';
-    const contact = document.getElementById('feedback-contact').value || 'Not provided';
+    const name = nameInput.value || 'Anonymous';
     const message = document.getElementById('feedback-message').value;
 
-    // Run Validation
-    const validationError = isJunk(contact, name, message);
+    const validationError = isJunk(name, message);
     if (validationError) {
         statusMsg.className = 'text-danger';
         statusMsg.textContent = validationError;
@@ -118,7 +94,6 @@ form.addEventListener('submit', async (e) => {
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Odesílání...';
-    statusMsg.textContent = '';
 
     try {
         let ipAddress = 'Unknown';
@@ -126,36 +101,32 @@ form.addEventListener('submit', async (e) => {
             const ipRes = await fetch('https://api.ipify.org?format=json');
             const ipData = await ipRes.json();
             ipAddress = ipData.ip;
-        } catch (err) { console.warn("Could not fetch IP:", err); }
+        } catch (err) { console.warn("IP fetch failed"); }
 
         await addDoc(collection(db, 'feedback'), {
             title: title.trim(),
             page: page.trim(),
             name: name.trim(),
-            contact: contact.trim(),
+            contact: user.email, // Always take email from Auth, never user input
             message: message.trim(),
             relatedPage: pageInput.value || 'General',
             ip: ipAddress,
             userAgent: navigator.userAgent,
             timestamp: serverTimestamp(),
-            uid: auth.currentUser ? auth.currentUser.uid : null,
-            resolved: false // Rules require this to be false
+            uid: user.uid,
+            resolved: false
         });
 
         statusMsg.className = 'text-success font-weight-bold';
-        statusMsg.textContent = 'Zpětná vazba byla úspěšně odeslána!';
+        statusMsg.textContent = 'Děkujeme! Vaše zpětná vazba byla odeslána.';
         form.reset();
-
-        if (auth.currentUser && auth.currentUser.email) {
-            document.getElementById('feedback-contact').value = auth.currentUser.email;
-        }
 
         setTimeout(() => { window.location.href = '/'; }, 2000);
 
     } catch (error) {
         console.error('Error:', error);
         statusMsg.className = 'text-danger';
-        statusMsg.textContent = 'Chyba při odesílání (Pravděpodobně neplatná data).';
+        statusMsg.textContent = 'Chyba při odesílání.';
         submitBtn.disabled = false;
         submitBtn.textContent = 'Odeslat zpětnou vazbu';
     }
