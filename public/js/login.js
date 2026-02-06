@@ -45,6 +45,14 @@ loginForm.addEventListener('submit', async (e) => {
     const password = passwordInput.value;
     errorMessage.textContent = '';
 
+    const user = result.user;
+
+    if (!user.emailVerified) {
+        errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
+        await signOut(auth); // Kick them out until they verify
+        return;
+    }
+
     try {
         await setPersistence(auth, browserLocalPersistence);
         await signInWithEmailAndPassword(auth, email, password);
