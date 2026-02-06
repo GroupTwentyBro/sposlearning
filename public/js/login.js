@@ -55,13 +55,18 @@ loginForm.addEventListener('submit', async (e) => {
 
     try {
         await setPersistence(auth, browserLocalPersistence);
-        await signInWithEmailAndPassword(auth, email, password);
-        window.location.href = '/admin/dashboard';
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        const user = result.user;
+
+        // Redirect based on role
+        if (ALLOWED_ADMINS.includes(user.email)) {
+            window.location.href = '/admin/dashboard';
+        } else {
+            window.location.href = '/'; // Regular users go home
+        }
     } catch (error) {
-        console.error('Login error:', error);
-        errorMessage.textContent = error.code === 'auth/invalid-credential'
-            ? 'Invalid email or password.'
-            : 'An error occurred. Please try again.';
+        console.error('Chyba přihlášení:', error);
+        errorMessage.textContent = 'Špatný email nebo heslo';
     }
 });
 
@@ -75,15 +80,18 @@ if (googleBtn) {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
 
+            // REMOVED: signOut(auth) logic
+            // We keep them logged in regardless of email
             if (ALLOWED_ADMINS.includes(user.email)) {
                 window.location.href = '/admin/dashboard';
             } else {
-                await signOut(auth);
-                errorMessage.textContent = `Access Denied: ${user.email} is not an administrator.`;
+                // Not an admin, but still logged in!
+                // Redirect to homepage so they can send feedback
+                window.location.href = '/';
             }
         } catch (error) {
-            console.error('Google Sign-In Error:', error);
-            errorMessage.textContent = 'Google Sign-In failed.';
+            console.error('Chyba přihlášení přes Google:', error);
+            errorMessage.textContent = 'Příhlášení přes Google selhalo.';
         }
     });
 }
