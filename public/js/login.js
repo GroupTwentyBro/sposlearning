@@ -4,6 +4,7 @@ import {
     setPersistence,
     browserLocalPersistence,
     GoogleAuthProvider,
+    GithubAuthProvider,
     signInWithPopup,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -38,6 +39,7 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
 const googleBtn = document.getElementById('google-login-btn');
+const githubBtn = document.getElementById('github-login-btn');
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -45,24 +47,25 @@ loginForm.addEventListener('submit', async (e) => {
     const password = passwordInput.value;
     errorMessage.textContent = '';
 
-    const user = result.user;
-
-    if (!user.emailVerified) {
-        errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
-        await signOut(auth); // Kick them out until they verify
-        return;
-    }
-
     try {
         await setPersistence(auth, browserLocalPersistence);
+
+        // 1. Sign in first
         const result = await signInWithEmailAndPassword(auth, email, password);
         const user = result.user;
 
-        // Redirect based on role
+        // 2. NOW check for verification
+        if (!user.emailVerified) {
+            errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
+            await signOut(auth);
+            return;
+        }
+
+        // 3. Finally, redirect
         if (ALLOWED_ADMINS.includes(user.email)) {
             window.location.href = '/admin/dashboard';
         } else {
-            window.location.href = '/'; // Regular users go home
+            window.location.href = '/';
         }
     } catch (error) {
         console.error('Chyba přihlášení:', error);
@@ -92,6 +95,37 @@ if (googleBtn) {
         } catch (error) {
             console.error('Chyba přihlášení přes Google:', error);
             errorMessage.textContent = 'Příhlášení přes Google selhalo.';
+        }
+    });
+}
+
+
+if (githubBtn) {
+    githubBtn.addEventListener('click', async () => {
+        errorMessage.textContent = '';
+        const provider = new GithubAuthProvider();
+        provider.addScope('user:email'); // Requests permission to see the email
+
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // GitHub users are usually verified by GitHub,
+            // but we still check our Admin list
+            if (ALLOWED_ADMINS.includes(user.email)) {
+                window.location.href = '/admin/dashboard';
+            } else {
+                window.location.href = '/';
+            }
+        } catch (error) {
+            console.error('GitHub Login Error:', error);
+            // Handle common GitHub errors (like account exists with different credential)
+            if (error.code === 'auth/account-exists-with-different-credential') {
+                errorMessage.textContent = 'Účet s tímto emailem již existuje pod jiným poskytovatelem (např. Google).';
+            } else {
+                errorMessage.textContent = 'Přihlášení přes GitHub selhalo.';
+            }
         }
     });
 }
