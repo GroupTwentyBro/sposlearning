@@ -50,10 +50,10 @@ loginForm.addEventListener('submit', async (e) => {
         await signInWithEmailAndPassword(auth, email, password);
         window.location.href = '/admin/dashboard';
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Chyba přihlášení:', error);
         errorMessage.textContent = error.code === 'auth/invalid-credential'
-            ? 'Invalid email or password.'
-            : 'An error occurred. Please try again.';
+            ? 'Špatný email nebo heslo'
+            : 'Nastala chyba, zkuste to znovu.';
     }
 });
 
@@ -71,11 +71,11 @@ if (googleBtn) {
                 window.location.href = '/admin/dashboard';
             } else {
                 await signOut(auth);
-                errorMessage.textContent = `Access Denied: ${user.email} is not an administrator.`;
+                errorMessage.textContent = `Přístup zamítnut: ${user.email} není administrátor.`;
             }
         } catch (error) {
-            console.error('Google Sign-In Error:', error);
-            errorMessage.textContent = 'Google Sign-In failed.';
+            console.error('Chyba přihlášení přes Google:', error);
+            errorMessage.textContent = 'Příhlášení přes Google selhalo.';
         }
     });
 }
