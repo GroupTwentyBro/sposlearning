@@ -1,55 +1,80 @@
 import { app, auth } from '../js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initThemeListeners } from '../js/theming.js';
 
 const db = getFirestore(app);
-const listContainer = document.getElementById('feedback-list');
-const loading = document.getElementById('loading');
-
-// New DOM Elements
-const sortSelect = document.getElementById('sort-select');
-const hideResolvedCheckbox = document.getElementById('hide-resolved');
+const container = document.getElementById('secure-container');
 
 // State Variables
-let currentSort = 'desc'; // Default to Recent
+let currentSort = 'desc';
 let hideResolved = false;
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Initial load
-        loadFeedback();
+        // 1. Load the UI Shell from Firestore
+        await loadFeedbackUI();
+
+        // 2. Initial Data Load
+        await loadFeedbackData();
+
+        // 3. Setup Filter Listeners
         setupControls();
+
+        // 4. Cleanup UI
+        initThemeListeners();
+        const loader = document.querySelector('.dot-container');
+        if (loader) loader.classList.add('hidden');
     } else {
-        // Redirect or handle unauthorized
         window.location.href = '/admin';
     }
 });
 
-function setupControls() {
-    // Listen for Sort changes
-    sortSelect.addEventListener('change', (e) => {
-        currentSort = e.target.value;
-        loadFeedback();
-    });
+async function loadFeedbackUI() {
+    // You'll store the HTML structure in Firestore at admin/feedback_inbox
+    const docRef = doc(db, "admin", "feedback");
+    const docSnap = await getDoc(docRef);
 
-    // Listen for Filter changes
-    hideResolvedCheckbox.addEventListener('change', (e) => {
-        hideResolved = e.target.checked;
-        loadFeedback();
-    });
+    if (docSnap.exists()) {
+        container.innerHTML = docSnap.data().html;
+    } else {
+        container.innerHTML = "<h3>Error: Feedback UI shell not found.</h3>";
+    }
 }
 
-async function loadFeedback() {
-    // Show loading state while fetching
-    loading.style.display = 'block';
+function setupControls() {
+    const sortSelect = document.getElementById('sort-select');
+    const hideResolvedCheckbox = document.getElementById('hide-resolved');
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            loadFeedbackData();
+        });
+    }
+
+    if (hideResolvedCheckbox) {
+        hideResolvedCheckbox.addEventListener('change', (e) => {
+            hideResolved = e.target.checked;
+            loadFeedbackData();
+        });
+    }
+}
+
+async function loadFeedbackData() {
+    const listContainer = document.getElementById('feedback-list');
+    const loadingText = document.getElementById('loading');
+
+    if (!listContainer) return;
+
+    loadingText.style.display = 'block';
     listContainer.innerHTML = '';
 
     try {
-        // Dynamic Query: Uses 'currentSort' (desc or asc)
         const q = query(collection(db, 'feedback'), orderBy('timestamp', currentSort));
         const snapshot = await getDocs(q);
 
-        loading.style.display = 'none';
+        loadingText.style.display = 'none';
 
         if (snapshot.empty) {
             listContainer.innerHTML = '<p class="text-center">No feedback found.</p>';
@@ -60,24 +85,15 @@ async function loadFeedback() {
 
         snapshot.forEach(doc => {
             const data = doc.data();
-            const id = doc.id;
-
-            // --- FILTER LOGIC ---
-            // If "Hide Resolved" is checked AND the item is resolved, skip it.
-            if (hideResolved && data.resolved) {
-                return;
-            }
+            if (hideResolved && data.resolved) return;
 
             visibleCount++;
+            const id = doc.id;
+            let preview = (data.message || '').substring(0, 100) + (data.message?.length > 100 ? '...' : '');
 
-            // Format Preview (max 100 chars)
-            let preview = data.message || '';
-            if (preview.length > 100) preview = preview.substring(0, 100) + '...';
-
-            // Create Element
             const a = document.createElement('a');
             a.href = `/admin/feedback/post?id=${id}`;
-            a.className = `feedback-item list-group-item-action ${data.resolved ? 'read' : ''}`;
+            a.className = `feedback-item list-group-item list-group-item-action ${data.resolved ? 'read' : ''}`;
 
             a.innerHTML = `
                 <div class="feedback-header">
@@ -90,22 +106,16 @@ async function loadFeedback() {
                         <div>IP: ${escapeHtml(data.ip)}</div>
                     </div>
                 </div>
-                <div class="feedback-preview">
-                    ${escapeHtml(preview)}
-                </div>
+                <div class="feedback-preview">${escapeHtml(preview)}</div>
             `;
-
             listContainer.appendChild(a);
         });
 
-        // If we filtered out everything, show a message
-        if (visibleCount === 0) {
-            listContainer.innerHTML = '<p class="text-center">No matching feedback.</p>';
-        }
+        if (visibleCount === 0) listContainer.innerHTML = '<p class="text-center">No matching feedback.</p>';
 
     } catch (error) {
         console.error(error);
-        loading.textContent = 'Error loading feedback.';
+        if (loadingText) loadingText.textContent = 'Error loading feedback.';
     }
 }
 

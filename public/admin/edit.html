@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Page</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
     <link href="/style/variables-global.css" rel="stylesheet">
@@ -13,90 +12,22 @@
     <link rel="stylesheet" href="/style/forms.css">
     <link rel="stylesheet" href="/style/mobile.css">
 
-    <!-- Fonts -->
+    <script src="/js/theming.js" type="module"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-
 </head>
 <body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Edit Page</h1>
-        <a href="/admin/dashboard" class="btn btn-secondary">Zpět na Dashboard</a>
+
+<div class="dot-container">
+    <div class="dot"></div>
+</div>
+
+<div id="secure-container">
+    <div style="text-align: center; margin-top: 20%; color: gray;">
     </div>
-    <hr>
+</div>
 
-    <form id="edit-form" class="mt-3">
-
-        <div class="form-group">
-            <label>Page URL (Cannot be changed)</label>
-            <input type="text" class="form-control" id="page-url-display" readonly>
-        </div>
-
-        <div class="form-group">
-            <label for="page-title">Page Title (For Search)</label>
-            <input type="text" class="form-control" id="page-title" required>
-        </div>
-
-        <hr>
-
-        <div class="form-group" id="editor-markdown" style="display: none;">
-            <label for="md-content">Markdown Content</label>
-            <textarea class="form-control" id="md-content" rows="10"></textarea>
-        </div>
-
-        <div class="form-group" id="editor-html" style="display: none;">
-            <label for="html-content">Raw HTML Content</label>
-            <textarea class="form-control" id="html-content" rows="10"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary mt-3" id="save-button">Save Changes</button>
-        <p id="page-status" class="mt-2"></p>
-    </form>
-
-</div><button id="theme-toggle" class="btn btn-icon">
-    <div class="icon-stack">
-        <icon class="icon-moon">dark_mode</icon>
-
-        <icon class="icon-sun">light_mode</icon>
-    </div>
-</button> <script src="/js/firebaseConfig.js" type="module"></script>
 <script src="/admin/edit.js" type="module"></script>
-<script>
-    const themeLink = document.getElementById("theme-link");
-    const ldBtn = document.getElementById("theme-toggle");
-    const root = document.documentElement;
-
-    function applyTheme(themeName) {
-        if (themeName === 'hueshift') {
-            themeLink.href = "/style/theme-hueshift.css";
-            root.style.setProperty('--hue-val', localStorage.getItem("hue-val"));
-        } else if (themeName === 'mike') {
-            themeLink.href = "/style/theme-mike.css";
-            ldBtn.classList.remove("is-dark");
-        } else if (themeName === 'dark') {
-            themeLink.href = "/style/theme-dark.css";
-            ldBtn.classList.add("is-dark");
-        } else {
-            themeLink.href = "/style/theme-light.css";
-            ldBtn.classList.remove("is-dark");
-        }
-
-        localStorage.setItem("theme", themeName);
-    }
-
-    const currentTheme = localStorage.getItem("theme") || "light";
-    applyTheme(currentTheme);
-
-    ldBtn.addEventListener("click", function() {
-        const current = localStorage.getItem("theme");
-
-        if (current === "dark") {
-            applyTheme("light");
-        } else {
-            applyTheme("dark");
-        }
-    });
-</script>
 </body>
 </html>

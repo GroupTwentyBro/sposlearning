@@ -1,6 +1,7 @@
 import {app, auth} from './firebaseConfig.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { initThemeListeners, applyTheme } from './theming.js';
 
 // --- Global cache ---
 const db = getFirestore(app);
@@ -27,19 +28,20 @@ function getAccessLevel(data) {
  */
 async function fetchAllPages() {
     try {
+        // Firestore Rules will automatically filter this based on auth status!
         const querySnapshot = await getDocs(collection(db, 'pages'));
-        allPages = []; 
+        allPages = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            // We no longer need to check accessLevel here for security,
+            // because if the user wasn't allowed to see it, 'doc' wouldn't exist here.
 
             if (data.type !== 'redirection') {
-                const detectedAccess = getAccessLevel(data);
-
                 allPages.push({
                     title: data.title,
                     path: data.fullPath,
-                    accessLevel: detectedAccess, 
+                    accessLevel: getAccessLevel(data),
                     content: (data.type === 'markdown' || data.type === 'html') ? data.content.toLowerCase() : ''
                 });
             }
@@ -49,15 +51,31 @@ async function fetchAllPages() {
         searchInput.disabled = false;
 
     } catch (err) {
+        // If the rules are set up correctly, this might trigger if a guest
+        // tries to access a restricted collection, but usually, it just returns
+        // the allowed documents.
         console.error("Failed to fetch pages:", err);
     }
 }
-
 /**
  * 2. Handle Search
  */
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
+
+    if (searchTerm.length === 0) {
+        welcomeMessage.style.display = 'none';
+        if(disclamerInfo) disclamerInfo.style.display = 'none';
+        searchResultsContainer.style.display = 'block';
+
+        const allVisible = allPages.filter(page => {
+            if (page.accessLevel === 'admin' && !currentUser) return false;
+            return true;
+        });
+
+        renderResults(allVisible);
+        return;
+    }
 
     // Basic UI Toggle
     if (searchTerm.length < 2) {
@@ -250,11 +268,51 @@ function setupAdminTools() {
     });
 }
 
+function initHomeTheming() {
+    // 1. Core listeners (handles hue slider and standard buttons)
+    initThemeListeners();
+
+    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
+    const toggles = [
+        { id: "theme-toggle", type: "toggle" },
+        { id: "theme-toggle-ctrl", type: "toggle" },
+        { id: "mike-toggle", type: "mike" }
+    ];
+
+    toggles.forEach(t => {
+        const btn = document.getElementById(t.id);
+        if (!btn) return;
+
+        btn.addEventListener("click", () => {
+            const current = localStorage.getItem("theme");
+            if (t.type === "mike") {
+                applyTheme("mike");
+            } else {
+                applyTheme(current === "dark" ? "light" : "dark");
+            }
+            syncToggleUI();
+        });
+    });
+
+    syncToggleUI();
+}
+
+function syncToggleUI() {
+    const isDark = localStorage.getItem("theme") === "dark";
+    const pcBtn = document.getElementById("theme-toggle");
+    const mobBtn = document.getElementById("theme-toggle-ctrl");
+
+    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
+    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
+}
+
 // --- Initialize ---
 async function initializePage() {
     setupAdminTools();
+    initHomeTheming();
 }
 
 initializePage();
 fetchAllPages();
 searchInput.addEventListener('input', handleSearch);
+searchInput.addEventListener('focus', handleSearch);

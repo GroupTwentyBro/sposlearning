@@ -3,81 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Title</title>
+    <title>Admin Login - SPOŠLearning</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
     <link href="/style/variables-global.css" rel="stylesheet">
     <link href="/style/base.css" rel="stylesheet">
     <link href="/style/forms.css" rel="stylesheet">
 
-    <!-- Fonts -->
+    <script src="/js/theming.js" type="module"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
-    <div class="container">
-        <h1>Admin Login</h1>
+<div class="container mt-5" style="max-width: 400px;">
+    <h1 class="text-center mb-4">Admin Login</h1>
 
-        <form id="login-form">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" class="form-control" id="password" placeholder="Password" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary" id="submitBtn">Log in</button>
-        </form>
-
-        <p id="error-message" style="color: red;"></p>
-    </div>
-    <button id="theme-toggle" class="btn btn-icon">
-        <div class="icon-stack">
-            <icon class="icon-moon">dark_mode</icon>
-
-            <icon class="icon-sun">light_mode</icon>
+    <form id="login-form" class="details-box" style="padding: 20px; background: var(--root-box-bg-clr); border: 1px solid var(--box-border-clr); border-radius: 12px;">
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter email" required>
         </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" id="submitBtn">Log in</button>
+    </form>
+
+    <div class="text-center my-3 text-muted">OR</div>
+
+    <button id="google-login-btn" class="btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: var(--root-box-fg-clr); border: 1px solid var(--box-border-clr); color: var(--root-fg-clr);">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
+        Sign in with Google
     </button>
 
-    <script type="module" src="../js/login.js"></script>
-    <script>
-        const themeLink = document.getElementById("theme-link");
-        const ldBtn = document.getElementById("theme-toggle");
-        const root = document.documentElement;
+    <p id="error-message" class="text-center mt-3" style="color: var(--discl-important-fg-clr);"></p>
 
-        function applyTheme(themeName) {
-            if (themeName === 'hueshift') {
-            themeLink.href = "/style/theme-hueshift.css";
-        } else if (themeName === 'mike') {
-                themeLink.href = "/style/theme-mike.css";
-                ldBtn.classList.remove("is-dark");
-            } else if (themeName === 'dark') {
-                themeLink.href = "/style/theme-dark.css";
-                ldBtn.classList.add("is-dark");
-            } else {
-                themeLink.href = "/style/theme-light.css";
-                ldBtn.classList.remove("is-dark");
-            }
+</div>
 
-            localStorage.setItem("theme", themeName);
-        }
+<button id="theme-toggle" class="btn btn-icon">
+    <div class="icon-stack">
+        <icon class="icon-moon">dark_mode</icon>
+        <icon class="icon-sun">light_mode</icon>
+    </div>
+</button>
 
-        const currentTheme = localStorage.getItem("theme") || "light";
-        applyTheme(currentTheme);
-
-        ldBtn.addEventListener("click", function() {
-            const current = localStorage.getItem("theme");
-
-            if (current === "dark") {
-                applyTheme("light");
-            } else {
-                applyTheme("dark");
-            }
-        });
-    </script>
+<script type="module" src="../js/login.js"></script>
 </body>
 </html>

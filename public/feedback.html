@@ -3,19 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' https://*.googleapis.com https://*.gstatic.com;
+    script-src 'self' 'unsafe-inline' https://*.gstatic.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: https://*.googleusercontent.com https://res.cloudinary.com;
+    connect-src 'self' https://*.googleapis.com https://api.ipify.org https://api.cloudinary.com;
+    ">
     <title>Send Feedback - SPOŠLearning</title>
+
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
     <link href="/style/variables-global.css" rel="stylesheet">
     <link rel="stylesheet" href="/style/base.css">
     <link rel="stylesheet" href="/style/forms.css">
     <link rel="stylesheet" href="/style/mobile.css">
+
+    <script src="/js/theming.js" type="module"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 </head>
 <body>
 
-<div class="content">
+<div class="mainpage">
     <h1>Zpětná vazba</h1>
     <p>Našel jsi chybu nebo chceš něco vylepšit? Dej nám vědět.</p>
     <hr>
@@ -39,6 +51,7 @@
         <div class="form-group">
             <label for="feedback-contact">Kontaktní email</label>
             <input type="email" class="form-control" id="feedback-contact" placeholder="name@example.com">
+            <input type="text" id="hp_field" style="display:none !important" tabindex="-1" autocomplete="off">
         </div>
 
         <div class="form-group">
@@ -46,12 +59,13 @@
             <textarea class="form-control" id="feedback-message" rows="5" required placeholder="Describe your feedback..."></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary" id="submit-btn">Submit Feedback</button>
+        <button type="submit" class="btn btn-primary" id="submit-btn">Odeslat zpětnou vazbu</button>
     </form>
 
     <div id="status-message" class="mt-3"></div>
 
 </div>
+
 <button id="theme-toggle" class="btn btn-icon pc">
     <div class="icon-stack">
         <icon class="icon-moon">dark_mode</icon>
@@ -60,41 +74,5 @@
 </button>
 
 <script type="module" src="/js/feedback.js"></script>
-<script>
-    const themeLink = document.getElementById("theme-link");
-    const ldBtn = document.getElementById("theme-toggle");
-    const root = document.documentElement;
-
-    function applyTheme(themeName) {
-        if (themeName === 'hueshift') {
-            themeLink.href = "/style/theme-hueshift.css";
-            root.style.setProperty('--hue-val', localStorage.getItem("hue-val"));
-        } else if (themeName === 'mike') {
-            themeLink.href = "/style/theme-mike.css";
-            ldBtn.classList.remove("is-dark");
-        } else if (themeName === 'dark') {
-            themeLink.href = "/style/theme-dark.css";
-            ldBtn.classList.add("is-dark");
-        } else {
-            themeLink.href = "/style/theme-light.css";
-            ldBtn.classList.remove("is-dark");
-        }
-
-        localStorage.setItem("theme", themeName);
-    }
-
-    const currentTheme = localStorage.getItem("theme") || "light";
-    applyTheme(currentTheme);
-
-    ldBtn.addEventListener("click", function() {
-        const current = localStorage.getItem("theme");
-
-        if (current === "dark") {
-            applyTheme("light");
-        } else {
-            applyTheme("dark");
-        }
-    });
-</script>
 </body>
 </html>
