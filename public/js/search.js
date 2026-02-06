@@ -223,19 +223,17 @@ function createTreeDOM(node) {
 
 function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
-    const authUiContainer = document.getElementById('auth-ui-container');
-    const auth = getAuth(app);
+    if(!adminBar) return;
 
+    const auth = getAuth(app);
     onAuthStateChanged(auth, (user) => {
         currentUser = user;
 
-        // Reset containers
-        authUiContainer.innerHTML = '';
+        // Always clear the bar first to prevent button duplication
         adminBar.innerHTML = '';
 
         if (user) {
-            // --- USER IS LOGGED IN ---
-            // 1. Desktop Admin Buttons
+            // --- USER LOGGED IN: Show Dashboard & Logout ---
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
@@ -251,24 +249,25 @@ function setupAdminTools() {
                     </div>
                 </div>`;
 
-            // Attach listeners to both logout buttons
-            const logoutAction = () => signOut(auth).catch(err => console.error(err));
-            document.getElementById('logout-button-pc')?.addEventListener('click', logoutAction);
-            document.getElementById('logout-button-mob')?.addEventListener('click', logoutAction);
+            const performLogout = () => signOut(auth).catch(err => console.error(err));
+            document.getElementById('logout-button-pc')?.addEventListener('click', performLogout);
+            document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
 
         } else {
-            // --- USER IS A GUEST ---
-            // Inject Login buttons with your responsive classes
-            authUiContainer.innerHTML = `
-                <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
-                
-                <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
-                    <span class="icon">login</span>
-                </a>
-            `;
+            // --- GUEST: Show Login Buttons on the right side ---
+            adminBar.innerHTML = `
+                <div class="admin-controls">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
+                        
+                        <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
+                            <span class="icon">login</span>
+                        </a>
+                    </div>
+                </div>`;
         }
 
-        // Trigger search refresh if user permissions changed while searching
+        // Refresh search results to show/hide admin content based on new auth state
         if(searchInput.value.length >= 2) {
             searchInput.dispatchEvent(new Event('input'));
         }
