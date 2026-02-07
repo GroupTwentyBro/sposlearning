@@ -127,9 +127,14 @@ form.addEventListener('submit', async (e) => {
         // Step A: Save to Firestore
         await addDoc(collection(db, 'feedback'), feedbackData);
 
+<<<<<<< Updated upstream
         // Step B: Trigger Email Notification via PHP Bridge
         // We don't 'await' this so the user doesn't wait for the mail server response
         fetch('/api/send-mail.php', {
+=======
+// Step B: Trigger Email Notification - now including the ID
+        fetch('/api/send-feedback.php', {
+>>>>>>> Stashed changes
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
