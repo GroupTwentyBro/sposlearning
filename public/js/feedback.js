@@ -129,7 +129,7 @@ form.addEventListener('submit', async (e) => {
 
         // Step B: Trigger Email Notification via PHP Bridge
         // We don't 'await' this so the user doesn't wait for the mail server response
-        fetch('/api/send-feedback.php', {
+        fetch('/api/send-mail.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
