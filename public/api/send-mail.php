@@ -1,8 +1,13 @@
 <?php
-// Security: Only allow your website to call this script
-header("Access-Control-Allow-Origin: https://sposlearning.cz");
-header("Access-Control-Allow-Methods: POST");
+// Update this to include the 'www' if that's what your site uses
+header("Access-Control-Allow-Origin: https://www.sposlearning.cz");
+header("Access-Control-Allow-Methods: POST, OPTIONS"); // Added OPTIONS for the preflight
 header("Access-Control-Allow-Headers: Content-Type");
+
+// Handle the preflight "OPTIONS" request immediately
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true);
