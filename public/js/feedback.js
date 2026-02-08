@@ -52,7 +52,7 @@ onAuthStateChanged(auth, (user) => {
 
     // Handle Name field based on Provider
     const providerId = user.providerData[0]?.providerId;
-    if (providerId === 'google.com' || providerId === 'github.com') {
+    if (providerId === 'google.com') {
         nameInput.value = user.displayName || '';
         nameInput.readOnly = true;
         nameInput.style.opacity = "0.7";
