@@ -254,8 +254,8 @@ body {
     border-radius: 50%;
     background-color: var(--primary-hl-clr);
     animation:  bounce 1.5s ease infinite,
-    squircle 750ms ease infinite,
-    rotate 2s ease infinite;
+                squircle 750ms ease infinite,
+                rotate 2s ease infinite;
 }
 
 @keyframes bounce {

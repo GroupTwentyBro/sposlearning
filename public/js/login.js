@@ -12,10 +12,6 @@ import {
 // Modular Theme Import
 import { initThemeListeners, applyTheme } from './theming.js';
 
-const ALLOWED_ADMINS = [
-    "itsmeteddyhere@gmail.com"
-];
-
 // Initialize UI
 initThemeListeners();
 
