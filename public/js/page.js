@@ -230,7 +230,10 @@ async function handleDeletePage() {
     try {
         if (providerId === 'google.com') {
             await reauthenticateWithPopup(user, new GoogleAuthProvider());
-        } else {
+        } else if (providerId === 'github.com') {
+            alert('Máš smůlu nemůžeš mazat!');
+        }
+        else {
             const password = await requestPassword();
             if (!password) return;
             const credential = EmailAuthProvider.credential(user.email, password);
