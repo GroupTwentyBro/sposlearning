@@ -44,6 +44,7 @@ export function initThemeListeners() {
     "lighttheme-btn": "light",
     "miketheme-btn": "mike",
     "teddytheme-btn": "teddy",
+    "mikutheme-btn": "miku",
   };
 
   // Attach click listeners to buttons
