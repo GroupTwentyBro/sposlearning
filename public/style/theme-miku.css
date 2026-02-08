@@ -1,0 +1,206 @@
+:root {
+  /* ROOT CLRS - Based on Hatsune Miku (Teal/Cyan + Hot Pink) */
+  --root-bg-clr: hsl(177, 100%, 8%); /* Deep teal-black base */
+  --root-fg-clr: #ffffff;
+  --root-txt-clr: hsla(0, 0%, 100%, 0.87);
+  --root-box-bg-clr: hsl(177, 60%, 10%);
+  --root-box-fg-clr: hsl(177, 50%, 15%);
+  --root-fgd-clr: hsl(177, 30%, 65%); /* Muted teal */
+  --root-ul-sd-clr: hsl(177, 70%, 50%);
+  --code-bg-clr: hsl(177, 40%, 12%);
+
+  /* BOX STYLES */
+  --box-overlay-clr: hsla(177, 70%, 50%, 4%);
+  --box-clr: hsl(177, 60%, 12%);
+  --box-border-clr: hsl(177, 70%, 35%); /* Miku teal border */
+  --box-overlay-fg-clr: hsla(0, 0%, 100%, 50%);
+  --box-overlay-border-clr: hsla(177, 70%, 50%, 15%);
+  --box-txt-clr: hsla(0, 0%, 100%, 0.75);
+
+  /* PRIMARY CLRS - Miku Teal/Cyan */
+  --primary-boxbg-clr: hsl(177, 100%, 15%);
+  --primary-boxfg-clr: hsl(177, 100%, 20%);
+  --primary-sd-clr: hsl(177, 85%, 28%);
+  --primary-bg-clr: hsl(177, 85%, 38%); /* Vibrant Miku teal */
+  --primary-fg-clr: hsl(177, 70%, 50%); /* #00B2A9 equivalent */
+  --primary-hl-clr: hsl(177, 60%, 65%); /* Light teal highlight */
+
+  /* SECONDARY CLRS - Miku Hot Pink */
+  --secondary-sd-clr: hsl(328, 85%, 30%);
+  --secondary-bg-clr: hsl(328, 85%, 40%);
+  --secondary-fg-clr: hsl(328, 85%, 53%); /* #E12885 Hot pink */
+  --secondary-hl-clr: hsl(328, 85%, 68%); /* Light pink pop */
+
+  /* TRIETARY CLRS - Light Cyan Accent */
+  --trietary-sd-clr: hsl(186, 50%, 35%);
+  --trietary-bg-clr: hsl(186, 50%, 50%);
+  --trietary-fg-clr: hsl(186, 52%, 68%); /* #86CECB Light cyan */
+  --trietary-hl-clr: hsl(186, 52%, 85%);
+
+  /* DISCL CLRS - Semantic mappings */
+  --discl-def-bg-clr: hsla(177, 85%, 38%, 0.2);
+  --discl-def-fg-clr: hsl(177, 85%, 45%);
+
+  /* Error/Important - Hot Pink */
+  --discl-important-bg-clr: hsla(328, 85%, 53%, 0.15);
+  --discl-important-fg-clr: hsl(328, 85%, 60%);
+
+  /* Success - Vibrant Teal */
+  --discl-importantgreen-bg-clr: hsla(177, 70%, 50%, 0.15);
+  --discl-importantgreen-fg-clr: hsl(177, 70%, 55%);
+
+  /* Warning - Light Cyan */
+  --discl-warning-bg-clr: hsla(186, 52%, 68%, 0.15);
+  --discl-warning-fg-clr: hsl(186, 52%, 68%);
+
+  /* Info - Muted Teal */
+  --discl-info-bg-clr: hsla(177, 60%, 65%, 0.15);
+  --discl-info-fg-clr: hsl(177, 60%, 65%);
+
+  /* UNDERLINE STYLES */
+  --ul-dotted: linear-gradient(
+    to right,
+    var(--root-ul-sd-clr) 1px,
+    transparent 1px
+  );
+}
+
+/* BUTTON OVERRIDES - Using CSS Variables */
+
+/* Primary & Dark: The main Miku Teal */
+.btn-primary,
+.btn-dark {
+  background: var(--primary-fg-clr) !important;
+  border-color: var(--primary-fg-clr) !important;
+  color: var(--root-bg-clr) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Secondary: The Hot Pink */
+.btn-secondary {
+  background: var(--secondary-fg-clr) !important;
+  border-color: var(--secondary-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Danger: The Hot Pink (emphasis) */
+.btn-danger {
+  background: var(--discl-important-fg-clr) !important;
+  border-color: var(--discl-important-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Warning: The Light Cyan */
+.btn-warning {
+  background: var(--trietary-fg-clr) !important;
+  border-color: var(--trietary-fg-clr) !important;
+  color: var(--root-box-bg-clr) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Success: The Vibrant Teal */
+.btn-success {
+  background: var(--discl-importantgreen-fg-clr) !important;
+  border-color: var(--discl-importantgreen-fg-clr) !important;
+  color: var(--root-bg-clr) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* White: High contrast */
+.btn-white {
+  background: var(--root-fg-clr) !important;
+  border-color: var(--root-fg-clr) !important;
+  color: var(--root-box-bg-clr) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+/* Interactive States */
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.btn-success:hover,
+.btn-warning:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 178, 169, 0.3);
+  cursor: pointer;
+}
+
+.btn-secondary:hover,
+.btn-danger:hover {
+  box-shadow: 0 4px 12px rgba(225, 40, 133, 0.3);
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(
+    135deg,
+    hsl(177, 100%, 8%) 0%,
+    hsl(177, 80%, 12%) 25%,
+    hsl(180, 70%, 15%) 50%,
+    hsl(177, 80%, 12%) 75%,
+    hsl(177, 100%, 8%) 100%
+  ) !important;
+  background-attachment: fixed !important;
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    hsla(177, 70%, 50%, 0.08) 0%,
+    transparent 50%
+  );
+  animation: pulse 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at center,
+    hsla(328, 85%, 53%, 0.05) 0%,
+    transparent 50%
+  );
+  animation: pulse 8s ease-in-out infinite reverse;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-10%, 10%) scale(1.05);
+    opacity: 0.8;
+  }
+}
