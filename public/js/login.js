@@ -4,6 +4,7 @@ import {
     setPersistence,
     browserLocalPersistence,
     GoogleAuthProvider,
+    MicrosoftAuthProvider,
     GithubAuthProvider,
     signInWithPopup,
     signOut
@@ -55,6 +56,7 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
 const googleBtn = document.getElementById('google-login-btn');
+const microsoftBtn = document.getElementById('microsoft-login-btn');
 const githubBtn = document.getElementById('github-login-btn');
 
 loginForm.addEventListener('submit', async (e) => {
@@ -91,6 +93,20 @@ if (googleBtn) {
             await checkAdminAndRedirect(result.user);
         } catch (error) {
             errorMessage.textContent = 'Příhlášení přes Google selhalo.';
+        }
+    });
+}
+
+if (microsoftBtn) {
+    microsoftBtn.addEventListener('click', async () => {
+        errorMessage.textContent = '';
+        const provider = new MicrosoftAuthProvider();
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            const result = await signInWithPopup(auth, provider);
+            await checkAdminAndRedirect(result.user);
+        } catch (error) {
+            errorMessage.textContent = 'Příhlášení přes Microsoft selhalo.';
         }
     });
 }
