@@ -120,8 +120,17 @@ async function loadContent() {
             }
 
             const dosboxContainer = document.getElementById("dosbox-target");
+
             if (dosboxContainer && typeof Dos !== "undefined") {
-                Dos(dosboxContainer).run("https://js-dos.com/share/abi/doom.zip");
+                // In v8, we use the Dos function then .run() inside a container
+                Dos(dosboxContainer)
+                    .run("https://js-dos.com/share/abi/doom.zip")
+                    .then((ci) => {
+                        console.log("Doom is running!", ci);
+                    })
+                    .catch((err) => {
+                        console.error("Dos error:", err);
+                    });
             }
 
             // 4. ANIMATION TRIGGER
