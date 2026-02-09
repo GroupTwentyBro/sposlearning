@@ -1,16 +1,17 @@
-import { auth } from './firebaseConfig.js';
+import {auth} from './firebaseConfig.js';
 import {
-    signInWithEmailAndPassword,
-    setPersistence,
     browserLocalPersistence,
-    GoogleAuthProvider,
     GithubAuthProvider,
+    GoogleAuthProvider,
+    OAuthProvider,
+    setPersistence,
+    signInWithEmailAndPassword,
     signInWithPopup,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Modular Theme Import
-import { initThemeListeners, applyTheme } from './theming.js';
+import {applyTheme, initThemeListeners} from './theming.js';
 
 // Initialize UI
 initThemeListeners();
@@ -55,6 +56,7 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
 const googleBtn = document.getElementById('google-login-btn');
+const microsoftBtn = document.getElementById('microsoft-login-btn');
 const githubBtn = document.getElementById('github-login-btn');
 
 loginForm.addEventListener('submit', async (e) => {
@@ -91,6 +93,28 @@ if (googleBtn) {
             await checkAdminAndRedirect(result.user);
         } catch (error) {
             errorMessage.textContent = 'Příhlášení přes Google selhalo.';
+        }
+    });
+}
+
+const microsoftProvider = new OAuthProvider('microsoft.com');
+
+microsoftProvider.setCustomParameters({
+    // Use 'common' for multi-tenant and personal accounts
+    tenant: 'common',
+    // Force the user to select an account even if they are logged in
+    prompt: 'select_account'
+});
+
+if (microsoftBtn) {
+    microsoftBtn.addEventListener('click', async () => {
+        errorMessage.textContent = '';
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            const result = await signInWithPopup(auth, microsoftProvider);
+            await checkAdminAndRedirect(result.user);
+        } catch (error) {
+            errorMessage.textContent = 'Příhlášení přes Microsoft selhalo.';
         }
     });
 }
