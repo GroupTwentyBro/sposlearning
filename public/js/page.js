@@ -119,6 +119,11 @@ async function loadContent() {
                 await window.MathJax.typesetPromise([contentContainer]);
             }
 
+            const dosboxContainer = document.getElementById("dosbox-target");
+            if (dosboxContainer && typeof Dos !== "undefined") {
+                Dos(dosboxContainer).run("https://js-dos.com/share/abi/doom.zip");
+            }
+
             // 4. ANIMATION TRIGGER
             const loader = document.querySelector('.dot-container');
             if (loader) {
