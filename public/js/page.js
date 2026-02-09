@@ -231,8 +231,7 @@ async function handleDeletePage() {
         if (providerId === 'google.com') {
             await reauthenticateWithPopup(user, new GoogleAuthProvider());
         } else if (providerId === 'github.com') {
-            alert('Máš smůlu nemůžeš mazat!');
-            return;
+            await reauthenticateWithPopup(user, new GithubAuthProvider());
         } else {
             const password = await requestPassword();
             if (!password) return;
