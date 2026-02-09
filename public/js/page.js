@@ -119,18 +119,25 @@ async function loadContent() {
                 await window.MathJax.typesetPromise([contentContainer]);
             }
 
-            const dosboxContainer = document.getElementById("dosbox-target");
+            // Inside your loadContent() or where you handle the game logic
+            const startBtn = document.getElementById("start-doom-btn");
+            const container = document.getElementById("dosbox-target");
 
-            if (dosboxContainer && typeof Dos !== "undefined") {
-                // In v8, we use the Dos function then .run() inside a container
-                Dos(dosboxContainer)
-                    .run("https://js-dos.com/share/abi/doom.zip")
-                    .then((ci) => {
-                        console.log("Doom is running!", ci);
-                    })
-                    .catch((err) => {
-                        console.error("Dos error:", err);
+            if (startBtn && container) {
+                startBtn.onclick = () => {
+                    // 1. Hide the button
+                    startBtn.style.display = "none";
+
+                    // 2. JS-DOS v8 Initialization pattern
+                    createDos(container, {
+                        dosboxConf: "",
+                        windowOpen: false,
+                    }).then((runtime) => {
+                        runtime.run("https://js-dos.com/share/abi/doom.zip");
+                    }).catch(err => {
+                        console.error("Initialization failed:", err);
                     });
+                };
             }
 
             // 4. ANIMATION TRIGGER
