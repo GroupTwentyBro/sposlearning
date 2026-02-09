@@ -38,7 +38,7 @@ regForm.addEventListener('submit', async (e) => {
         await signOut(auth);
 
         statusMsg.className = "text-success";
-        statusMsg.innerHTML = `Účet vytvořen! <br> Zkontrolujte <b>${email}</b> pro ověřovací odkaz.`;
+        statusMsg.innerHTML = `Účet vytvořen! <br> Zkontrolujte <b>${email}</b> pro ověřovací odkaz (často padá do spamu).`;
         regForm.reset();
 
     } catch (error) {
