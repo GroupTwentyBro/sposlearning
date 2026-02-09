@@ -1,17 +1,17 @@
-import { auth } from './firebaseConfig.js';
+import {auth} from './firebaseConfig.js';
 import {
-    signInWithEmailAndPassword,
-    setPersistence,
     browserLocalPersistence,
-    GoogleAuthProvider,
-    MicrosoftAuthProvider,
     GithubAuthProvider,
+    GoogleAuthProvider,
+    OAuthProvider,
+    setPersistence,
+    signInWithEmailAndPassword,
     signInWithPopup,
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // Modular Theme Import
-import { initThemeListeners, applyTheme } from './theming.js';
+import {applyTheme, initThemeListeners} from './theming.js';
 
 // Initialize UI
 initThemeListeners();
@@ -97,13 +97,21 @@ if (googleBtn) {
     });
 }
 
+const microsoftProvider = new OAuthProvider('microsoft.com');
+
+microsoftProvider.setCustomParameters({
+    // Use 'common' for multi-tenant and personal accounts
+    tenant: 'common',
+    // Force the user to select an account even if they are logged in
+    prompt: 'select_account'
+});
+
 if (microsoftBtn) {
     microsoftBtn.addEventListener('click', async () => {
         errorMessage.textContent = '';
-        const provider = new MicrosoftAuthProvider();
         try {
             await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, microsoftProvider);
             await checkAdminAndRedirect(result.user);
         } catch (error) {
             errorMessage.textContent = 'Příhlášení přes Microsoft selhalo.';
