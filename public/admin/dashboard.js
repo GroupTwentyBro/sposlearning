@@ -15,11 +15,12 @@ onAuthStateChanged(auth, async (user) => {
         try {
             await loadDashboardContent();
         } catch (error) {
+            document.querySelector('.dot-container')?.classList.add('hidden');
             console.error("Access denied:", error);
             container.innerHTML = `
-                <div class="alert alert-danger text-center m-5">
-                    <h1>403</h1>
-                    <p>You are not an authorized administrator.</p>
+                <div class="alert alert-danger text-center m-5" style="background: none !important;">
+                    <h1 style="color: var(--root-fg-clr);">403</h1>
+                    <p style="color: var(--root-txt-clr);">You are not an authorized administrator.</p>
                 </div>`;
         }
     } else {
