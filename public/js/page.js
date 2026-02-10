@@ -146,7 +146,7 @@ function renderFileExplorer(title, files) {
             <a href="${file.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
                style="background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
                 ${file.name}
-                <span class="badge" style="background: var(--primary-fg-clr); color: white; border-radius: 20px;">${size}</span>
+                <span class="badge" style="background: var(--primary-fg-clr); color: white; border-radius: var(--box-border-radius);">${size}</span>
             </a>`;
     }).join('');
 

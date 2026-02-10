@@ -155,7 +155,7 @@
     border: 1px solid var(--box-border-clr);
     color: var(--primary-hl-clr);
     padding: 10px 20px;
-    border-radius: 50px;
+    border-radius: var(--box-border-radius);
     text-decoration: none;
     font-weight: 600;
     transition: all 0.2s ease;
@@ -189,7 +189,7 @@
     align-items: center;
     gap: 8px;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: var(--box-border-radius);
     cursor: pointer;
     width: fit-content;
     transition: background 0.2s;
