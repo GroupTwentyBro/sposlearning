@@ -1,148 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - SPOŠLearning</title>
-    <link
-      rel="stylesheet"
-      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" />
-    <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
     <script src="/js/theming.js" type="module"></script>
-    <link href="/style/variables-global.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/style/base.css" />
-    <link rel="stylesheet" href="/style/components.css" />
-    <link rel="stylesheet" href="/style/custom-el.css" />
-    <link rel="stylesheet" href="/style/mobile.css" />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-  </head>
-  <body>
-    <div>
-      <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-          <h1>Miku</h1>
-          <div class="d-flex" style="gap: 20px">
-            <a href="/"
-              ><button
-                class="btn btn-primary"
-                id="home-button"
-                style="border-radius: 999px !important">
-                <span
-                  class="material-symbols-outlined"
-                  style="
-                    font-size: var(--icon-small);
-                    transform: translateX(1px);
-                  ">
-                  home
-                </span>
-              </button></a
-            >
-            <button
-              class="btn btn-danger"
-              id="logout-button"
-              style="border-radius: 999px !important">
-              Logout
-            </button>
-          </div>
-        </div>
-        <hr />
+    <link href="/style/variables-global.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style/base.css">
+    <link rel="stylesheet" href="/style/components.css">
+    <link rel="stylesheet" href="/style/custom-el.css">
+    <link rel="stylesheet" href="/style/mobile.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
 
-        <div class="box-row">
-          <div class="box">
-            <div class="col">
-              <icon class="boxed clr1">add_circle</icon>
-              <h2 class="boxed">Přidání článku</h2>
-              <div class="text boxed">
-                Tady se přidávají články. No comment.
-              </div>
-              <a href="/admin/add-page"
-                ><button class="btn btn-primary mt-3">Otevřít</button></a
-              >
-            </div>
-          </div>
-          <div class="box">
-            <div class="col">
-              <icon class="boxed clr3">chat</icon>
-              <h2 class="boxed">Zpětná vazba</h2>
-              <div class="text boxed">
-                Zde se můžeš podívat na zpětnou vazbu. Na to přijdeš není to
-                těžký.
-              </div>
-              <a href="/admin/feedback"
-                ><button class="btn btn-warning mt-3">Otevřít</button></a
-              >
-            </div>
-          </div>
-        </div>
-        <div class="box-row">
-          <div class="box">
-            <div class="col">
-              <icon class="boxed clr2">colors</icon>
-              <h2 class="boxed">Theming</h2>
-              <div class="row">
-                <div class="col">
-                  <button
-                    id="darktheme-btn"
-                    class="btn btn-dark"
-                    style="margin: 10px">
-                    Dark Theme
-                  </button>
-                  <button
-                    id="lighttheme-btn"
-                    class="btn btn-white"
-                    style="margin: 10px">
-                    Light Theme
-                  </button>
-                  <button
-                    id="teddytheme-btn"
-                    class="btn btn-dark"
-                    style="
-                      margin: 10px;
-                      background-color: var(--primary-bg-clr);
-                      border-color: var(--primary-bg-clr);
-                    ">
-                    Teddy Theme
-                  </button>
-                </div>
-                <div class="col">
-                  <button
-                    id="miketheme-btn"
-                    class="btn btn-secondary"
-                    style="margin: 10px">
-                    Mike Theme
-                  </button>
-                  <button
-                    id="mikutheme-btn"
-                    class="btn btn-dark"
-                    style="
-                      margin: 10px;
-                      background: linear-gradient(
-                        90deg,
-                        hsl(177, 70%, 50%),
-                        hsl(328, 85%, 53%)
-                      );
-                      border-color: hsl(177, 70%, 50%);
-                    ">
-                    Miku Theme
-                  </button>
-                  <input
-                    type="range"
-                    id="hueSlider"
-                    min="0"
-                    max="360"
-                    value="0"
-                    style="margin: 10px" />
-                </div>
-              </div>
-              <div class="text boxed">Vyber si theme.</div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="dot-container">
+    <div class="dot"></div>
+</div>
+
+<div id="secure-container">
+    <div style="text-align: center; margin-top: 20%; color: gray;">
+
     </div>
+</div>
 
-    <script src="dashboard.js" type="module"></script>
-  </body>
+<script src="dashboard.js" type="module"></script>
+</body>
 </html>
