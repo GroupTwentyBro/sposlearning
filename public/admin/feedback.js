@@ -43,24 +43,35 @@ async function loadFeedbackUI() {
     }
 }
 
+function debounce(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => { func.apply(this, args); }, timeout);
+    };
+}
+
 function setupControls() {
     const sortSelect = document.getElementById('sort-select');
     const hideResolvedCheckbox = document.getElementById('hide-resolved');
     const searchInput = document.getElementById('search-input');
 
+    // Create a debounced version of your loader
+    const debouncedSearch = debounce((val) => loadFeedback(val), 300);
+
     sortSelect?.addEventListener('change', (e) => {
         currentSort = e.target.value;
-        loadFeedback(searchInput?.value); // Pass current search term
+        loadFeedback(searchInput?.value);
     });
 
     hideResolvedCheckbox?.addEventListener('change', (e) => {
         hideResolved = e.target.checked;
-        loadFeedback(searchInput?.value); // Pass current search term
+        loadFeedback(searchInput?.value);
     });
 
-    // Handle search input here once
     searchInput?.addEventListener('input', (e) => {
-        loadFeedback(e.target.value);
+        // Use the debounced version here!
+        debouncedSearch(e.target.value);
     });
 }
 
