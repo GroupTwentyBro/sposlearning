@@ -172,3 +172,31 @@ body::before {
   height: 100%;
   background: rgba(0, 20, 20, 0.4); /* Teal-tinted overlay */
 }
+/* Sound toggle button - floating in bottom right */
+.miku-sound-toggle {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary-fg-clr);
+  border: 3px solid var(--secondary-fg-clr);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.miku-sound-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(225, 40, 133, 0.5);
+}
+
+.miku-sound-toggle span {
+  font-size: 32px;
+}
