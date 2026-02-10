@@ -15,11 +15,10 @@ onAuthStateChanged(auth, async (user) => {
         // 1. Load the UI Shell from Firestore
         await loadFeedbackUI();
 
-        // 2. Initial Data Load
-        await loadFeedbackData();
-
-        // 3. Setup Filter Listeners
+        // 2. Setup Filter Listeners
         setupControls();
+
+        await loadFeedback();
 
         // 4. Cleanup UI
         initThemeListeners();
@@ -45,32 +44,22 @@ async function loadFeedbackUI() {
 function setupControls() {
     const sortSelect = document.getElementById('sort-select');
     const hideResolvedCheckbox = document.getElementById('hide-resolved');
-
-    if (sortSelect) {
-        sortSelect.addEventListener('change', (e) => {
-            currentSort = e.target.value;
-            loadFeedbackData();
-        });
-    }
-
-    if (hideResolvedCheckbox) {
-        hideResolvedCheckbox.addEventListener('change', (e) => {
-            hideResolved = e.target.checked;
-            loadFeedbackData();
-        });
-    }
-}
-
-async function loadFeedbackData() {
-    const listContainer = document.getElementById('feedback-list');
     const searchInput = document.getElementById('search-input');
 
-    searchInput.addEventListener('input', handleSearch);
-    searchInput.addEventListener('focus', handleSearch);
+    sortSelect?.addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        loadFeedback(searchInput?.value); // Pass current search term
+    });
 
-    if (!listContainer) return;
+    hideResolvedCheckbox?.addEventListener('change', (e) => {
+        hideResolved = e.target.checked;
+        loadFeedback(searchInput?.value); // Pass current search term
+    });
 
-    loadFeedback(term);
+    // Handle search input here once
+    searchInput?.addEventListener('input', (e) => {
+        loadFeedback(e.target.value);
+    });
 }
 
 function escapeHtml(text) {
@@ -78,15 +67,11 @@ function escapeHtml(text) {
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
-
-    loadFeedback(searchTerm);
-}
-
-async function loadFeedback(term) {
+async function loadFeedback(term = "") {
     const loadingText = document.getElementById('loading');
     const listContainer = document.getElementById('feedback-list');
+
+    if (!listContainer) return;
 
     loadingText.style.display = 'block';
     listContainer.innerHTML = '';
@@ -99,7 +84,6 @@ async function loadFeedback(term) {
         );
 
         const snapshot = await getDocs(q);
-
         loadingText.style.display = 'none';
 
         if (snapshot.empty) {
@@ -108,20 +92,19 @@ async function loadFeedback(term) {
         }
 
         let visibleCount = 0;
+        const searchTerm = term.trim().toLowerCase();
 
         snapshot.forEach(doc => {
             const data = doc.data();
 
+            // 1. Filter Resolved
             if (hideResolved && data.resolved) return;
 
-            const searchTerm = (term || '').trim().toLowerCase();
+            // 2. Filter Search
             if (searchTerm !== "") {
                 const titleMatch = (data.title || '').toLowerCase().includes(searchTerm);
                 const pageMatch = (data.page || '').toLowerCase().includes(searchTerm);
-
-                if (!titleMatch && !pageMatch) {
-                    return;
-                }
+                if (!titleMatch && !pageMatch) return;
             }
 
             visibleCount++;
@@ -130,26 +113,27 @@ async function loadFeedback(term) {
 
             const a = document.createElement('a');
             a.href = `/admin/feedback/post?id=${id}`;
-            // Using the new CSS class for visual accenting
             a.className = `feedback-item list-group-item list-group-item-action ${data.resolved ? 'read' : ''}`;
 
             a.innerHTML = `
-        <div class="feedback-header">
-            <div class="feedback-title">
-                ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
-                ${data.resolved ? '<span class="badge badge-success ml-2">Resolved</span>' : ''}
-            </div>
-            <div class="feedback-meta">
-                <div>${escapeHtml(data.contact)}</div>
-                <div>IP: ${escapeHtml(data.ip)}</div>
-            </div>
-        </div>
-        <div class="feedback-preview">${escapeHtml(preview)}</div>
-    `;
+                <div class="feedback-header">
+                    <div class="feedback-title">
+                        ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
+                        ${data.resolved ? '<span class="badge badge-success ml-2">Resolved</span>' : ''}
+                    </div>
+                    <div class="feedback-meta">
+                        <div>${escapeHtml(data.contact)}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">IP: ${escapeHtml(data.ip || 'Unknown')}</div>
+                    </div>
+                </div>
+                <div class="feedback-preview">${escapeHtml(preview)}</div>
+            `;
             listContainer.appendChild(a);
         });
 
-        if (visibleCount === 0) listContainer.innerHTML = '<p class="text-center">No matching feedback.</p>';
+        if (visibleCount === 0) {
+            listContainer.innerHTML = '<p class="text-center">No matching feedback.</p>';
+        }
 
     } catch (error) {
         console.error(error);
