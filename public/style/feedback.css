@@ -74,7 +74,6 @@ body { background-color: var(--root-bg-clr) !important; }
     color: white;
     padding: 2px;
     margin: 0 6px;
-    font-size: var(--fs-hinput);
     vertical-align: middle;
 }
 
