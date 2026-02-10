@@ -30,7 +30,7 @@ onAuthStateChanged(auth, async (user) => {
  * NEW: Fetches the Editor UI from Firestore (admin/editor)
  */
 async function loadEditorUI() {
-    const docRef = doc(db, "admin", "edit"); // Assuming you store the HTML here
+    const docRef = doc(db, "admin-pages", "edit"); // Assuming you store the HTML here
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {

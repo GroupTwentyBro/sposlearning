@@ -30,7 +30,7 @@ onAuthStateChanged(auth, async (user) => {
 
 // 2. Fetch HTML from Firestore
 async function loadDashboardContent() {
-    const docRef = doc(db, "admin", "dashboard");
+    const docRef = doc(db, "admin-pages", "dashboard");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {

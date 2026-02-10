@@ -32,7 +32,7 @@ onAuthStateChanged(auth, async (user) => {
 
 async function loadFeedbackUI() {
     // You'll store the HTML structure in Firestore at admin/feedback_inbox
-    const docRef = doc(db, "admin", "feedback");
+    const docRef = doc(db, "admin-pages", "feedback");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
