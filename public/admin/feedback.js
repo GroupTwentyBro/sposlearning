@@ -71,7 +71,12 @@ async function loadFeedbackData() {
     listContainer.innerHTML = '';
 
     try {
-        const q = query(collection(db, 'feedback'), orderBy('timestamp', currentSort));
+        const q = query(
+            collection(db, 'feedback'),
+            orderBy('resolved', 'asc'),
+            orderBy('timestamp', currentSort)
+        );
+
         const snapshot = await getDocs(q);
 
         loadingText.style.display = 'none';
