@@ -1,0 +1,202 @@
+:root {
+  /* ROOT CLRS - Based on Hatsune Miku (Teal/Cyan + Hot Pink) */
+  --root-bg-clr: hsl(177, 100%, 8%); /* Deep teal-black base */
+  --root-fg-clr: #ffffff;
+  --root-txt-clr: hsla(0, 0%, 100%, 0.87);
+  --root-box-bg-clr: hsl(177, 60%, 10%);
+  --root-box-fg-clr: hsl(177, 50%, 15%);
+  --root-fgd-clr: hsl(177, 30%, 65%); /* Muted teal */
+  --root-ul-sd-clr: hsl(177, 70%, 50%);
+  --code-bg-clr: hsl(177, 40%, 12%);
+
+  /* BOX STYLES */
+  --box-overlay-clr: hsla(177, 70%, 50%, 4%);
+  --box-clr: hsl(177, 60%, 12%);
+  --box-border-clr: hsl(177, 70%, 35%); /* Miku teal border */
+  --box-overlay-fg-clr: hsla(0, 0%, 100%, 50%);
+  --box-overlay-border-clr: hsla(177, 70%, 50%, 15%);
+  --box-txt-clr: hsla(0, 0%, 100%, 0.75);
+
+  /* PRIMARY CLRS - Miku Teal/Cyan */
+  --primary-boxbg-clr: hsl(177, 100%, 15%);
+  --primary-boxfg-clr: hsl(177, 100%, 20%);
+  --primary-sd-clr: hsl(177, 85%, 28%);
+  --primary-bg-clr: hsl(177, 85%, 38%); /* Vibrant Miku teal */
+  --primary-fg-clr: hsl(177, 70%, 50%); /* #00B2A9 equivalent */
+  --primary-hl-clr: hsl(177, 60%, 65%); /* Light teal highlight */
+
+  /* SECONDARY CLRS - Miku Hot Pink */
+  --secondary-sd-clr: hsl(328, 85%, 30%);
+  --secondary-bg-clr: hsl(328, 85%, 40%);
+  --secondary-fg-clr: hsl(328, 85%, 53%); /* #E12885 Hot pink */
+  --secondary-hl-clr: hsl(328, 85%, 68%); /* Light pink pop */
+
+  /* TRIETARY CLRS - Light Cyan Accent */
+  --trietary-sd-clr: hsl(186, 50%, 35%);
+  --trietary-bg-clr: hsl(186, 50%, 50%);
+  --trietary-fg-clr: hsl(186, 52%, 68%); /* #86CECB Light cyan */
+  --trietary-hl-clr: hsl(186, 52%, 85%);
+
+  /* DISCL CLRS - Semantic mappings */
+  --discl-def-bg-clr: hsla(177, 85%, 38%, 0.2);
+  --discl-def-fg-clr: hsl(177, 85%, 45%);
+
+  /* Error/Important - Hot Pink */
+  --discl-important-bg-clr: hsla(328, 85%, 53%, 0.15);
+  --discl-important-fg-clr: hsl(328, 85%, 60%);
+
+  /* Success - Vibrant Teal */
+  --discl-importantgreen-bg-clr: hsla(177, 70%, 50%, 0.15);
+  --discl-importantgreen-fg-clr: hsl(177, 70%, 55%);
+
+  /* Warning - Light Cyan */
+  --discl-warning-bg-clr: hsla(186, 52%, 68%, 0.15);
+  --discl-warning-fg-clr: hsl(186, 52%, 68%);
+
+  /* Info - Muted Teal */
+  --discl-info-bg-clr: hsla(177, 60%, 65%, 0.15);
+  --discl-info-fg-clr: hsl(177, 60%, 65%);
+
+  /* UNDERLINE STYLES */
+  --ul-dotted: linear-gradient(
+    to right,
+    var(--root-ul-sd-clr) 1px,
+    transparent 1px
+  );
+}
+
+/* BUTTON OVERRIDES - Using CSS Variables */
+
+/* Primary & Dark: The main Miku Teal */
+.btn-primary,
+.btn-dark {
+  background: var(--primary-fg-clr) !important;
+  border-color: var(--primary-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Secondary: The Hot Pink */
+.btn-secondary {
+  background: var(--secondary-fg-clr) !important;
+  border-color: var(--secondary-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Danger: The Hot Pink (emphasis) */
+.btn-danger {
+  background: var(--discl-important-fg-clr) !important;
+  border-color: var(--discl-important-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Warning: The Light Cyan */
+.btn-warning {
+  background: var(--trietary-fg-clr) !important;
+  border-color: var(--trietary-fg-clr) !important;
+  color: var(--root-box-bg-clr) !important;
+}
+
+/* Success: The Vibrant Teal */
+.btn-success {
+  background: var(--discl-importantgreen-fg-clr) !important;
+  border-color: var(--discl-importantgreen-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* White: High contrast */
+.btn-white {
+  background: var(--root-fg-clr) !important;
+  border-color: var(--root-fg-clr) !important;
+  color: var(--root-box-bg-clr) !important;
+}
+
+/* Interactive States */
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.btn-success:hover,
+.btn-warning:hover {
+  filter: brightness(1.1);
+  cursor: pointer;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: hsl(177, 100%, 8%) !important; /* Fallback color */
+}
+
+/* Video background - specific to Miku theme */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: hsl(177, 100%, 8%);
+}
+
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  display: flex;
+}
+
+.video-background video {
+  flex: 1;
+  min-width: 33.33%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Optional overlay for better readability */
+.video-background::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 20, 20, 0.4); /* Teal-tinted overlay */
+}
+/* Sound toggle button - floating in bottom right */
+.miku-sound-toggle {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--primary-fg-clr);
+  border: 3px solid var(--secondary-fg-clr);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.miku-sound-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(225, 40, 133, 0.5);
+}
+
+.miku-sound-toggle span {
+  font-size: 32px;
+}
