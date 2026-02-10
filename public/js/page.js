@@ -6,6 +6,7 @@ import {
     EmailAuthProvider,
     reauthenticateWithCredential,
     GoogleAuthProvider,
+    GithubAuthProvider,
     reauthenticateWithPopup
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
@@ -146,7 +147,7 @@ function renderFileExplorer(title, files) {
             <a href="${file.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
                style="background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
                 ${file.name}
-                <span class="badge" style="background: var(--primary-fg-clr); color: white; border-radius: 20px;">${size}</span>
+                <span class="badge" style="background: var(--primary-fg-clr); color: white; border-radius: var(--box-border-radius);">${size}</span>
             </a>`;
     }).join('');
 
@@ -171,48 +172,64 @@ function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
     if(!adminBar) return;
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => { // Added async here
         // Clear bar to prevent duplicates on state change
         adminBar.innerHTML = '';
 
         if (user) {
-            // --- USER LOGGED IN ---
-            let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
-                ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
+            // --- NEW: Check if user is an admin ---
+            const adminDocRef = doc(db, 'administrators', user.uid);
+            const adminSnap = await getDoc(adminDocRef);
+            const isAdmin = adminSnap.exists();
 
-            let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
-
-            adminBar.innerHTML = `
-                <div class="admin-controls">
-                    <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
-                        ${editBtn} 
-                        ${deleteBtn}
-                        <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+            // If not an admin, they just see the basic Logout (or nothing)
+            if (!isAdmin) {
+                adminBar.innerHTML = `
+                    <div class="admin-controls">
                         <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
-                        
-                        <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
-                            <span class="icon">team_dashboard</span>
-                        </a>
                         <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
                             <span class="icon">logout</span>
                         </button>
-                    </div>
-                </div>`;
+                    </div>`;
+            } else {
+                // --- USER IS ADMIN: Show Edit, Delete, and Dashboard ---
+                let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
+                    ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
 
-            // Attach Logout Listeners
+                let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
+
+                adminBar.innerHTML = `
+                    <div class="admin-controls">
+                        <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
+                            ${editBtn} 
+                            ${deleteBtn}
+                            <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+                            <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
+                            
+                            <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
+                                <span class="icon">team_dashboard</span>
+                            </a>
+                            <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
+                                <span class="icon">logout</span>
+                            </button>
+                        </div>
+                    </div>`;
+
+                // Attach Delete Listener (Only for admins)
+                document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
+            }
+
+            // Attach Logout Listeners (For both admin and standard users)
             const performLogout = () => signOut(auth).then(() => window.location.reload());
             document.getElementById('logout-button-pc')?.addEventListener('click', performLogout);
             document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
 
-            // Attach Delete Listener
-            document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
         } else {
-            // --- GUEST: Show Login Buttons on the right side ---
+            // --- GUEST: Show Login Buttons ---
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
-                        
                         <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
                             <span class="icon">login</span>
                         </a>

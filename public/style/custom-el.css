@@ -9,7 +9,7 @@ discl {
     background-color: var(--discl-def-bg-clr);
     border: 2px none;
     border-left: 4px solid var(--discl-def-fg-clr);
-    border-radius: 5px;
+    border-radius: var(--box-border-radius);
 }
 
 discl::before {
@@ -142,7 +142,7 @@ ol > li:before {
     justify-content: center;
     width: 30px;
     height: 30px;
-    border-radius: 50%;
+    border-radius: var(--box-border-radius);
     font-weight: bolder;
     color: var(--primary-hl-clr, white);
     background-color: var(--primary-bg-clr, #007bff);
@@ -187,7 +187,7 @@ icon.boxed {
     width: 50px;
     height: 50px;
     font-size: 30px;
-    border-radius: 10px;
+    border-radius: var(--box-border-radius);
     justify-content: center;
     align-items: center;
 }
@@ -225,7 +225,7 @@ h2.boxed {
     /* Your variables */
     background-color: var(--box-overlay-clr);
     border: 1px solid var(--box-overlay-border-clr);
-    border-radius: 20px;
+    border-radius: var(--box-border-radius);
 
     overflow: hidden;
     text-align: left;
@@ -254,7 +254,7 @@ h2.boxed {
     font-family: monospace;
     background-color: rgba(0, 0, 0, 0.05);
     padding: 2px 4px;
-    border-radius: 4px;
+    border-radius: var(--box-border-radius);
     color: #d63384; /* Optional: generic syntax highlight color */
 }
 
@@ -277,7 +277,7 @@ input[type="range"] {
     ) !important;
     appearance: none !important; /* Removes default OS styling */
     height: 40px !important;
-    border-radius: 1px !important;
+    border-radius: var(--box-border-radius) !important;
 }
 
 /* 2. Style the Thumb (Chrome, Safari, Edge, Opera) */
@@ -289,7 +289,7 @@ input[type="range"]::-webkit-slider-thumb {
     height: 50px;   /* Taller than the track */
     width: 6px;     /* Narrow width */
     background-color: white;
-    border-radius: 4px; /* Slightly rounded corners */
+    border-radius: var(--box-border-radius); /* Slightly rounded corners */
     border: 1px solid #ccc; /* Subtle border to see it against white backgrounds */
     box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow for depth */
     cursor: pointer;
@@ -306,7 +306,7 @@ input[type="range"]::-moz-range-thumb {
     height: 50px;
     width: 6px;
     background-color: white;
-    border-radius: 4px;
+    border-radius: var(--box-border-radius);
     border: 1px solid #ccc;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     cursor: pointer;

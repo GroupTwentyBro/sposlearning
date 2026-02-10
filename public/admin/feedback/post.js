@@ -36,7 +36,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function loadPostUI() {
-    const docRef = doc(db, "admin", "feedback:post");
+    const docRef = doc(db, "admin-pages", "feedback:post");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {

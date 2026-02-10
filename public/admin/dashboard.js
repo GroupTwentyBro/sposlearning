@@ -17,16 +17,18 @@ const container = document.getElementById("secure-container");
 
 // 1. Check Auth
 onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    console.log("User verified:", user.uid);
-    try {
-      await loadDashboardContent();
-    } catch (error) {
-      console.error("Access denied:", error);
-      container.innerHTML = `
-                <div class="alert alert-danger text-center m-5">
-                    <h1>403</h1>
-                    <p>You are not an authorized administrator.</p>
+    if (user) {
+        console.log('User verified:', user.uid);
+        try {
+            await loadDashboardContent();
+        } catch (error) {
+            document.querySelector('.dot-container')?.classList.add('hidden');
+            console.error("Access denied:", error);
+            container.innerHTML = `
+                <div class="alert alert-danger text-center m-5" style="background: none !important; border: none;">
+                    <h1 style="color: var(--root-fg-clr);">403</h1>
+                    <p style="color: var(--root-txt-clr);">You are not an authorized administrator.</p>
+                    <a href="/" style="color: var(--primary-hl-clr);">Go back...</a>
                 </div>`;
     }
   } else {
@@ -37,8 +39,8 @@ onAuthStateChanged(auth, async (user) => {
 
 // 2. Fetch HTML from Firestore
 async function loadDashboardContent() {
-  const docRef = doc(db, "admin", "dashboard");
-  const docSnap = await getDoc(docRef);
+    const docRef = doc(db, "admin-pages", "dashboard");
+    const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
     // 1. INJECT THE HTML

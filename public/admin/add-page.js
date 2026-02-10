@@ -44,7 +44,7 @@ onAuthStateChanged(auth, async (user) => {
  * Fetches the HTML structure from Firestore
  */
 async function loadAddPageUI() {
-    const docRef = doc(db, "admin", "add-page");
+    const docRef = doc(db, "admin-pages", "add-page");
     const docSnap = await getDoc(docRef);
     const container = document.getElementById('secure-container');
 

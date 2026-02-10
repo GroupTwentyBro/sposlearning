@@ -91,7 +91,7 @@
     background-color: var(--box-clr);
     color: white;
     padding: 4px 8px;
-    border-radius: 6px;
+    border-radius: var(--box-border-radius);
     font-size: var(--fs-footer);
     text-align: left;
     opacity: 0;
@@ -141,7 +141,7 @@
     width: 90%;
     max-width: 600px;
     height: 80vh;
-    border-radius: 15px;
+    border-radius: var(--box-border-radius);
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -154,7 +154,7 @@
     justify-content: space-between;
     align-items: center;
     background-color: var(--box-overlay-clr);
-    border-radius: 15px 15px 0 0;
+    border-radius: var(--box-border-radius) var(--box-border-radius) 0 0;
 }
 
 .modal-header h3 {
@@ -173,7 +173,7 @@
     padding: 15px 20px;
     border-top: 1px solid var(--box-overlay-border-clr);
     background-color: var(--box-overlay-clr);
-    border-radius: 0 0 15px 15px;
+    border-radius: 0 0 var(--box-border-radius) var(--box-border-radius);
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -188,4 +188,46 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
+}
+
+/* The Track (the background of the switch) */
+.custom-switch .custom-control-label::before {
+    background-color: var(--root-box-bg-clr);
+    border: 1px solid var(--box-border-clr);
+    height: 1.5rem;
+    width: 2.5rem;
+    border-radius: 2rem; /* Keep it pill-shaped */
+    top: 0.15rem;
+}
+
+/* The Knob (the circle that slides) */
+.custom-switch .custom-control-label::after {
+    background-color: var(--root-fgd-clr);
+    width: calc(1.5rem - 4px);
+    height: calc(1.5rem - 4px);
+    border-radius: 50%;
+    top: calc(0.15rem + 2px);
+    left: -2.5rem;
+    transition: transform 0.2s ease-in-out, background-color 0.2s;
+}
+
+/* When Checked (Active state) */
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--primary-hl-clr) !important;
+    border-color: var(--primary-hl-clr) !important;
+}
+
+/* Move the knob when checked */
+.custom-control-input:checked ~ .custom-control-label::after {
+    left: -1.5rem;
+    background-color: white; /* Make the knob pop when active */
+}
+
+/* Adjust label text position to account for larger switch */
+.custom-switch .custom-control-label {
+    padding-left: 1.5rem;
+    padding-top: 4px;
+    cursor: pointer;
+    color: var(--root-fgd-clr);
+    font-size: 0.95rem;
 }
