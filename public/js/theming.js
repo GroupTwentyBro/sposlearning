@@ -5,7 +5,36 @@
 const root = document.documentElement;
 const themeLink = document.getElementById("theme-link");
 
-// 1. Core logic to change the CSS file and LocalStorage
+// Video background initialization
+function initVideoBackground() {
+  const currentTheme = localStorage.getItem("theme");
+
+  // Remove existing video background if present
+  const existingVideo = document.querySelector(".video-background");
+  if (existingVideo) {
+    existingVideo.remove();
+  }
+
+  // Add video background only for Miku theme
+  if (currentTheme === "miku") {
+    const videoDiv = document.createElement("div");
+    videoDiv.className = "video-background";
+    videoDiv.innerHTML = `
+      <video autoplay loop muted playsinline>
+        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+      </video>
+      <video autoplay loop muted playsinline>
+        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+      </video>
+      <video autoplay loop muted playsinline>
+        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+      </video>
+    `;
+    document.body.insertBefore(videoDiv, document.body.firstChild);
+  }
+}
+
+// Core logic to change the CSS file and LocalStorage
 export function applyTheme(themeName) {
   let newHref = "/style/theme-light.css"; // Default
 
@@ -35,9 +64,12 @@ export function applyTheme(themeName) {
     themeLink.href = newHref;
   }
   localStorage.setItem("theme", themeName);
+
+  // Initialize video background after theme change
+  initVideoBackground();
 }
 
-// 2. Initialize listeners for dashboard buttons
+// Initialize listeners for dashboard buttons
 export function initThemeListeners() {
   const themeMap = {
     "darktheme-btn": "dark",
@@ -72,6 +104,17 @@ export function initThemeListeners() {
   }
 }
 
-// 3. Immediate execution on import to prevent "flash of unstyled content"
+// Immediate execution on import to prevent "flash of unstyled content"
 const savedTheme = localStorage.getItem("theme") || "light";
 applyTheme(savedTheme);
+
+// Initialize when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initThemeListeners();
+    initVideoBackground();
+  });
+} else {
+  initThemeListeners();
+  initVideoBackground();
+}
