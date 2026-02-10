@@ -24,16 +24,16 @@ function initVideoBackground() {
     videoDiv.className = "video-background";
     videoDiv.innerHTML = `
       <video autoplay loop muted playsinline class="miku-video">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/videoplayback.mp4" type="video/mp4">
       </video>
       <video autoplay loop muted playsinline class="miku-video">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/videoplayback.mp4" type="video/mp4">
       </video>
       <video autoplay loop muted playsinline class="miku-video">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/videoplayback.mp4" type="video/mp4">
       </video>
       <audio autoplay loop ${soundEnabled ? "" : "muted"} id="miku-audio">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/videoplayback.mp4" type="video/mp4">
       </audio>
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
