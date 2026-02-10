@@ -18,7 +18,7 @@ initThemeListeners();
 
 async function checkAdminAndRedirect(user) {
     try {
-        const adminDocRef = doc(db, "users", user.uid);
+        const adminDocRef = doc(db, "administrators", user.uid);
         const adminDocSnap = await getDoc(adminDocRef);
 
         if (adminDocSnap.exists()) {

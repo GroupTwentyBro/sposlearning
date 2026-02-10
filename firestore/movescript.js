@@ -24,4 +24,4 @@ async function renameCollection(oldPath, newPath) {
     console.log(`Moved all documents from ${oldPath} to ${newPath}`);
 }
 
-renameCollection('admin', 'admin-pages');
+renameCollection('users', 'administrators');
