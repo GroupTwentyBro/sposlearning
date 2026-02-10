@@ -52,7 +52,7 @@ body { background-color: var(--root-bg-clr) !important; }
     background-color: var(--box-overlay-clr);
     border-radius: var(--box-border-radius);
     vertical-align: middle;
-    padding: 8px 4px;
+    padding: 2px 6px;
     align-items: center;
 }
 
@@ -73,7 +73,7 @@ body { background-color: var(--root-bg-clr) !important; }
     background: none;
     color: white;
     padding: 2px;
-    margin: 0 2px;
+    margin: 0 6px;
     font-size: var(--fs-hinput);
     vertical-align: middle;
 }
