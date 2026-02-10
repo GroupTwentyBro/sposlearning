@@ -207,7 +207,7 @@
     height: calc(1.5rem - 4px);
     border-radius: 50%;
     top: calc(0.15rem + 2px);
-    left: calc(-2rem + 2px);
+    left: -2.5rem;
     transition: transform 0.2s ease-in-out, background-color 0.2s;
 }
 
@@ -219,7 +219,7 @@
 
 /* Move the knob when checked */
 .custom-control-input:checked ~ .custom-control-label::after {
-    transform: translateX(1rem);
+    transform: translateX(1.5rem);
     background-color: white; /* Make the knob pop when active */
 }
 
