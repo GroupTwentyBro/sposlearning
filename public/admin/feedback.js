@@ -61,11 +61,32 @@ function setupControls() {
     }
 }
 
-async function loadFeedbackData(term) {
+async function loadFeedbackData() {
     const listContainer = document.getElementById('feedback-list');
-    const loadingText = document.getElementById('loading');
+    const searchInput = document.getElementById('search-input');
+
+    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('focus', handleSearch);
 
     if (!listContainer) return;
+
+    loadFeedback(term);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function handleSearch(e) {
+    const searchTerm = e.target.value.toLowerCase();
+
+    loadFeedback(searchTerm);
+}
+
+async function loadFeedback(term) {
+    const loadingText = document.getElementById('loading');
+    const listContainer = document.getElementById('feedback-list');
 
     loadingText.style.display = 'block';
     listContainer.innerHTML = '';
@@ -134,28 +155,4 @@ async function loadFeedbackData(term) {
         console.error(error);
         if (loadingText) loadingText.textContent = 'Error loading feedback.';
     }
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
-
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
-
-    // B. Filter the actual results
-    const results = allPages.filter(page => {
-
-        const matchesPath = page.path.toLowerCase().includes(searchTerm);
-        const matchesTitle = page.title.toLowerCase().includes(searchTerm);
-
-        return matchesPath || matchesTitle;
-    });
-
-    welcomeMessage.style.display = 'none';
-    if(disclamerInfo) disclamerInfo.style.display = 'none';
-    searchResultsContainer.style.display = 'block';
-
-    renderResults(results);
 }
