@@ -227,30 +227,33 @@ async function setupAdminTools() {
 
     const auth = getAuth(app);
 
-    onAuthStateChanged(auth, async (user) => { // Added async here
+    onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         adminBar.innerHTML = '';
 
         if (user) {
-            // --- NEW: Check if user is actually an admin ---
+            // 1. Check admin status
             const adminDocRef = doc(db, 'administrators', user.uid);
             const adminSnap = await getDoc(adminDocRef);
             const isAdmin = adminSnap.exists();
 
-            // --- USER LOGGED IN: Conditional Dashboard ---
+            // 2. Render UI
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
+                        
                         ${isAdmin ? `
                             <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
                             <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
                                 <span class="icon">team_dashboard</span>
                             </a>
                         ` : ''}
+
                         <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
                         <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
                             <span class="icon">logout</span>
                         </button>
+                        
                     </div>
                 </div>`;
 
