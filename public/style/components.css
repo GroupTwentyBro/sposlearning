@@ -207,7 +207,7 @@
     height: calc(1.5rem - 4px);
     border-radius: 50%;
     top: calc(0.15rem + 2px);
-    left: calc(-2.5rem + 2px);
+    left: calc(-3rem + 2px);
     transition: transform 0.2s ease-in-out, background-color 0.2s;
 }
 
