@@ -61,7 +61,7 @@ function setupControls() {
     }
 }
 
-async function loadFeedbackData() {
+async function loadFeedbackData(term) {
     const listContainer = document.getElementById('feedback-list');
     const loadingText = document.getElementById('loading');
 
@@ -90,7 +90,18 @@ async function loadFeedbackData() {
 
         snapshot.forEach(doc => {
             const data = doc.data();
+
             if (hideResolved && data.resolved) return;
+
+            const searchTerm = (term || '').trim().toLowerCase();
+            if (searchTerm !== "") {
+                const titleMatch = (data.title || '').toLowerCase().includes(searchTerm);
+                const pageMatch = (data.page || '').toLowerCase().includes(searchTerm);
+
+                if (!titleMatch && !pageMatch) {
+                    return;
+                }
+            }
 
             visibleCount++;
             const id = doc.id;
@@ -98,21 +109,22 @@ async function loadFeedbackData() {
 
             const a = document.createElement('a');
             a.href = `/admin/feedback/post?id=${id}`;
+            // Using the new CSS class for visual accenting
             a.className = `feedback-item list-group-item list-group-item-action ${data.resolved ? 'read' : ''}`;
 
             a.innerHTML = `
-                <div class="feedback-header">
-                    <div class="feedback-title">
-                        ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
-                        ${data.resolved ? '<span class="badge badge-success ml-2">Resolved</span>' : ''}
-                    </div>
-                    <div class="feedback-meta">
-                        <div>${escapeHtml(data.contact)}</div>
-                        <div>IP: ${escapeHtml(data.ip)}</div>
-                    </div>
-                </div>
-                <div class="feedback-preview">${escapeHtml(preview)}</div>
-            `;
+        <div class="feedback-header">
+            <div class="feedback-title">
+                ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
+                ${data.resolved ? '<span class="badge badge-success ml-2">Resolved</span>' : ''}
+            </div>
+            <div class="feedback-meta">
+                <div>${escapeHtml(data.contact)}</div>
+                <div>IP: ${escapeHtml(data.ip)}</div>
+            </div>
+        </div>
+        <div class="feedback-preview">${escapeHtml(preview)}</div>
+    `;
             listContainer.appendChild(a);
         });
 
@@ -127,4 +139,23 @@ async function loadFeedbackData() {
 function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function handleSearch(e) {
+    const searchTerm = e.target.value.toLowerCase();
+
+    // B. Filter the actual results
+    const results = allPages.filter(page => {
+
+        const matchesPath = page.path.toLowerCase().includes(searchTerm);
+        const matchesTitle = page.title.toLowerCase().includes(searchTerm);
+
+        return matchesPath || matchesTitle;
+    });
+
+    welcomeMessage.style.display = 'none';
+    if(disclamerInfo) disclamerInfo.style.display = 'none';
+    searchResultsContainer.style.display = 'block';
+
+    renderResults(results);
 }
