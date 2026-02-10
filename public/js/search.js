@@ -1,6 +1,6 @@
 import {app, auth} from './firebaseConfig.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners, applyTheme } from './theming.js';
 
 // --- Global cache ---
@@ -221,28 +221,33 @@ function createTreeDOM(node) {
     return li;
 }
 
-function setupAdminTools() {
+async function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
     if(!adminBar) return;
 
     const auth = getAuth(app);
-    onAuthStateChanged(auth, (user) => {
-        currentUser = user;
 
-        // Always clear the bar first to prevent button duplication
+    onAuthStateChanged(auth, async (user) => { // Added async here
+        currentUser = user;
         adminBar.innerHTML = '';
 
         if (user) {
-            // --- USER LOGGED IN: Show Dashboard & Logout ---
+            // --- NEW: Check if user is actually an admin ---
+            const adminDocRef = doc(db, 'administrators', user.uid);
+            const adminSnap = await getDoc(adminDocRef);
+            const isAdmin = adminSnap.exists();
+
+            // --- USER LOGGED IN: Conditional Dashboard ---
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
-                        <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+                        ${isAdmin ? `
+                            <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+                            <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
+                                <span class="icon">team_dashboard</span>
+                            </a>
+                        ` : ''}
                         <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
-                        
-                        <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
-                            <span class="icon">team_dashboard</span>
-                        </a>
                         <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
                             <span class="icon">logout</span>
                         </button>
@@ -254,12 +259,11 @@ function setupAdminTools() {
             document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
 
         } else {
-            // --- GUEST: Show Login Buttons on the right side ---
+            // --- GUEST: Show Login ---
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
-                        
                         <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
                             <span class="icon">login</span>
                         </a>
@@ -267,7 +271,6 @@ function setupAdminTools() {
                 </div>`;
         }
 
-        // Refresh search results to show/hide admin content based on new auth state
         if(searchInput.value.length >= 2) {
             searchInput.dispatchEvent(new Event('input'));
         }
