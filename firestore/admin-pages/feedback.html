@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Feedback - SPOŠLearning</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
+    <link href="/style/variables-global.css" rel="stylesheet">
+
+    <script src="/js/theming.js" type="module"></script>
+
+    <link rel="stylesheet" href="/style/base.css">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <style>
+        /* Ensuring body respects theme via CSS variables */
+        body { background-color: var(--root-bg-clr) !important; }
+
+        .feedback-item {
+            border: 1px solid var(--box-border-clr);
+            background-color: var(--root-box-bg-clr);
+            margin-bottom: 10px;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+        .feedback-item:hover {
+            background-color: var(--primary-boxfg-clr);
+            border-color: var(--primary-fg-clr);
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+        .feedback-item.read {
+            opacity: 0.6;
+        }
+        .feedback-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--box-overlay-border-clr);
+            padding: 10px 15px;
+        }
+        .feedback-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: var(--primary-hl-clr);
+        }
+        .feedback-meta {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--root-fgd-clr);
+        }
+        .feedback-preview {
+            padding: 10px 15px;
+            color: var(--box-txt-clr);
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dot-container">
+    <div class="dot"></div>
+</div>
+
+<div id="secure">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Feedback Inbox</h1>
+            <a href="/admin/dashboard" class="btn btn-secondary">Dashboard</a>
+        </div>
+        <hr>
+
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <select id="sort-select" class="form-control" style="background-color: var(--root-box-bg-clr); color: var(--root-fg-clr); border-color: var(--box-border-clr);">
+                    <option value="desc">Sort by: Recent</option>
+                    <option value="asc">Sort by: Oldest</option>
+                </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-center">
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="hide-resolved">
+                    <label class="custom-control-label" for="hide-resolved">Hide Resolved</label>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="text-center" style="color: var(--root-fgd-clr);">Loading feedback...</div>
+
+        <div id="feedback-list" class="list-group">
+        </div>
+    </div>
+</div>
+
+<script type="module" src="/admin/feedback.js"></script>
+
+</body>
+</html>
