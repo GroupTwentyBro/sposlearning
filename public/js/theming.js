@@ -23,21 +23,57 @@ function initVideoBackground() {
     const videoDiv = document.createElement("div");
     videoDiv.className = "video-background";
     videoDiv.innerHTML = `
-      <video autoplay loop ${soundEnabled ? "" : "muted"} playsinline id="miku-bg-video-1">
+      <video autoplay loop muted playsinline class="miku-video">
         <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
       </video>
-      <video autoplay loop muted playsinline>
+      <video autoplay loop muted playsinline class="miku-video">
         <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
       </video>
-      <video autoplay loop muted playsinline>
+      <video autoplay loop muted playsinline class="miku-video">
         <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
       </video>
+      <audio autoplay loop ${soundEnabled ? "" : "muted"} id="miku-audio">
+        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+      </audio>
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
+
+    // Synchronize all videos
+    synchronizeVideos();
 
     // Add sound toggle button
     createSoundToggle();
   }
+}
+
+// Synchronize all 3 videos to play at the same time
+function synchronizeVideos() {
+  const videos = document.querySelectorAll(".miku-video");
+  if (videos.length === 0) return;
+
+  const firstVideo = videos[0];
+
+  // When first video plays, sync others
+  firstVideo.addEventListener("play", () => {
+    videos.forEach((video, index) => {
+      if (index > 0) {
+        video.currentTime = firstVideo.currentTime;
+        video.play();
+      }
+    });
+  });
+
+  // Sync periodically to prevent drift
+  firstVideo.addEventListener("timeupdate", () => {
+    videos.forEach((video, index) => {
+      if (
+        index > 0 &&
+        Math.abs(video.currentTime - firstVideo.currentTime) > 0.3
+      ) {
+        video.currentTime = firstVideo.currentTime;
+      }
+    });
+  });
 }
 
 // Create floating sound toggle button
@@ -65,21 +101,21 @@ function createSoundToggle() {
 
 // Toggle sound on/off
 function toggleMikuSound() {
-  const video = document.getElementById("miku-bg-video-1");
-  if (!video) return;
+  const audio = document.getElementById("miku-audio");
+  if (!audio) return;
 
-  const currentlyMuted = video.muted;
-  video.muted = !currentlyMuted;
+  const currentlyMuted = audio.muted;
+  audio.muted = !currentlyMuted;
 
-  // Save preference
-  localStorage.setItem("miku-sound", !currentlyMuted ? "true" : "false");
+  // Save preference (OPRAVENO: inverted logic)
+  localStorage.setItem("miku-sound", currentlyMuted ? "true" : "false");
 
-  // Update button icon
+  // Update button icon (OPRAVENO: správná ikona)
   const btn = document.querySelector(".miku-sound-toggle");
   if (btn) {
     const icon = btn.querySelector("span");
-    icon.textContent = !currentlyMuted ? "volume_up" : "volume_off";
-    btn.title = !currentlyMuted ? "Ztlumit hudbu" : "Zapnout hudbu";
+    icon.textContent = currentlyMuted ? "volume_up" : "volume_off";
+    btn.title = currentlyMuted ? "Ztlumit hudbu" : "Zapnout hudbu";
   }
 }
 
