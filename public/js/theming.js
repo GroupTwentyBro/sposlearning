@@ -24,16 +24,16 @@ function initVideoBackground() {
     videoDiv.className = "video-background";
     videoDiv.innerHTML = `
       <video autoplay loop muted playsinline class="miku-video">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
       <video autoplay loop muted playsinline class="miku-video">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
       <video autoplay loop muted playsinline class="miku-video">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+        <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
-      <audio autoplay loop ${soundEnabled ? "" : "muted"} id="miku-audio">
-        <source src="/media/bg-mikutheme-video.mp4" type="video/mp4">
+      <audio loop id="miku-audio">
+        <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </audio>
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
@@ -43,6 +43,18 @@ function initVideoBackground() {
 
     // Add sound toggle button
     createSoundToggle();
+
+    // Try to play audio after a short delay
+    setTimeout(() => {
+      const audio = document.getElementById("miku-audio");
+      if (audio && soundEnabled) {
+        audio.muted = false;
+        audio.play().catch((err) => {
+          console.log("Autoplay blocked, waiting for user interaction");
+          // Audio will play when user clicks the toggle button
+        });
+      }
+    }, 500);
   }
 }
 
@@ -104,18 +116,37 @@ function toggleMikuSound() {
   const audio = document.getElementById("miku-audio");
   if (!audio) return;
 
-  const currentlyMuted = audio.muted;
-  audio.muted = !currentlyMuted;
+  const isCurrentlyMuted = audio.muted || audio.paused;
 
-  // Save preference (OPRAVENO: inverted logic)
-  localStorage.setItem("miku-sound", currentlyMuted ? "true" : "false");
+  if (isCurrentlyMuted) {
+    // Enable sound
+    audio.muted = false;
+    audio
+      .play()
+      .then(() => {
+        localStorage.setItem("miku-sound", "true");
+        updateToggleButton(true);
+      })
+      .catch((err) => {
+        console.error("Failed to play audio:", err);
+        localStorage.setItem("miku-sound", "false");
+        updateToggleButton(false);
+      });
+  } else {
+    // Disable sound
+    audio.muted = true;
+    localStorage.setItem("miku-sound", "false");
+    updateToggleButton(false);
+  }
+}
 
-  // Update button icon (OPRAVENO: správná ikona)
+// Update toggle button icon
+function updateToggleButton(isPlaying) {
   const btn = document.querySelector(".miku-sound-toggle");
   if (btn) {
     const icon = btn.querySelector("span");
-    icon.textContent = currentlyMuted ? "volume_up" : "volume_off";
-    btn.title = currentlyMuted ? "Ztlumit hudbu" : "Zapnout hudbu";
+    icon.textContent = isPlaying ? "volume_up" : "volume_off";
+    btn.title = isPlaying ? "Ztlumit hudbu" : "Zapnout hudbu";
   }
 }
 
@@ -128,6 +159,12 @@ export function applyTheme(themeName) {
     const soundToggle = document.querySelector(".miku-sound-toggle");
     if (soundToggle) {
       soundToggle.remove();
+    }
+    // Stop audio when leaving Miku theme
+    const audio = document.getElementById("miku-audio");
+    if (audio) {
+      audio.pause();
+      audio.remove();
     }
   }
 
