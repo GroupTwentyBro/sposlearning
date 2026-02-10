@@ -12,15 +12,15 @@ let hideResolved = false;
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // 1. Load the UI Shell from Firestore
+        // 1. MUST wait for the HTML to be injected
         await loadFeedbackUI();
 
-        // 2. Setup Filter Listeners
+        // 2. NOW that the HTML is in the DOM, we can find the buttons/inputs
         setupControls();
 
+        // 3. Load the actual data
         await loadFeedback();
 
-        // 4. Cleanup UI
         initThemeListeners();
         const loader = document.querySelector('.dot-container');
         if (loader) loader.classList.add('hidden');
@@ -30,14 +30,16 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function loadFeedbackUI() {
-    // You'll store the HTML structure in Firestore at admin/feedback_inbox
     const docRef = doc(db, "admin-pages", "feedback");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
         container.innerHTML = docSnap.data().html;
+        // Optional: Trigger a custom event or a small delay if the DOM is slow
+        return Promise.resolve();
     } else {
         container.innerHTML = "<h3>Error: Feedback UI shell not found.</h3>";
+        return Promise.reject("UI not found");
     }
 }
 
