@@ -219,7 +219,7 @@
 
 /* Move the knob when checked */
 .custom-control-input:checked ~ .custom-control-label::after {
-    transform: translateX(3rem);
+    transform: translateX(100px);
     background-color: white; /* Make the knob pop when active */
 }
 
