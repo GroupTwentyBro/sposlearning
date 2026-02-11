@@ -17,13 +17,10 @@ function initVideoBackground() {
 
   // Add video background only for Miku theme
   if (currentTheme === "miku") {
-    // Check if user wants sound (default: muted)
-    const soundEnabled = localStorage.getItem("miku-sound") === "true";
-
     const videoDiv = document.createElement("div");
     videoDiv.className = "video-background";
     videoDiv.innerHTML = `
-      <video autoplay loop muted playsinline class="miku-video">
+      <video autoplay loop playsinline class="miku-video miku-audio-video" id="miku-main-video">
         <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
       <video autoplay loop muted playsinline class="miku-video">
@@ -35,76 +32,59 @@ function initVideoBackground() {
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
 
+    // Initialize audio on first video
+    setTimeout(() => {
+      initMikuAudio();
+    }, 100);
+
     // Synchronize all videos
     synchronizeVideos();
-
-    // Initialize audio separately (using first video's audio track)
-    initMikuAudio(soundEnabled);
 
     // Add sound toggle button
     createSoundToggle();
   }
 }
 
-// Initialize Miku audio using the first video's audio track
-function initMikuAudio(soundEnabled) {
-  // Remove existing audio if present
-  const existingAudio = document.getElementById("miku-audio");
-  if (existingAudio) {
-    existingAudio.remove();
+// Initialize Miku audio using the first video
+function initMikuAudio() {
+  const mainVideo = document.getElementById("miku-main-video");
+  if (!mainVideo) {
+    console.error("Main video not found!");
+    return;
   }
 
-  // Create new audio element
-  const audio = document.createElement("audio");
-  audio.id = "miku-audio";
-  audio.loop = true;
-  audio.muted = !soundEnabled;
+  // Check if user wants sound (default: muted)
+  const soundEnabled = localStorage.getItem("miku-sound") === "true";
 
-  const source = document.createElement("source");
-  source.src = "/media/bg-mikutheme-video.webm";
-  source.type = "video/webm";
-  audio.appendChild(source);
+  // Set mute state
+  mainVideo.muted = !soundEnabled;
 
-  document.body.appendChild(audio);
+  console.log("Miku audio initialized, muted:", mainVideo.muted);
 
-  // Load the audio
-  audio.load();
+  // Ensure video is playing
+  const playPromise = mainVideo.play();
+  if (playPromise !== undefined) {
+    playPromise
+      .then(() => {
+        console.log("Miku video/audio playing");
+      })
+      .catch((error) => {
+        console.log("Autoplay prevented, waiting for user interaction");
 
-  // Wait for audio to be ready
-  audio.addEventListener("loadeddata", () => {
-    console.log("Miku audio loaded");
+        // Fallback: start on user interaction
+        const startPlayback = () => {
+          mainVideo
+            .play()
+            .then(() => console.log("Video/audio started on interaction"))
+            .catch((e) => console.log("Could not play:", e.message));
+          document.removeEventListener("click", startPlayback);
+          document.removeEventListener("keydown", startPlayback);
+        };
 
-    // Try to play
-    const playPromise = audio.play();
-
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          console.log("Miku audio playing successfully");
-        })
-        .catch((error) => {
-          console.log("Autoplay prevented:", error.message);
-
-          // Add click listener to start on user interaction
-          const startAudio = () => {
-            audio
-              .play()
-              .then(() => console.log("Audio started on user interaction"))
-              .catch((e) => console.log("Could not play audio:", e.message));
-            document.removeEventListener("click", startAudio);
-            document.removeEventListener("keydown", startAudio);
-          };
-
-          document.addEventListener("click", startAudio);
-          document.addEventListener("keydown", startAudio);
-        });
-    }
-  });
-
-  // Handle loading errors
-  audio.addEventListener("error", (e) => {
-    console.error("Audio loading error:", e);
-  });
+        document.addEventListener("click", startPlayback, { once: true });
+        document.addEventListener("keydown", startPlayback, { once: true });
+      });
+  }
 }
 
 // Synchronize all 3 videos to play at the same time
@@ -112,26 +92,35 @@ function synchronizeVideos() {
   const videos = document.querySelectorAll(".miku-video");
   if (videos.length === 0) return;
 
-  const firstVideo = videos[0];
+  const mainVideo = videos[0]; // First video has audio
 
-  // When first video plays, sync others
-  firstVideo.addEventListener("play", () => {
+  // When main video plays, sync others
+  mainVideo.addEventListener("play", () => {
     videos.forEach((video, index) => {
       if (index > 0) {
-        video.currentTime = firstVideo.currentTime;
-        video.play();
+        video.currentTime = mainVideo.currentTime;
+        video.play().catch((e) => console.log("Video sync play error:", e));
       }
     });
   });
 
   // Sync periodically to prevent drift
-  firstVideo.addEventListener("timeupdate", () => {
+  mainVideo.addEventListener("timeupdate", () => {
     videos.forEach((video, index) => {
       if (
         index > 0 &&
-        Math.abs(video.currentTime - firstVideo.currentTime) > 0.3
+        Math.abs(video.currentTime - mainVideo.currentTime) > 0.3
       ) {
-        video.currentTime = firstVideo.currentTime;
+        video.currentTime = mainVideo.currentTime;
+      }
+    });
+  });
+
+  // Also sync when main video seeks
+  mainVideo.addEventListener("seeked", () => {
+    videos.forEach((video, index) => {
+      if (index > 0) {
+        video.currentTime = mainVideo.currentTime;
       }
     });
   });
@@ -162,21 +151,33 @@ function createSoundToggle() {
 
 // Toggle sound on/off
 function toggleMikuSound() {
-  const audio = document.getElementById("miku-audio");
-  if (!audio) return;
+  const mainVideo = document.getElementById("miku-main-video");
+  if (!mainVideo) {
+    console.error("Main video not found!");
+    return;
+  }
 
-  const currentlyMuted = audio.muted;
+  const currentlyMuted = mainVideo.muted;
 
   // Toggle mute state
-  audio.muted = !currentlyMuted;
+  mainVideo.muted = !currentlyMuted;
 
-  // If unmuting, ensure audio is playing
-  if (!audio.muted) {
-    audio.play().catch((e) => console.log("Could not play audio:", e));
+  // If unmuting, ensure video is playing
+  if (!mainVideo.muted) {
+    mainVideo
+      .play()
+      .catch((e) => console.log("Could not play video:", e.message));
   }
 
   // Save preference
   localStorage.setItem("miku-sound", !currentlyMuted ? "true" : "false");
+
+  console.log(
+    "Sound toggled, muted:",
+    mainVideo.muted,
+    "saved:",
+    localStorage.getItem("miku-sound"),
+  );
 
   // Update button icon
   const btn = document.querySelector(".miku-sound-toggle");
@@ -191,11 +192,23 @@ function toggleMikuSound() {
 export function applyTheme(themeName) {
   let newHref = "/style/theme-light.css"; // Default
 
-  // Remove sound toggle when switching away from Miku theme
+  // Clean up when switching away from Miku theme
   if (themeName !== "miku") {
     const soundToggle = document.querySelector(".miku-sound-toggle");
     if (soundToggle) {
       soundToggle.remove();
+    }
+
+    // Stop and remove video background
+    const videoBackground = document.querySelector(".video-background");
+    if (videoBackground) {
+      const videos = videoBackground.querySelectorAll("video");
+      videos.forEach((video) => {
+        video.pause();
+        video.src = "";
+        video.load();
+      });
+      videoBackground.remove();
     }
   }
 
@@ -272,10 +285,18 @@ applyTheme(savedTheme);
 // Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM loaded, initializing theme system");
     initThemeListeners();
-    initVideoBackground();
+    // Video background was already initialized by applyTheme() above
+    // But let's call it again to be sure
+    setTimeout(() => {
+      initVideoBackground();
+    }, 200);
   });
 } else {
+  console.log("DOM already ready, initializing theme system");
   initThemeListeners();
-  initVideoBackground();
+  setTimeout(() => {
+    initVideoBackground();
+  }, 200);
 }
