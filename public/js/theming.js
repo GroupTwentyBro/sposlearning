@@ -5,6 +5,10 @@
 const root = document.documentElement;
 const themeLink = document.getElementById("theme-link");
 
+// Track if we've already initialized to prevent double-init on pageshow
+let videoInitialized = false;
+let videoActivated = false;
+
 // Video background initialization
 function initVideoBackground() {
   const currentTheme = localStorage.getItem("theme");
@@ -14,15 +18,28 @@ function initVideoBackground() {
   // Remove existing video background if present
   const existingVideo = document.querySelector(".video-background");
   if (existingVideo) {
+    const videos = existingVideo.querySelectorAll("video");
+    videos.forEach((video) => {
+      video.pause();
+      video.src = "";
+      video.load();
+    });
     existingVideo.remove();
   }
+
+  // Reset initialization flags
+  videoInitialized = false;
+  videoActivated = false;
 
   // Add video background only for Miku theme
   if (currentTheme === "miku") {
     const videoDiv = document.createElement("div");
     videoDiv.className = "video-background";
+
+    // IMPORTANT: All videos start muted for autoplay compliance
+    // We'll unmute the first one after user interaction if they want sound
     videoDiv.innerHTML = `
-      <video autoplay loop playsinline class="miku-video miku-audio-video" id="miku-main-video">
+      <video autoplay loop muted playsinline class="miku-video" id="miku-main-video">
         <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
       <video autoplay loop muted playsinline class="miku-video">
@@ -33,6 +50,8 @@ function initVideoBackground() {
       </video>
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
+
+    videoInitialized = true;
 
     // Initialize audio on first video
     setTimeout(() => {
@@ -55,53 +74,91 @@ function initMikuAudio() {
     return;
   }
 
-  // Check if user wants sound (default: muted)
+  // Check if user wants sound (default: false/muted)
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
-
-  // Set initial mute state
-  mainVideo.muted = !soundEnabled;
 
   console.log("Miku audio initialized:", {
     soundEnabled: soundEnabled,
-    videoMuted: mainVideo.muted,
     localStorage: localStorage.getItem("miku-sound"),
   });
 
-  // Flag to track if video has been "activated" by user interaction
-  let videoActivated = false;
-
-  // Try to play immediately (will fail if browser blocks autoplay)
+  // Try to play immediately (browser autoplay policies require muted)
   const playPromise = mainVideo.play();
   if (playPromise !== undefined) {
     playPromise
       .then(() => {
-        console.log("Miku video/audio autoplay successful");
-        videoActivated = true;
+        console.log("Miku video autoplay successful (muted)");
+
+        // If user previously enabled sound, try to unmute after successful play
+        if (soundEnabled && !videoActivated) {
+          // We need user interaction to unmute, so set up listener
+          setupUnmuteOnInteraction(mainVideo);
+        }
       })
       .catch((error) => {
-        console.log("Autoplay prevented (normal browser behavior)");
+        console.log("Autoplay prevented:", error.message);
 
         // Wait for ANY user interaction to activate video
-        const activateVideo = (e) => {
-          if (!videoActivated) {
-            console.log("Activating video on user interaction");
-            mainVideo
-              .play()
-              .then(() => {
-                videoActivated = true;
-                console.log("Video activated successfully");
-              })
-              .catch((err) =>
-                console.log("Video activation failed:", err.message),
-              );
-          }
-        };
-
-        // Listen for any interaction
-        document.addEventListener("click", activateVideo, { once: true });
-        document.addEventListener("keydown", activateVideo, { once: true });
+        setupPlayOnInteraction(mainVideo, soundEnabled);
       });
   }
+}
+
+// Set up listener to play video on first user interaction
+function setupPlayOnInteraction(mainVideo, shouldUnmute) {
+  const activateVideo = (e) => {
+    if (!videoActivated) {
+      console.log("Activating video on user interaction");
+      videoActivated = true;
+
+      mainVideo.muted = !shouldUnmute; // Unmute if user wants sound
+      mainVideo
+        .play()
+        .then(() => {
+          console.log("Video activated successfully, muted:", mainVideo.muted);
+          updateSoundButtonIcon(mainVideo.muted);
+        })
+        .catch((err) => console.log("Video activation failed:", err.message));
+    }
+  };
+
+  // Listen for any interaction
+  document.addEventListener("click", activateVideo, { once: true });
+  document.addEventListener("keydown", activateVideo, { once: true });
+  document.addEventListener("touchstart", activateVideo, { once: true });
+}
+
+// Set up listener to unmute on first user interaction (when video is already playing)
+function setupUnmuteOnInteraction(mainVideo) {
+  const unmuteVideo = (e) => {
+    if (!videoActivated) {
+      console.log("Unmuting video on user interaction");
+      videoActivated = true;
+
+      mainVideo.muted = false;
+
+      // Make sure it's playing
+      if (mainVideo.paused) {
+        mainVideo
+          .play()
+          .then(() => {
+            console.log("Video playing with sound");
+            updateSoundButtonIcon(false);
+          })
+          .catch((err) =>
+            console.log("Failed to play with sound:", err.message),
+          );
+      } else {
+        console.log("Video already playing, now with sound");
+        updateSoundButtonIcon(false);
+      }
+    }
+  };
+
+  // Listen for any interaction
+  document.addEventListener("click", unmuteVideo, { once: true });
+  document.addEventListener("keydown", unmuteVideo, { once: true });
+  document.addEventListener("touchstart", unmuteVideo, { once: true });
 }
 
 // Synchronize all 3 videos to play at the same time
@@ -151,9 +208,9 @@ function createSoundToggle() {
     existingToggle.remove();
   }
 
-  // Get current state from video element (not localStorage directly)
-  const mainVideo = document.getElementById("miku-main-video");
-  const isMuted = mainVideo ? mainVideo.muted : true;
+  // Get desired state from localStorage (not current video state)
+  const soundEnabled = localStorage.getItem("miku-sound") === "true";
+  const isMuted = !soundEnabled;
 
   const toggleBtn = document.createElement("button");
   toggleBtn.className = "miku-sound-toggle";
@@ -197,6 +254,9 @@ function toggleMikuSound(e) {
   // Toggle mute state
   mainVideo.muted = !currentlyMuted;
 
+  // Mark as activated by user
+  videoActivated = true;
+
   // If unmuting, ensure video is playing
   if (!mainVideo.muted) {
     if (mainVideo.paused) {
@@ -219,7 +279,7 @@ function toggleMikuSound(e) {
   });
 
   // Update button icon
-  updateSoundButtonIcon(!currentlyMuted);
+  updateSoundButtonIcon(mainVideo.muted);
 }
 
 // Helper function to update button icon
@@ -254,6 +314,9 @@ export function applyTheme(themeName) {
       });
       videoBackground.remove();
     }
+
+    videoInitialized = false;
+    videoActivated = false;
   }
 
   switch (themeName) {
@@ -322,6 +385,23 @@ export function initThemeListeners() {
   }
 }
 
+// Handle back/forward navigation (pageshow event)
+window.addEventListener("pageshow", (event) => {
+  console.log("Pageshow event triggered, persisted:", event.persisted);
+
+  // If page was loaded from cache (back/forward), reinitialize videos
+  if (event.persisted) {
+    const currentTheme = localStorage.getItem("theme");
+    if (currentTheme === "miku") {
+      console.log("Reinitializing videos after back/forward navigation");
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        initVideoBackground();
+      }, 100);
+    }
+  }
+});
+
 // Immediate execution on import to prevent "flash of unstyled content"
 const savedTheme = localStorage.getItem("theme") || "light";
 applyTheme(savedTheme);
@@ -334,13 +414,17 @@ if (document.readyState === "loading") {
     // Video background was already initialized by applyTheme() above
     // But let's call it again to be sure
     setTimeout(() => {
-      initVideoBackground();
+      if (!videoInitialized && localStorage.getItem("theme") === "miku") {
+        initVideoBackground();
+      }
     }, 200);
   });
 } else {
   console.log("DOM already ready, initializing theme system");
   initThemeListeners();
   setTimeout(() => {
-    initVideoBackground();
+    if (!videoInitialized && localStorage.getItem("theme") === "miku") {
+      initVideoBackground();
+    }
   }, 200);
 }
