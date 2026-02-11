@@ -77,8 +77,13 @@ function initMikuAudio() {
   // Check if user wants sound (default: false/muted)
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
 
+  // Check if user has already interacted with the page before (ever clicked the sound button)
+  const userHasInteractedBefore =
+    localStorage.getItem("miku-user-interacted") === "true";
+
   console.log("Miku audio initialized:", {
     soundEnabled: soundEnabled,
+    userHasInteractedBefore: userHasInteractedBefore,
     localStorage: localStorage.getItem("miku-sound"),
   });
 
@@ -89,9 +94,13 @@ function initMikuAudio() {
       .then(() => {
         console.log("Miku video autoplay successful (muted)");
 
-        // If user previously enabled sound, try to unmute after successful play
-        if (soundEnabled && !videoActivated) {
-          // We need user interaction to unmute, so set up listener
+        // If user previously enabled sound AND has interacted before,
+        // we know they want sound on future page loads
+        if (soundEnabled && userHasInteractedBefore) {
+          // Set up automatic unmute on first interaction
+          setupUnmuteOnInteraction(mainVideo);
+        } else if (soundEnabled && !userHasInteractedBefore) {
+          // First time user, wait for interaction
           setupUnmuteOnInteraction(mainVideo);
         }
       })
@@ -110,6 +119,9 @@ function setupPlayOnInteraction(mainVideo, shouldUnmute) {
     if (!videoActivated) {
       console.log("Activating video on user interaction");
       videoActivated = true;
+
+      // Mark that user has interacted
+      localStorage.setItem("miku-user-interacted", "true");
 
       mainVideo.muted = !shouldUnmute; // Unmute if user wants sound
       mainVideo
@@ -134,6 +146,9 @@ function setupUnmuteOnInteraction(mainVideo) {
     if (!videoActivated) {
       console.log("Unmuting video on user interaction");
       videoActivated = true;
+
+      // Mark that user has interacted
+      localStorage.setItem("miku-user-interacted", "true");
 
       mainVideo.muted = false;
 
@@ -257,6 +272,9 @@ function toggleMikuSound(e) {
   // Mark as activated by user
   videoActivated = true;
 
+  // Save that user has interacted with sound controls
+  localStorage.setItem("miku-user-interacted", "true");
+
   // If unmuting, ensure video is playing
   if (!mainVideo.muted) {
     if (mainVideo.paused) {
@@ -276,6 +294,7 @@ function toggleMikuSound(e) {
   console.log("New state:", {
     muted: mainVideo.muted,
     localStorage: newSoundState,
+    userInteracted: "true",
   });
 
   // Update button icon
