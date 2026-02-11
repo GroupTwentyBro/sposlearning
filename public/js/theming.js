@@ -8,6 +8,7 @@ const themeLink = document.getElementById("theme-link");
 // Track if we've already initialized to prevent double-init on pageshow
 let videoInitialized = false;
 let videoActivated = false;
+let tetrisAudio = null; // New: Global reference for the Tetris-specific audio
 
 // Video background initialization
 function initVideoBackground() {
@@ -27,6 +28,12 @@ function initVideoBackground() {
     existingVideo.remove();
   }
 
+  // Stop Tetris audio if it's playing during a theme re-init
+  if (tetrisAudio) {
+    tetrisAudio.pause();
+    tetrisAudio = null;
+  }
+
   // Reset initialization flags
   videoInitialized = false;
   videoActivated = false;
@@ -37,7 +44,6 @@ function initVideoBackground() {
     videoDiv.className = "video-background";
 
     // IMPORTANT: All videos start muted for autoplay compliance
-    // We'll unmute the first one after user interaction if they want sound
     videoDiv.innerHTML = `
       <video autoplay loop muted playsinline class="miku-video" id="miku-main-video">
         <source src="/media/bg-mikutheme-video.webm" type="video/webm">
@@ -53,7 +59,7 @@ function initVideoBackground() {
 
     videoInitialized = true;
 
-    // Initialize audio on first video
+    // Initialize audio (logic now branches for Tetris)
     setTimeout(() => {
       initMikuAudio();
     }, 100);
@@ -66,7 +72,7 @@ function initVideoBackground() {
   }
 }
 
-// Initialize Miku audio using the first video
+// Initialize Miku audio using the first video OR the Tetris MP3
 function initMikuAudio() {
   const mainVideo = document.getElementById("miku-main-video");
   if (!mainVideo) {
@@ -74,31 +80,42 @@ function initMikuAudio() {
     return;
   }
 
-  // Check if user wants sound (default: false/muted)
+  const isTetrisPage = window.location.pathname.includes('/tetris/');
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
 
   console.log("Miku audio initialized:", {
     soundEnabled: soundEnabled,
-    localStorage: localStorage.getItem("miku-sound"),
+    isTetris: isTetrisPage
   });
 
-  // Set mute state based on user preference
-  mainVideo.muted = !soundEnabled;
+  if (isTetrisPage) {
+    // 1. Ensure video stays silent
+    mainVideo.muted = true;
+    
+    // 2. Initialize the Tetris MP3 if not already done
+    if (!tetrisAudio) {
+      tetrisAudio = new Audio('/media/mikunes.mp3');
+      tetrisAudio.loop = true;
+    }
 
-  // Try to play
+    // 3. Play if user has sound enabled
+    if (soundEnabled) {
+      tetrisAudio.play().catch((err) => console.log("MP3 Autoplay blocked:", err));
+    }
+  } else {
+    // Standard Miku behavior: Use the video's audio track
+    mainVideo.muted = !soundEnabled;
+  }
+
+  // Always attempt to play the video (visuals)
   const playPromise = mainVideo.play();
   if (playPromise !== undefined) {
     playPromise
       .then(() => {
-        console.log("Miku video playing, muted:", mainVideo.muted);
         videoActivated = true;
-        updateSoundButtonIcon(mainVideo.muted);
+        updateSoundButtonIcon(isTetrisPage ? (tetrisAudio ? tetrisAudio.paused : true) : mainVideo.muted);
       })
-      .catch((error) => {
-        console.log("Autoplay prevented:", error.message);
-        // If autoplay fails, user will need to interact with the page
-        // or click the sound button
-      });
+      .catch((error) => console.log("Video Autoplay prevented:", error.message));
   }
 }
 
@@ -107,9 +124,8 @@ function synchronizeVideos() {
   const videos = document.querySelectorAll(".miku-video");
   if (videos.length === 0) return;
 
-  const mainVideo = videos[0]; // First video has audio
+  const mainVideo = videos[0];
 
-  // When main video plays, sync others
   mainVideo.addEventListener("play", () => {
     videos.forEach((video, index) => {
       if (index > 0) {
@@ -119,37 +135,26 @@ function synchronizeVideos() {
     });
   });
 
-  // Sync periodically to prevent drift
   mainVideo.addEventListener("timeupdate", () => {
     videos.forEach((video, index) => {
-      if (
-        index > 0 &&
-        Math.abs(video.currentTime - mainVideo.currentTime) > 0.3
-      ) {
+      if (index > 0 && Math.abs(video.currentTime - mainVideo.currentTime) > 0.3) {
         video.currentTime = mainVideo.currentTime;
       }
     });
   });
 
-  // Also sync when main video seeks
   mainVideo.addEventListener("seeked", () => {
     videos.forEach((video, index) => {
-      if (index > 0) {
-        video.currentTime = mainVideo.currentTime;
-      }
+      if (index > 0) video.currentTime = mainVideo.currentTime;
     });
   });
 }
 
 // Create floating sound toggle button
 function createSoundToggle() {
-  // Remove existing toggle if present
   const existingToggle = document.querySelector(".miku-sound-toggle");
-  if (existingToggle) {
-    existingToggle.remove();
-  }
+  if (existingToggle) existingToggle.remove();
 
-  // Get desired state from localStorage (not current video state)
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
   const isMuted = !soundEnabled;
 
@@ -162,68 +167,44 @@ function createSoundToggle() {
   `;
   toggleBtn.title = isMuted ? "Zapnout hudbu" : "Ztlumit hudbu";
 
-  // Use the toggle function
   toggleBtn.addEventListener("click", toggleMikuSound);
-
   document.body.appendChild(toggleBtn);
-
-  console.log("Sound toggle button created, showing icon for muted:", isMuted);
 }
 
-// Toggle sound on/off
+// Toggle sound on/off for either the Video or the Tetris MP3
 function toggleMikuSound(e) {
-  // Prevent any default behavior
   if (e) {
     e.preventDefault();
     e.stopPropagation();
   }
 
   const mainVideo = document.getElementById("miku-main-video");
-  if (!mainVideo) {
-    console.error("Main video not found!");
-    return;
-  }
+  const isTetrisPage = window.location.pathname.includes('/tetris/');
+  
+  if (!mainVideo) return;
 
-  // Get current state
-  const currentlyMuted = mainVideo.muted;
+  // Determine current "muted" state based on the active source
+  const currentlyMuted = isTetrisPage ? (tetrisAudio ? tetrisAudio.paused : true) : mainVideo.muted;
+  const newMutedState = !currentlyMuted;
 
-  console.log("Toggle clicked, current state:", {
-    muted: currentlyMuted,
-    paused: mainVideo.paused,
-  });
-
-  // Toggle mute state
-  mainVideo.muted = !currentlyMuted;
-
-  // Mark as activated by user
-  videoActivated = true;
-
-  // If unmuting, ensure video is playing
-  if (!mainVideo.muted) {
-    if (mainVideo.paused) {
-      mainVideo
-        .play()
-        .then(() => console.log("Video playing after unmute"))
-        .catch((e) => console.log("Could not play video:", e.message));
+  if (isTetrisPage && tetrisAudio) {
+    if (newMutedState) {
+      tetrisAudio.pause();
+    } else {
+      tetrisAudio.play().catch(e => console.log("MP3 playback error:", e));
     }
+    mainVideo.muted = true; // Video always stays muted on Tetris
+  } else {
+    mainVideo.muted = newMutedState;
+    if (!newMutedState && mainVideo.paused) mainVideo.play();
   }
 
-  // Save new state to localStorage
-  // muted=false means sound is ON, so save as "true"
-  // muted=true means sound is OFF, so save as "false"
-  const newSoundState = !mainVideo.muted ? "true" : "false";
-  localStorage.setItem("miku-sound", newSoundState);
-
-  console.log("New state:", {
-    muted: mainVideo.muted,
-    localStorage: newSoundState,
-  });
-
-  // Update button icon
-  updateSoundButtonIcon(mainVideo.muted);
+  videoActivated = true;
+  const newSoundPref = !newMutedState ? "true" : "false";
+  localStorage.setItem("miku-sound", newSoundPref);
+  updateSoundButtonIcon(newMutedState);
 }
 
-// Helper function to update button icon
 function updateSoundButtonIcon(isMuted) {
   const btn = document.querySelector(".miku-sound-toggle");
   if (btn) {
@@ -233,18 +214,14 @@ function updateSoundButtonIcon(isMuted) {
   }
 }
 
-// Core logic to change the CSS file and LocalStorage
 export function applyTheme(themeName) {
-  let newHref = "/style/theme-light.css"; // Default
+  let newHref = "/style/theme-light.css";
 
-  // Clean up when switching away from Miku theme
+  // Clean up
   if (themeName !== "miku") {
     const soundToggle = document.querySelector(".miku-sound-toggle");
-    if (soundToggle) {
-      soundToggle.remove();
-    }
+    if (soundToggle) soundToggle.remove();
 
-    // Stop and remove video background
     const videoBackground = document.querySelector(".video-background");
     if (videoBackground) {
       const videos = videoBackground.querySelectorAll("video");
@@ -254,6 +231,11 @@ export function applyTheme(themeName) {
         video.load();
       });
       videoBackground.remove();
+    }
+    
+    if (tetrisAudio) {
+      tetrisAudio.pause();
+      tetrisAudio = null;
     }
 
     videoInitialized = false;
@@ -266,32 +248,20 @@ export function applyTheme(themeName) {
       const savedHue = localStorage.getItem("hue-val") || 0;
       root.style.setProperty("--hue-val", savedHue);
       break;
-    case "teddy":
-      newHref = "/style/theme-teddy.css";
-      break;
-    case "mike":
-      newHref = "/style/theme-mike.css";
-      break;
-    case "dark":
-      newHref = "/style/theme-dark.css";
-      break;
-    case "miku":
-      newHref = "/style/theme-miku.css";
-      break;
-    default:
-      newHref = "/style/theme-light.css";
+    case "teddy": newHref = "/style/theme-teddy.css"; break;
+    case "mike": newHref = "/style/theme-mike.css"; break;
+    case "dark": newHref = "/style/theme-dark.css"; break;
+    case "miku": newHref = "/style/theme-miku.css"; break;
+    default: newHref = "/style/theme-light.css";
   }
 
   if (themeLink && themeLink.getAttribute("href") !== newHref) {
     themeLink.href = newHref;
   }
   localStorage.setItem("theme", themeName);
-
-  // Initialize video background after theme change
   initVideoBackground();
 }
 
-// Initialize listeners for dashboard buttons
 export function initThemeListeners() {
   const themeMap = {
     "darktheme-btn": "dark",
@@ -301,71 +271,47 @@ export function initThemeListeners() {
     "mikutheme-btn": "miku",
   };
 
-  // Attach click listeners to buttons
   Object.entries(themeMap).forEach(([id, theme]) => {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
 
-  // Handle Hue Slider
   const hueSlider = document.getElementById("hueSlider");
   if (hueSlider) {
     if (localStorage.getItem("theme") === "hueshift") {
       hueSlider.value = localStorage.getItem("hue-val") || 0;
     }
-
     hueSlider.addEventListener("input", (e) => {
       const val = e.target.value;
       localStorage.setItem("hue-val", val);
       root.style.setProperty("--hue-val", val);
-
-      if (localStorage.getItem("theme") !== "hueshift") {
-        applyTheme("hueshift");
-      }
+      if (localStorage.getItem("theme") !== "hueshift") applyTheme("hueshift");
     });
   }
 }
 
-// Handle back/forward navigation (pageshow event)
 window.addEventListener("pageshow", (event) => {
-  console.log("Pageshow event triggered, persisted:", event.persisted);
-
-  // If page was loaded from cache (back/forward), reinitialize videos
   if (event.persisted) {
     const currentTheme = localStorage.getItem("theme");
     if (currentTheme === "miku") {
-      console.log("Reinitializing videos after back/forward navigation");
-      // Small delay to ensure DOM is ready
-      setTimeout(() => {
-        initVideoBackground();
-      }, 100);
+      setTimeout(() => { initVideoBackground(); }, 100);
     }
   }
 });
 
-// Immediate execution on import to prevent "flash of unstyled content"
 const savedTheme = localStorage.getItem("theme") || "light";
 applyTheme(savedTheme);
 
-// Initialize when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => {
-    console.log("DOM loaded, initializing theme system");
     initThemeListeners();
-    // Video background was already initialized by applyTheme() above
-    // But let's call it again to be sure
     setTimeout(() => {
-      if (!videoInitialized && localStorage.getItem("theme") === "miku") {
-        initVideoBackground();
-      }
+      if (!videoInitialized && localStorage.getItem("theme") === "miku") initVideoBackground();
     }, 200);
   });
 } else {
-  console.log("DOM already ready, initializing theme system");
   initThemeListeners();
   setTimeout(() => {
-    if (!videoInitialized && localStorage.getItem("theme") === "miku") {
-      initVideoBackground();
-    }
+    if (!videoInitialized && localStorage.getItem("theme") === "miku") initVideoBackground();
   }, 200);
 }
