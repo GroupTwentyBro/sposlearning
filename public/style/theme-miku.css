@@ -189,10 +189,6 @@ h6 {
   background: var(--primary-fg-clr) !important;
   border-color: var(--primary-fg-clr) !important;
   color: var(--root-fg-clr) !important;
-  background-image: var(--ul-dotted) !important;
-  background-size: 4px 100% !important;
-  background-repeat: repeat-x !important;
-  background-position: 0 100% !important;
 }
 
 /* Secondary: The Hot Pink */
@@ -200,10 +196,6 @@ h6 {
   background: var(--secondary-fg-clr) !important;
   border-color: var(--secondary-fg-clr) !important;
   color: var(--root-fg-clr) !important;
-  background-image: var(--ul-dotted) !important;
-  background-size: 4px 100% !important;
-  background-repeat: repeat-x !important;
-  background-position: 0 100% !important;
 }
 
 /* Danger: The Hot Pink (emphasis) */
@@ -211,10 +203,6 @@ h6 {
   background: var(--discl-important-fg-clr) !important;
   border-color: var(--discl-important-fg-clr) !important;
   color: var(--root-fg-clr) !important;
-  background-image: var(--ul-dotted) !important;
-  background-size: 4px 100% !important;
-  background-repeat: repeat-x !important;
-  background-position: 0 100% !important;
 }
 
 /* Warning: The Light Cyan */
@@ -222,10 +210,6 @@ h6 {
   background: var(--trietary-fg-clr) !important;
   border-color: var(--trietary-fg-clr) !important;
   color: var(--root-box-bg-clr) !important;
-  background-image: var(--ul-dotted) !important;
-  background-size: 4px 100% !important;
-  background-repeat: repeat-x !important;
-  background-position: 0 100% !important;
 }
 
 /* Success: The Vibrant Teal */
@@ -233,35 +217,13 @@ h6 {
   background: var(--discl-importantgreen-fg-clr) !important;
   border-color: var(--discl-importantgreen-fg-clr) !important;
   color: var(--root-fg-clr) !important;
-  background-image: var(--ul-dotted) !important;
-  background-size: 4px 100% !important;
-  background-repeat: repeat-x !important;
-  background-position: 0 100% !important;
 }
 
-/* White: Miku Gradient */
+/* White: High contrast */
 .btn-white {
-  background: linear-gradient(
-    90deg,
-    hsl(177, 70%, 50%),
-    hsl(328, 85%, 53%)
-  ) !important;
-  border: 2px solid hsl(177, 70%, 50%) !important;
-  color: var(--root-fg-clr) !important;
-  position: relative !important;
-}
-
-/* Add dotted underline to gradient button using pseudo-element */
-.btn-white::after {
-  content: "" !important;
-  position: absolute !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 2px !important;
-  background-image: var(--ul-dotted) !important;
-  background-size: 4px 100% !important;
-  background-repeat: repeat-x !important;
+  background: var(--root-fg-clr) !important;
+  border-color: var(--root-fg-clr) !important;
+  color: var(--root-box-bg-clr) !important;
 }
 
 /* Interactive States */
@@ -269,8 +231,7 @@ h6 {
 .btn-secondary:hover,
 .btn-danger:hover,
 .btn-success:hover,
-.btn-warning:hover,
-.btn-white:hover {
+.btn-warning:hover {
   filter: brightness(1.1);
   cursor: pointer;
 }
