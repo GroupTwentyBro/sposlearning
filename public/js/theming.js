@@ -116,6 +116,20 @@ function synchronizeVideos() {
   });
 }
 
+const mediaQuery = window.matchMedia('(max-width: 500px)');
+
+function handleTabletChange(e) {
+  if (e.matches) {
+
+  } else {
+
+  }
+}
+
+mediaQuery.addEventListener('change', handleTabletChange);
+
+handleTabletChange(mediaQuery);
+
 function createSoundToggle() {
   const existingToggle = document.querySelector(".miku-sound-toggle");
   if (existingToggle) existingToggle.remove();
@@ -123,13 +137,27 @@ function createSoundToggle() {
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
   const isMuted = !soundEnabled;
 
+  const userControls = document.getElementsByClassName("user-controls")
+
   const toggleBtn = document.createElement("button");
   toggleBtn.className = "miku-sound-toggle";
-  toggleBtn.innerHTML = `
+
+    if (window.matchMedia('(max-width: 500px)')) {
+      userControls.appendChild(toggleBtn);
+      toggleBtn.className = "miku-sound-toggle mobile";
+      toggleBtn.innerHTML = `
+    <span class="material-symbols-outlined">
+      ${isMuted ? "volume_off" : "volume_up"}
+    </span>`
+    } else {
+      toggleBtn.className = "miku-sound-toggle pc";
+    toggleBtn.innerHTML = `
     <span class="material-symbols-outlined">
       ${isMuted ? "volume_off" : "volume_up"}
     </span>
   `;
+  }
+
   toggleBtn.title = isMuted ? "Zapnout hudbu" : "Ztlumit hudbu";
 
   toggleBtn.addEventListener("click", toggleMikuSound);
