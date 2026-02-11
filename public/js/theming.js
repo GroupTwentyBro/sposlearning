@@ -32,18 +32,79 @@ function initVideoBackground() {
       <video autoplay loop muted playsinline class="miku-video">
         <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
-      <audio autoplay loop ${soundEnabled ? "" : "muted"} id="miku-audio">
-        <source src="/media/bg-mikutheme-video.webm" type="video/webm">
-      </audio>
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
 
     // Synchronize all videos
     synchronizeVideos();
 
+    // Initialize audio separately (using first video's audio track)
+    initMikuAudio(soundEnabled);
+
     // Add sound toggle button
     createSoundToggle();
   }
+}
+
+// Initialize Miku audio using the first video's audio track
+function initMikuAudio(soundEnabled) {
+  // Remove existing audio if present
+  const existingAudio = document.getElementById("miku-audio");
+  if (existingAudio) {
+    existingAudio.remove();
+  }
+
+  // Create new audio element
+  const audio = document.createElement("audio");
+  audio.id = "miku-audio";
+  audio.loop = true;
+  audio.muted = !soundEnabled;
+
+  const source = document.createElement("source");
+  source.src = "/media/bg-mikutheme-video.webm";
+  source.type = "video/webm";
+  audio.appendChild(source);
+
+  document.body.appendChild(audio);
+
+  // Load the audio
+  audio.load();
+
+  // Wait for audio to be ready
+  audio.addEventListener("loadeddata", () => {
+    console.log("Miku audio loaded");
+
+    // Try to play
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log("Miku audio playing successfully");
+        })
+        .catch((error) => {
+          console.log("Autoplay prevented:", error.message);
+
+          // Add click listener to start on user interaction
+          const startAudio = () => {
+            audio
+              .play()
+              .then(() => console.log("Audio started on user interaction"))
+              .catch((e) => console.log("Could not play audio:", e.message));
+            document.removeEventListener("click", startAudio);
+            document.removeEventListener("keydown", startAudio);
+          };
+
+          document.addEventListener("click", startAudio);
+          document.addEventListener("keydown", startAudio);
+        });
+    }
+  });
+
+  // Handle loading errors
+  audio.addEventListener("error", (e) => {
+    console.error("Audio loading error:", e);
+  });
 }
 
 // Synchronize all 3 videos to play at the same time
@@ -105,17 +166,24 @@ function toggleMikuSound() {
   if (!audio) return;
 
   const currentlyMuted = audio.muted;
+
+  // Toggle mute state
   audio.muted = !currentlyMuted;
 
-  // Save preference (OPRAVENO: inverted logic)
-  localStorage.setItem("miku-sound", currentlyMuted ? "true" : "false");
+  // If unmuting, ensure audio is playing
+  if (!audio.muted) {
+    audio.play().catch((e) => console.log("Could not play audio:", e));
+  }
 
-  // Update button icon (OPRAVENO: správná ikona)
+  // Save preference
+  localStorage.setItem("miku-sound", !currentlyMuted ? "true" : "false");
+
+  // Update button icon
   const btn = document.querySelector(".miku-sound-toggle");
   if (btn) {
     const icon = btn.querySelector("span");
-    icon.textContent = currentlyMuted ? "volume_up" : "volume_off";
-    btn.title = currentlyMuted ? "Ztlumit hudbu" : "Zapnout hudbu";
+    icon.textContent = !currentlyMuted ? "volume_up" : "volume_off";
+    btn.title = !currentlyMuted ? "Ztlumit hudbu" : "Zapnout hudbu";
   }
 }
 
