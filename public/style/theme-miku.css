@@ -65,6 +65,122 @@
   );
 }
 
+/* GLOBAL TEXT COLOR ENFORCEMENT */
+/* This ensures ALL text is properly colored, including markdown-generated content */
+body,
+body *:not(button):not(.btn):not(.btn *),
+.container,
+.container *,
+.content,
+.content *,
+main,
+main *,
+article,
+article *,
+section,
+section *,
+p,
+p *,
+div:not(.btn),
+div:not(.btn) *,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a,
+li,
+ul,
+ol,
+td,
+th,
+tr,
+blockquote,
+blockquote *,
+em,
+strong,
+b,
+i,
+u,
+mark,
+small,
+del,
+ins,
+sub,
+sup,
+code:not(pre code),
+pre,
+pre *,
+label,
+legend,
+caption,
+figcaption,
+.text,
+.text *,
+.description,
+.description * {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Ensure paragraphs in markdown are visible */
+p,
+p > *,
+.content p,
+.content p > *,
+article p,
+article p > *,
+main p,
+main p > * {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Markdown list items */
+li,
+li > *,
+ul li,
+ul li > *,
+ol li,
+ol li > * {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Markdown emphasis */
+em,
+i,
+strong,
+b {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Markdown blockquotes */
+blockquote,
+blockquote *,
+blockquote p {
+  color: var(--root-fgd-clr) !important;
+  border-left-color: var(--primary-fg-clr) !important;
+}
+
+/* Links should be visible */
+a {
+  color: var(--primary-hl-clr) !important;
+}
+
+a:hover {
+  color: var(--secondary-hl-clr) !important;
+}
+
+/* Headings with Miku colors */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--primary-fg-clr) !important;
+}
+
 /* BUTTON OVERRIDES - Using CSS Variables */
 
 /* Primary & Dark: The main Miku Teal */
@@ -172,6 +288,7 @@ body::before {
   height: 100%;
   background: rgba(0, 20, 20, 0.4); /* Teal-tinted overlay */
 }
+
 /* Sound toggle button - floating in bottom right */
 .miku-sound-toggle {
   position: fixed;
@@ -199,4 +316,71 @@ body::before {
 
 .miku-sound-toggle span {
   font-size: 32px;
+}
+
+/* Boxes and cards */
+.box,
+.card,
+.panel,
+.well {
+  background: var(--box-clr) !important;
+  border: 2px solid var(--box-border-clr) !important;
+  color: var(--box-txt-clr) !important;
+}
+
+.box *:not(.btn):not(.btn *),
+.card *:not(.btn):not(.btn *),
+.panel *:not(.btn):not(.btn *),
+.well *:not(.btn):not(.btn *) {
+  color: var(--box-txt-clr) !important;
+}
+
+/* Content wrappers - common in DB-generated pages */
+.page-content,
+.page-content *:not(.btn):not(.btn *),
+.article-content,
+.article-content *:not(.btn):not(.btn *),
+.post-content,
+.post-content *:not(.btn):not(.btn *),
+.entry-content,
+.entry-content *:not(.btn):not(.btn *) {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Tables */
+table {
+  background: var(--box-clr) !important;
+  color: var(--root-txt-clr) !important;
+}
+
+table th {
+  background: var(--primary-boxbg-clr) !important;
+  color: var(--root-fg-clr) !important;
+  border-color: var(--box-border-clr) !important;
+}
+
+table td {
+  border-color: var(--box-border-clr) !important;
+}
+
+/* Forms */
+input,
+textarea,
+select {
+  background: var(--box-clr) !important;
+  color: var(--root-txt-clr) !important;
+  border-color: var(--box-border-clr) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--root-fgd-clr) !important;
+}
+
+/* Code blocks */
+code,
+pre {
+  background: var(--code-bg-clr) !important;
+  color: var(--primary-hl-clr) !important;
+  border-color: var(--box-border-clr) !important;
 }

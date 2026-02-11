@@ -9,6 +9,8 @@ const themeLink = document.getElementById("theme-link");
 function initVideoBackground() {
   const currentTheme = localStorage.getItem("theme");
 
+  console.log("Initializing video background, theme:", currentTheme);
+
   // Remove existing video background if present
   const existingVideo = document.querySelector(".video-background");
   if (existingVideo) {
@@ -56,33 +58,48 @@ function initMikuAudio() {
   // Check if user wants sound (default: muted)
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
 
-  // Set mute state
+  // Set initial mute state
   mainVideo.muted = !soundEnabled;
 
-  console.log("Miku audio initialized, muted:", mainVideo.muted);
+  console.log("Miku audio initialized:", {
+    soundEnabled: soundEnabled,
+    videoMuted: mainVideo.muted,
+    localStorage: localStorage.getItem("miku-sound"),
+  });
 
-  // Ensure video is playing
+  // Flag to track if video has been "activated" by user interaction
+  let videoActivated = false;
+
+  // Try to play immediately (will fail if browser blocks autoplay)
   const playPromise = mainVideo.play();
   if (playPromise !== undefined) {
     playPromise
       .then(() => {
-        console.log("Miku video/audio playing");
+        console.log("Miku video/audio autoplay successful");
+        videoActivated = true;
       })
       .catch((error) => {
-        console.log("Autoplay prevented, waiting for user interaction");
+        console.log("Autoplay prevented (normal browser behavior)");
 
-        // Fallback: start on user interaction
-        const startPlayback = () => {
-          mainVideo
-            .play()
-            .then(() => console.log("Video/audio started on interaction"))
-            .catch((e) => console.log("Could not play:", e.message));
-          document.removeEventListener("click", startPlayback);
-          document.removeEventListener("keydown", startPlayback);
+        // Wait for ANY user interaction to activate video
+        const activateVideo = (e) => {
+          if (!videoActivated) {
+            console.log("Activating video on user interaction");
+            mainVideo
+              .play()
+              .then(() => {
+                videoActivated = true;
+                console.log("Video activated successfully");
+              })
+              .catch((err) =>
+                console.log("Video activation failed:", err.message),
+              );
+          }
         };
 
-        document.addEventListener("click", startPlayback, { once: true });
-        document.addEventListener("keydown", startPlayback, { once: true });
+        // Listen for any interaction
+        document.addEventListener("click", activateVideo, { once: true });
+        document.addEventListener("keydown", activateVideo, { once: true });
       });
   }
 }
@@ -134,57 +151,84 @@ function createSoundToggle() {
     existingToggle.remove();
   }
 
-  const soundEnabled = localStorage.getItem("miku-sound") === "true";
+  // Get current state from video element (not localStorage directly)
+  const mainVideo = document.getElementById("miku-main-video");
+  const isMuted = mainVideo ? mainVideo.muted : true;
 
   const toggleBtn = document.createElement("button");
   toggleBtn.className = "miku-sound-toggle";
   toggleBtn.innerHTML = `
     <span class="material-symbols-outlined">
-      ${soundEnabled ? "volume_up" : "volume_off"}
+      ${isMuted ? "volume_off" : "volume_up"}
     </span>
   `;
-  toggleBtn.title = soundEnabled ? "Ztlumit hudbu" : "Zapnout hudbu";
+  toggleBtn.title = isMuted ? "Zapnout hudbu" : "Ztlumit hudbu";
 
+  // Use the toggle function
   toggleBtn.addEventListener("click", toggleMikuSound);
+
   document.body.appendChild(toggleBtn);
+
+  console.log("Sound toggle button created, showing icon for muted:", isMuted);
 }
 
 // Toggle sound on/off
-function toggleMikuSound() {
+function toggleMikuSound(e) {
+  // Prevent any default behavior
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   const mainVideo = document.getElementById("miku-main-video");
   if (!mainVideo) {
     console.error("Main video not found!");
     return;
   }
 
+  // Get current state
   const currentlyMuted = mainVideo.muted;
+
+  console.log("Toggle clicked, current state:", {
+    muted: currentlyMuted,
+    paused: mainVideo.paused,
+  });
 
   // Toggle mute state
   mainVideo.muted = !currentlyMuted;
 
   // If unmuting, ensure video is playing
   if (!mainVideo.muted) {
-    mainVideo
-      .play()
-      .catch((e) => console.log("Could not play video:", e.message));
+    if (mainVideo.paused) {
+      mainVideo
+        .play()
+        .then(() => console.log("Video playing after unmute"))
+        .catch((e) => console.log("Could not play video:", e.message));
+    }
   }
 
-  // Save preference
-  localStorage.setItem("miku-sound", !currentlyMuted ? "true" : "false");
+  // Save new state to localStorage
+  // muted=false means sound is ON, so save as "true"
+  // muted=true means sound is OFF, so save as "false"
+  const newSoundState = !mainVideo.muted ? "true" : "false";
+  localStorage.setItem("miku-sound", newSoundState);
 
-  console.log(
-    "Sound toggled, muted:",
-    mainVideo.muted,
-    "saved:",
-    localStorage.getItem("miku-sound"),
-  );
+  console.log("New state:", {
+    muted: mainVideo.muted,
+    localStorage: newSoundState,
+  });
 
   // Update button icon
+  updateSoundButtonIcon(!currentlyMuted);
+}
+
+// Helper function to update button icon
+function updateSoundButtonIcon(isMuted) {
   const btn = document.querySelector(".miku-sound-toggle");
   if (btn) {
     const icon = btn.querySelector("span");
-    icon.textContent = !currentlyMuted ? "volume_up" : "volume_off";
-    btn.title = !currentlyMuted ? "Ztlumit hudbu" : "Zapnout hudbu";
+    icon.textContent = isMuted ? "volume_off" : "volume_up";
+    btn.title = isMuted ? "Zapnout hudbu" : "Ztlumit hudbu";
   }
 }
 
