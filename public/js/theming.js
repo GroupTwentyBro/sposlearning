@@ -63,13 +63,10 @@ function initMikuAudio() {
   const mainVideo = document.getElementById("miku-main-video");
   if (!mainVideo) return;
 
-  // More robust path check: includes both "/tetris" and "/tetris/"
   const isTetrisPage = window.location.pathname.toLowerCase().includes('tetris');
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
 
   if (isTetrisPage) {
-    console.log("DEBUG: Tetris path detected! Switching to MP3.");
-    // Force video to stay silent
     mainVideo.muted = true;
     
     if (!tetrisAudio) {
@@ -78,6 +75,8 @@ function initMikuAudio() {
     }
 
     if (soundEnabled) {
+      // SYNC: Match MP3 time to video time before playing
+      tetrisAudio.currentTime = mainVideo.currentTime;
       tetrisAudio.play().catch((err) => console.log("MP3 Autoplay blocked:", err));
     }
   } else {
@@ -102,6 +101,10 @@ function synchronizeVideos() {
         video.play().catch(() => {});
       }
     });
+    // SYNC: If we are on tetris and audio is active, sync MP3 to video start
+    if (tetrisAudio && !tetrisAudio.paused) {
+        tetrisAudio.currentTime = mainVideo.currentTime;
+    }
   });
 
   mainVideo.addEventListener("timeupdate", () => {
@@ -148,9 +151,11 @@ function toggleMikuSound(e) {
     if (shouldBeMuted) {
       tetrisAudio.pause();
     } else {
+      // SYNC: Match MP3 time to video time exactly when unmuting
+      tetrisAudio.currentTime = mainVideo.currentTime;
       tetrisAudio.play().catch(e => console.log("MP3 playback error:", e));
     }
-    mainVideo.muted = true; // Video NEVER unmuted on Tetris
+    mainVideo.muted = true; 
   } else {
     mainVideo.muted = shouldBeMuted;
     if (!shouldBeMuted && mainVideo.paused) mainVideo.play();
@@ -184,6 +189,8 @@ export function applyTheme(themeName) {
     case "hueshift": newHref = "/style/theme-hueshift.css"; break;
     case "miku": newHref = "/style/theme-miku.css"; break;
     case "dark": newHref = "/style/theme-dark.css"; break;
+    case "teddy": newHref = "/style/theme-teddy.css"; break;
+    case "mike": newHref = "/style/theme-mike.css"; break;
     default: newHref = "/style/theme-light.css";
   }
 
@@ -193,14 +200,19 @@ export function applyTheme(themeName) {
 }
 
 export function initThemeListeners() {
-  const themeMap = { "mikutheme-btn": "miku", "darktheme-btn": "dark", "lighttheme-btn": "light" };
+  const themeMap = { 
+      "mikutheme-btn": "miku", 
+      "darktheme-btn": "dark", 
+      "lighttheme-btn": "light",
+      "miketheme-btn": "mike",
+      "teddytheme-btn": "teddy"
+  };
   Object.entries(themeMap).forEach(([id, theme]) => {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
 }
 
-// Global initialization logic
 const savedTheme = localStorage.getItem("theme") || "light";
 applyTheme(savedTheme);
 
