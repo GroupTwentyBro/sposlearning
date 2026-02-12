@@ -137,31 +137,32 @@ function createSoundToggle() {
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
   const isMuted = !soundEnabled;
 
-  const userControls = document.getElementsByClassName("user-controls")[0];
-
   const toggleBtn = document.createElement("button");
-  toggleBtn.className = "miku-sound-toggle";
 
-    if (window.matchMedia('(max-width: 500px)')) {
+  // FIX 1: Use .matches to actually get a true/false value
+  const isMobile = window.matchMedia('(max-width: 500px)').matches;
+
+  if (isMobile) {
+    const userControls = document.querySelector(".user-controls");
+    if (userControls) {
       userControls.appendChild(toggleBtn);
       toggleBtn.className = "miku-sound-toggle mobile";
-      toggleBtn.innerHTML = `
-    <span class="material-symbols-outlined">
-      ${isMuted ? "volume_off" : "volume_up"}
-    </span>`
-    } else {
-      toggleBtn.className = "miku-sound-toggle pc";
-    toggleBtn.innerHTML = `
+    }
+  } else {
+    // FIX 2: This will now actually run on PC
+    document.body.appendChild(toggleBtn);
+    toggleBtn.className = "miku-sound-toggle pc";
+  }
+
+  // Set HTML after appending so it's clean
+  toggleBtn.innerHTML = `
     <span class="material-symbols-outlined">
       ${isMuted ? "volume_off" : "volume_up"}
     </span>
   `;
-  }
 
   toggleBtn.title = isMuted ? "Zapnout hudbu" : "Ztlumit hudbu";
-
   toggleBtn.addEventListener("click", toggleMikuSound);
-  document.body.appendChild(toggleBtn);
 }
 
 function toggleMikuSound(e) {
