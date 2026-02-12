@@ -137,7 +137,7 @@ function createSoundToggle() {
   const soundEnabled = localStorage.getItem("miku-sound") === "true";
   const isMuted = !soundEnabled;
 
-  const userControls = document.getElementsByClassName("user-controls")
+  const userControls = document.getElementsByClassName("user-controls")[0];
 
   const toggleBtn = document.createElement("button");
   toggleBtn.className = "miku-sound-toggle";
