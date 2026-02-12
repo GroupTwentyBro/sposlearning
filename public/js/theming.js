@@ -146,7 +146,7 @@ function createSoundToggle() {
     const userControls = document.querySelector(".user-controls");
     if (userControls) {
       userControls.appendChild(toggleBtn);
-      toggleBtn.className = "miku-sound-toggle mobile";
+      toggleBtn.className = "miku-sound-toggle btn btn-sm btn-primary ctrl-btn mobile";
     }
   } else {
     // FIX 2: This will now actually run on PC

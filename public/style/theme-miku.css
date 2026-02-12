@@ -290,7 +290,7 @@ body::before {
 }
 
 /* Sound toggle button - floating in bottom right */
-.miku-sound-toggle {
+.miku-sound-toggle.pc {
   position: fixed;
   bottom: 30px;
   right: 30px;
@@ -309,12 +309,12 @@ body::before {
   transition: all 0.3s ease;
 }
 
-.miku-sound-toggle:hover {
+.miku-sound-toggle.pc:hover {
   transform: scale(1.1);
   box-shadow: 0 6px 20px rgba(225, 40, 133, 0.5);
 }
 
-.miku-sound-toggle span {
+.miku-sound-toggle.pc span {
   font-size: 32px;
 }
 
