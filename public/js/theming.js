@@ -64,12 +64,6 @@ function initVideoBackground() {
       <video autoplay loop muted playsinline class="trio-video" id="trio-main-video">
         <source src="/media/bg-vocaloid-trio.webm" type="video/webm">
       </video>
-      <video autoplay loop muted playsinline class="trio-video">
-        <source src="/media/bg-vocaloid-trio.webm" type="video/webm">
-      </video>
-      <video autoplay loop muted playsinline class="trio-video">
-        <source src="/media/bg-vocaloid-trio.webm" type="video/webm">
-      </video>
     `;
     document.body.insertBefore(videoDiv, document.body.firstChild);
 
@@ -79,7 +73,6 @@ function initVideoBackground() {
       initTrioAudio();
     }, 100);
 
-    synchronizeTrioVideos();
     createTrioSoundToggle();
   }
 }
@@ -159,32 +152,6 @@ function synchronizeVideos() {
     if (tetrisAudio && !tetrisAudio.paused) {
       tetrisAudio.currentTime = mainVideo.currentTime;
     }
-  });
-
-  mainVideo.addEventListener("timeupdate", () => {
-    videos.forEach((video, index) => {
-      if (
-        index > 0 &&
-        Math.abs(video.currentTime - mainVideo.currentTime) > 0.3
-      ) {
-        video.currentTime = mainVideo.currentTime;
-      }
-    });
-  });
-}
-
-function synchronizeTrioVideos() {
-  const videos = document.querySelectorAll(".trio-video");
-  if (videos.length === 0) return;
-  const mainVideo = videos[0];
-
-  mainVideo.addEventListener("play", () => {
-    videos.forEach((video, index) => {
-      if (index > 0) {
-        video.currentTime = mainVideo.currentTime;
-        video.play().catch(() => {});
-      }
-    });
   });
 
   mainVideo.addEventListener("timeupdate", () => {
