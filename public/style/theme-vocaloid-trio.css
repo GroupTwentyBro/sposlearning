@@ -1,0 +1,493 @@
+:root {
+  /* ROOT CLRS - Vocaloid Trio Mix (Miku + Teto + Neru) */
+  --root-bg-clr: hsl(200, 80%, 8%); /* Deep blue-teal-black base */
+  --root-fg-clr: #ffffff;
+  --root-txt-clr: hsla(0, 0%, 100%, 0.87);
+  --root-box-bg-clr: hsl(200, 50%, 10%);
+  --root-box-fg-clr: hsl(200, 40%, 15%);
+  --root-fgd-clr: hsl(200, 30%, 65%); /* Muted blue-teal */
+  --root-ul-sd-clr: hsl(177, 70%, 50%);
+  --code-bg-clr: hsl(200, 40%, 12%);
+
+  /* BOX STYLES */
+  --box-overlay-clr: hsla(177, 70%, 50%, 4%);
+  --box-clr: hsl(200, 50%, 12%);
+  --box-border-clr: linear-gradient(
+    90deg,
+    hsl(177, 70%, 50%),
+    hsl(0, 85%, 55%),
+    hsl(45, 90%, 55%)
+  ); /* Gradient border */
+  --box-overlay-fg-clr: hsla(0, 0%, 100%, 50%);
+  --box-overlay-border-clr: hsla(177, 70%, 50%, 15%);
+  --box-txt-clr: hsla(0, 0%, 100%, 0.75);
+
+  /* MIKU COLORS - Teal/Cyan + Pink (33%) */
+  --miku-primary: hsl(177, 70%, 50%); /* #00B2A9 Miku teal */
+  --miku-secondary: hsl(328, 85%, 53%); /* #E12885 Hot pink */
+
+  /* TETO COLORS - Red/Pink (33%) */
+  --teto-primary: hsl(0, 85%, 55%); /* #E84545 Red */
+  --teto-secondary: hsl(340, 80%, 60%); /* #EA5B7D Pink */
+
+  /* NERU COLORS - Yellow/Gold (33%) */
+  --neru-primary: hsl(45, 90%, 55%); /* #F5D547 Yellow */
+  --neru-secondary: hsl(35, 85%, 50%); /* #E8A23B Gold/Orange */
+
+  /* PRIMARY CLRS - Gradient mix of all three */
+  --primary-boxbg-clr: linear-gradient(
+    90deg,
+    hsl(177, 100%, 15%),
+    hsl(0, 85%, 20%),
+    hsl(45, 90%, 20%)
+  );
+  --primary-boxfg-clr: linear-gradient(
+    90deg,
+    hsl(177, 100%, 20%),
+    hsl(0, 85%, 25%),
+    hsl(45, 90%, 25%)
+  );
+  --primary-sd-clr: hsl(177, 85%, 28%);
+  --primary-bg-clr: linear-gradient(
+    90deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  );
+  --primary-fg-clr: linear-gradient(
+    90deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  );
+  --primary-hl-clr: hsl(177, 60%, 65%);
+
+  /* SECONDARY CLRS - Gradient mix */
+  --secondary-sd-clr: hsl(328, 85%, 30%);
+  --secondary-bg-clr: linear-gradient(
+    90deg,
+    var(--miku-secondary),
+    var(--teto-secondary),
+    var(--neru-secondary)
+  );
+  --secondary-fg-clr: linear-gradient(
+    90deg,
+    var(--miku-secondary),
+    var(--teto-secondary),
+    var(--neru-secondary)
+  );
+  --secondary-hl-clr: hsl(328, 85%, 68%);
+
+  /* TRIETARY CLRS - Yellow accent from Neru */
+  --trietary-sd-clr: hsl(45, 70%, 35%);
+  --trietary-bg-clr: hsl(45, 70%, 50%);
+  --trietary-fg-clr: var(--neru-primary);
+  --trietary-hl-clr: hsl(45, 90%, 70%);
+
+  /* DISCL CLRS - Semantic mappings with gradients */
+  --discl-def-bg-clr: hsla(177, 85%, 38%, 0.2);
+  --discl-def-fg-clr: var(--miku-primary);
+
+  /* Error/Important - Teto Red */
+  --discl-important-bg-clr: hsla(0, 85%, 55%, 0.15);
+  --discl-important-fg-clr: var(--teto-primary);
+
+  /* Success - Miku Teal */
+  --discl-importantgreen-bg-clr: hsla(177, 70%, 50%, 0.15);
+  --discl-importantgreen-fg-clr: var(--miku-primary);
+
+  /* Warning - Neru Yellow */
+  --discl-warning-bg-clr: hsla(45, 90%, 55%, 0.15);
+  --discl-warning-fg-clr: var(--neru-primary);
+
+  /* Info - Mixed gradient */
+  --discl-info-bg-clr: hsla(177, 60%, 65%, 0.15);
+  --discl-info-fg-clr: hsl(177, 60%, 65%);
+
+  /* UNDERLINE STYLES */
+  --ul-dotted: linear-gradient(
+    to right,
+    var(--miku-primary) 1px,
+    transparent 1px
+  );
+}
+
+/* GLOBAL TEXT COLOR ENFORCEMENT */
+body,
+body *:not(button):not(.btn):not(.btn *),
+.container,
+.container *,
+.content,
+.content *,
+main,
+main *,
+article,
+article *,
+section,
+section *,
+p,
+p *,
+div:not(.btn),
+div:not(.btn) *,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a,
+li,
+ul,
+ol,
+td,
+th,
+tr,
+blockquote,
+blockquote *,
+em,
+strong,
+b,
+i,
+u,
+mark,
+small,
+del,
+ins,
+sub,
+sup,
+code:not(pre code),
+pre,
+pre *,
+label,
+legend,
+caption,
+figcaption,
+.text,
+.text *,
+.description,
+.description * {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Ensure paragraphs in markdown are visible */
+p,
+p > *,
+.content p,
+.content p > *,
+article p,
+article p > *,
+main p,
+main p > * {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Markdown list items */
+li,
+li > *,
+ul li,
+ul li > *,
+ol li,
+ol li > * {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Markdown emphasis */
+em,
+i,
+strong,
+b {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Markdown blockquotes */
+blockquote,
+blockquote *,
+blockquote p {
+  color: var(--root-fgd-clr) !important;
+  border-left: 3px solid;
+  border-image: linear-gradient(
+      to bottom,
+      var(--miku-primary),
+      var(--teto-primary),
+      var(--neru-primary)
+    )
+    1;
+}
+
+/* Links should be visible */
+a {
+  color: var(--miku-primary) !important;
+}
+
+a:hover {
+  background: linear-gradient(
+    90deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Headings with gradient colors */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  background: linear-gradient(
+    90deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* BUTTON OVERRIDES - Using Gradient CSS Variables */
+
+/* Primary & Dark: Trio Gradient */
+.btn-primary,
+.btn-dark {
+  background: linear-gradient(
+    90deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  ) !important;
+  border: 2px solid var(--miku-primary) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Secondary: Trio Secondary Gradient */
+.btn-secondary {
+  background: linear-gradient(
+    90deg,
+    var(--miku-secondary),
+    var(--teto-secondary),
+    var(--neru-secondary)
+  ) !important;
+  border: 2px solid var(--miku-secondary) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Danger: Teto Red */
+.btn-danger {
+  background: var(--teto-primary) !important;
+  border-color: var(--teto-primary) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Warning: Neru Yellow */
+.btn-warning {
+  background: var(--neru-primary) !important;
+  border-color: var(--neru-primary) !important;
+  color: var(--root-box-bg-clr) !important;
+}
+
+/* Success: Miku Teal */
+.btn-success {
+  background: var(--miku-primary) !important;
+  border-color: var(--miku-primary) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* White: Trio Gradient */
+.btn-white {
+  background: linear-gradient(
+    90deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  ) !important;
+  border: 2px solid var(--miku-primary) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+/* Interactive States */
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.btn-success:hover,
+.btn-warning:hover,
+.btn-white:hover {
+  filter: brightness(1.2);
+  cursor: pointer;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: hsl(200, 80%, 8%) !important; /* Fallback color */
+}
+
+/* Video background - specific to Vocaloid Trio theme */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: hsl(200, 80%, 8%);
+}
+
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  display: flex;
+}
+
+.video-background video {
+  flex: 1;
+  min-width: 33.33%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Trio overlay with gradient tint */
+.video-background::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 178, 169, 0.2) 0%,
+    rgba(232, 69, 69, 0.2) 50%,
+    rgba(245, 213, 71, 0.2) 100%
+  );
+}
+
+/* Sound toggle button - floating in bottom right */
+.vocaloid-trio-sound-toggle.pc {
+  position: fixed;
+  bottom: 60px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--miku-primary),
+    var(--teto-primary),
+    var(--neru-primary)
+  );
+  border: 3px solid var(--miku-secondary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.vocaloid-trio-sound-toggle.pc:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(232, 69, 69, 0.6);
+}
+
+.vocaloid-trio-sound-toggle.pc span {
+  font-size: 32px;
+}
+
+/* Boxes and cards with gradient borders */
+.box,
+.card,
+.panel,
+.well {
+  background: var(--box-clr) !important;
+  border: 3px solid transparent !important;
+  border-image: linear-gradient(
+      135deg,
+      var(--miku-primary),
+      var(--teto-primary),
+      var(--neru-primary)
+    )
+    1 !important;
+  color: var(--box-txt-clr) !important;
+}
+
+.box *:not(.btn):not(.btn *),
+.card *:not(.btn):not(.btn *),
+.panel *:not(.btn):not(.btn *),
+.well *:not(.btn):not(.btn *) {
+  color: var(--box-txt-clr) !important;
+}
+
+/* Content wrappers */
+.page-content,
+.page-content *:not(.btn):not(.btn *),
+.article-content,
+.article-content *:not(.btn):not(.btn *),
+.post-content,
+.post-content *:not(.btn):not(.btn *),
+.entry-content,
+.entry-content *:not(.btn):not(.btn *) {
+  color: var(--root-txt-clr) !important;
+}
+
+/* Tables with gradient headers */
+table {
+  background: var(--box-clr) !important;
+  color: var(--root-txt-clr) !important;
+}
+
+table th {
+  background: linear-gradient(
+    90deg,
+    hsl(177, 100%, 15%),
+    hsl(0, 85%, 20%),
+    hsl(45, 90%, 20%)
+  ) !important;
+  color: var(--root-fg-clr) !important;
+  border-color: var(--miku-primary) !important;
+}
+
+table td {
+  border-color: var(--miku-primary) !important;
+}
+
+/* Forms */
+input,
+textarea,
+select {
+  background: var(--box-clr) !important;
+  color: var(--root-txt-clr) !important;
+  border: 2px solid var(--miku-primary) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--root-fgd-clr) !important;
+}
+
+/* Code blocks */
+code,
+pre {
+  background: var(--code-bg-clr) !important;
+  color: var(--miku-primary) !important;
+  border: 2px solid var(--miku-primary) !important;
+}
