@@ -292,7 +292,7 @@ body::before {
 /* Sound toggle button - floating in bottom right */
 .miku-sound-toggle.pc {
   position: fixed;
-  bottom: 80px; /* Zvýšil jsem z 30px na 80px */
+  bottom: 80px;
   right: 30px;
   width: 60px;
   height: 60px;
