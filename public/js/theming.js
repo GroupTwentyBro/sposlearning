@@ -404,7 +404,6 @@ function showAutoplayGuide() {
       <div class="guide-steps">
         <strong>Chrome/Edge:</strong> Click the 🔒 icon next to URL → Site Settings → Set 'Sound' to <b>Allow</b>.<br><br>
         <strong>Firefox:</strong> Click the 🎙️ icon in the URL bar → <b>Allow Autoplay</b>.<br><br>
-        <strong>Mobile:</strong> Ensure your phone is not on <b>Silent Mode</b>.
       </div>
       <button class="guide-btn">Got it, let's go!</button>
     </div>
