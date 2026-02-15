@@ -35,7 +35,16 @@ function initVideoBackground() {
     const videoDiv = document.createElement("div");
     videoDiv.className = "video-background";
 
-    videoDiv.innerHTML = `
+    const isMobile = window.matchMedia('(max-width: 500px)').matches;
+
+    if (isMobile) {
+      videoDiv.innerHTML = `
+      <video autoplay loop muted playsinline class="miku-video" id="miku-main-video">
+        <source src="/media/bg-mikutheme-video.webm" type="video/webm">
+      </video>
+    `;
+    } else {
+      videoDiv.innerHTML = `
       <video autoplay loop muted playsinline class="miku-video" id="miku-main-video">
         <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
@@ -46,6 +55,9 @@ function initVideoBackground() {
         <source src="/media/bg-mikutheme-video.webm" type="video/webm">
       </video>
     `;
+    }
+
+
     document.body.insertBefore(videoDiv, document.body.firstChild);
 
     videoInitialized = true;
