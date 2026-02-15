@@ -14,7 +14,10 @@ let hideResolved = false;
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
+            /* TODO: Uncomment when pushing to production
             await loadFeedbackUI();
+            */
+
             setupControls();
             // Call the NEW data loader that populates the cache
             await loadFeedbackData();
