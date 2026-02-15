@@ -346,7 +346,7 @@ export function applyTheme(themeName) {
       tetrisAudio = null;
     }
     videoInitialized = false;
-  } else if (!guideShown) {
+  } else if (!guideShown && !window.matchMedia("(max-width: 500px)").matches) {
     // Show guide if it's a video theme and hasn't been shown yet
     showAutoplayGuide();
   }
