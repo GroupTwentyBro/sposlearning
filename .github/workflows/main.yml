@@ -40,6 +40,6 @@ jobs:
       run: npm install firebase-admin cheerio
 
     - name: Run Upload Script
-      run: node firestore/admin-pages/upload.js
+      run: node ./firestore/admin-pages/upload.js
       env:
         FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
