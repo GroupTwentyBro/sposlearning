@@ -68,24 +68,6 @@ function initVideoBackground() {
 
     synchronizeVideos();
     createSoundToggle();
-  } else if (currentTheme === "vocaloid-trio") {
-    const videoDiv = document.createElement("div");
-    videoDiv.className = "video-background";
-
-    videoDiv.innerHTML = `
-      <video autoplay loop muted playsinline class="trio-video" id="trio-main-video">
-        <source src="/media/bg-vocaloid-trio.webm" type="video/webm">
-      </video>
-    `;
-    document.body.insertBefore(videoDiv, document.body.firstChild);
-
-    videoInitialized = true;
-
-    setTimeout(() => {
-      initTrioAudio();
-    }, 100);
-
-    createTrioSoundToggle();
   }
 }
 
@@ -102,7 +84,7 @@ function initMikuAudio() {
     mainVideo.muted = true;
 
     if (!tetrisAudio) {
-      tetrisAudio = new Audio("/media/mikunes.mp3");
+      tetrisAudio = new Audio("/media/audio-miku-nes.mp3");
       tetrisAudio.loop = true;
     }
 
@@ -129,24 +111,6 @@ function initMikuAudio() {
       );
     })
     .catch((error) => console.log("Video Autoplay prevented:", error.message));
-}
-
-function initTrioAudio() {
-  const mainVideo = document.getElementById("trio-main-video");
-  if (!mainVideo) return;
-
-  const soundEnabled = localStorage.getItem("trio-sound") === "true";
-  mainVideo.muted = !soundEnabled;
-
-  mainVideo
-    .play()
-    .then(() => {
-      videoActivated = true;
-      updateTrioSoundButtonIcon(mainVideo.muted);
-    })
-    .catch((error) =>
-      console.log("Trio Video Autoplay prevented:", error.message),
-    );
 }
 
 function synchronizeVideos() {
@@ -223,39 +187,6 @@ function createSoundToggle() {
   toggleBtn.addEventListener("click", toggleMikuSound);
 }
 
-function createTrioSoundToggle() {
-  const existingToggle = document.querySelector(".vocaloid-trio-sound-toggle");
-  if (existingToggle) existingToggle.remove();
-
-  const soundEnabled = localStorage.getItem("trio-sound") === "true";
-  const isMuted = !soundEnabled;
-
-  const toggleBtn = document.createElement("button");
-
-  const isMobile = window.matchMedia("(max-width: 500px)").matches;
-
-  if (isMobile) {
-    const userControls = document.querySelector(".user-controls");
-    if (userControls) {
-      userControls.appendChild(toggleBtn);
-      toggleBtn.className =
-        "vocaloid-trio-sound-toggle btn btn-sm btn-primary ctrl-btn mobile";
-    }
-  } else {
-    document.body.appendChild(toggleBtn);
-    toggleBtn.className = "vocaloid-trio-sound-toggle pc";
-  }
-
-  toggleBtn.innerHTML = `
-    <span class="material-symbols-outlined">
-      ${isMuted ? "volume_off" : "volume_up"}
-    </span>
-  `;
-
-  toggleBtn.title = isMuted ? "Zapnout hudbu" : "Ztlumit hudbu";
-  toggleBtn.addEventListener("click", toggleTrioSound);
-}
-
 function toggleMikuSound(e) {
   if (e) {
     e.preventDefault();
@@ -293,35 +224,8 @@ function toggleMikuSound(e) {
   updateSoundButtonIcon(shouldBeMuted);
 }
 
-function toggleTrioSound(e) {
-  if (e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  const mainVideo = document.getElementById("trio-main-video");
-  if (!mainVideo) return;
-
-  const currentlyMuted = mainVideo.muted;
-  const shouldBeMuted = !currentlyMuted;
-
-  mainVideo.muted = shouldBeMuted;
-  if (!shouldBeMuted && mainVideo.paused) mainVideo.play();
-
-  localStorage.setItem("trio-sound", (!shouldBeMuted).toString());
-  updateTrioSoundButtonIcon(shouldBeMuted);
-}
-
 function updateSoundButtonIcon(isMuted) {
   const btn = document.querySelector(".miku-sound-toggle");
-  if (btn) {
-    const icon = btn.querySelector("span");
-    icon.textContent = isMuted ? "volume_off" : "volume_up";
-  }
-}
-
-function updateTrioSoundButtonIcon(isMuted) {
-  const btn = document.querySelector(".vocaloid-trio-sound-toggle");
   if (btn) {
     const icon = btn.querySelector("span");
     icon.textContent = isMuted ? "volume_off" : "volume_up";
@@ -331,14 +235,12 @@ function updateTrioSoundButtonIcon(isMuted) {
 export function applyTheme(themeName) {
   let newHref = "/style/theme-light.css";
 
-  const isVideoTheme = themeName === "miku" || themeName === "vocaloid-trio";
+  const isVideoTheme = themeName === "miku";
   const guideShown = localStorage.getItem("autoplay-guide-shown");
 
   if (!isVideoTheme) {
     const mikuToggle = document.querySelector(".miku-sound-toggle");
-    const trioToggle = document.querySelector(".vocaloid-trio-sound-toggle");
     if (mikuToggle) mikuToggle.remove();
-    if (trioToggle) trioToggle.remove();
     const videoBackground = document.querySelector(".video-background");
     if (videoBackground) videoBackground.remove();
     if (tetrisAudio) {
@@ -354,7 +256,6 @@ export function applyTheme(themeName) {
   switch (themeName) {
     case "hueshift": newHref = "/style/theme-hueshift.css"; break;
     case "miku": newHref = "/style/theme-miku.css"; break;
-    case "vocaloid-trio": newHref = "/style/theme-vocaloid-trio.css"; break;
     case "dark": newHref = "/style/theme-dark.css"; break;
     case "teddy": newHref = "/style/theme-teddy.css"; break;
     case "mike": newHref = "/style/theme-mike.css"; break;
@@ -420,7 +321,6 @@ function showAutoplayGuide() {
 export function initThemeListeners() {
   const themeMap = {
     "mikutheme-btn": "miku",
-    "vocaloidtriotheme-btn": "vocaloid-trio",
     "darktheme-btn": "dark",
     "lighttheme-btn": "light",
     "miketheme-btn": "mike",
@@ -437,11 +337,5 @@ applyTheme(savedTheme);
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
-  if (
-    !videoInitialized &&
-    (localStorage.getItem("theme") === "miku" ||
-      localStorage.getItem("theme") === "vocaloid-trio")
-  ) {
-    initVideoBackground();
-  }
+  if (!videoInitialized && (localStorage.getItem("theme") === "miku")) { initVideoBackground(); }
 });
