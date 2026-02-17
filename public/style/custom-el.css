@@ -193,6 +193,7 @@ ol > li > h4:first-child {
     border-right-radius: 0;
     border-right: 1px solid var(--box-overlay-border-clr);
     padding: 20px;
+    padding-left: 40px;
     background: none;
 }
 
