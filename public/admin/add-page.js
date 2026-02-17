@@ -70,15 +70,6 @@ function initializeEventListeners() {
     enableTabIndentation(document.getElementById('md-content'));
     enableTabIndentation(document.getElementById('html-content'));
 
-    // Toggle Editor Visibility
-    pageTypeSelect.addEventListener('change', (e) => {
-        const type = e.target.value;
-        document.getElementById('editor-markdown').style.display = (type === 'markdown') ? 'block' : 'none';
-        document.getElementById('editor-html').style.display = (type === 'html') ? 'block' : 'none';
-        document.getElementById('editor-files').style.display = (type === 'files') ? 'block' : 'none';
-        document.getElementById('editor-redirection').style.display = (type === 'redirection') ? 'block' : 'none';
-    });
-
     // Form Submission
     pageForm.addEventListener('submit', handlePageSubmit);
 
