@@ -182,6 +182,10 @@ ol > li > h4:first-child {
     background: var(--box-overlay-clr);
 }
 
+.box.nopad {
+    padding: 0;
+}
+
 .box-inline.first {
     display: flex;
     border: none;
