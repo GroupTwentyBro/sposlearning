@@ -192,7 +192,7 @@ ol > li > h4:first-child {
     border-radius: 0;
     border-right-radius: 0;
     border-right: 1px solid var(--box-overlay-border-clr);
-    padding: 40px;
+    padding: 20px;
     flex: 1;
     background: none;
 }
@@ -203,7 +203,7 @@ ol > li > h4:first-child {
     border-radius: 0;
     border-left-radius: 0;
     border-left: 1px solid var(--box-overlay-border-clr);
-    padding: 40px;
+    padding: 20px;
     flex: 1;
     background: none;
 }
@@ -216,7 +216,7 @@ ol > li > h4:first-child {
     border-left: 1px solid var(--box-overlay-border-clr);
     border-right-radius: 0;
     border-right: 1px solid var(--box-overlay-border-clr);
-    padding: 40px;
+    padding: 20px;
     flex: 1;
     background: none;
 }
