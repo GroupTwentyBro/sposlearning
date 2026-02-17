@@ -189,7 +189,7 @@ ol > li > h4:first-child {
 .box-inline.first {
     display: flex;
     border: none;
-    border-radius: var(--box-border-radius);
+    border-radius: 0;
     border-right-radius: 0;
     border-right: 1px solid var(--box-overlay-border-clr);
     padding: 40px;
@@ -200,7 +200,7 @@ ol > li > h4:first-child {
 .box-inline.last {
     display: flex;
     border: none;
-    border-radius: var(--box-border-radius);
+    border-radius: 0;
     border-left-radius: 0;
     border-left: 1px solid var(--box-overlay-border-clr);
     padding: 40px;
@@ -211,7 +211,7 @@ ol > li > h4:first-child {
 .box-inline {
     display: flex;
     border: none;
-    border-radius: var(--box-border-radius);
+    border-radius: 0;
     border-left-radius: 0;
     border-left: 1px solid var(--box-overlay-border-clr);
     border-right-radius: 0;
