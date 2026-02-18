@@ -198,18 +198,18 @@ ol > li > h4:first-child {
 }
 
 .box.green {
-    color: hsla(92, 50%, from var(--primary-hl-clr) l a);
-    background: hsla(92, 50%, from var(--primary-bg-clr) l a);
+    color: hsla(from var(--primary-hl-clr) 92 50% l / a);
+    background: hsla(from var(--primary-bg-clr) 92 50% l / a);
 }
 
 .box.red {
-    color: hsla(1, 50%, from var(--primary-hl-clr) l a);
-    background: hsla(1, 50%, from var(--primary-bg-clr) l a);
+    color: hsla(from var(--primary-hl-clr) 1 50% l / a);
+    background: hsla(from var(--primary-bg-clr) 1 50% l / a);
 }
 
 .box.blue {
-    color: hsla(201, 50%, from var(--primary-hl-clr) l a);
-    background: hsla(190, 50%, from var(--primary-bg-clr) l a);
+    color: hsla(from var(--primary-hl-clr) 201 50% l / a);
+    background: hsla(from var(--primary-bg-clr) 190 50% l / a);
 }
 
 .box-inline.last {
