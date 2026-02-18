@@ -197,6 +197,21 @@ ol > li > h4:first-child {
     background: none;
 }
 
+.box.green {
+    color: hsla(92, from var(--primary-hl-clr) s l a);
+    background: hsla(92, from var(--primary-bg-clr) s l a);
+}
+
+.box.red {
+    color: hsla(1, from var(--primary-hl-clr) s l a);
+    background: hsla(1, from var(--primary-bg-clr) s l a);
+}
+
+.box.blue {
+    color: hsla(201, from var(--primary-hl-clr) s l a);
+    background: hsla(190, from var(--primary-bg-clr) s l a);
+}
+
 .box-inline.last {
     display: flex;
     border: none;
