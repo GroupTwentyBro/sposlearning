@@ -375,7 +375,7 @@ applyTheme(savedTheme);
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
   createSecretMikuButton();
-  console.log("Secret btn:", document.getElementById("secret-miku-btn")); // debug
+  console.log("Secret btn:", document.getElementById("secret-miku-btn"));
   if (!videoInitialized && localStorage.getItem("theme") === "miku") {
     initVideoBackground();
   }
