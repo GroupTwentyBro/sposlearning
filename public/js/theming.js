@@ -35,7 +35,7 @@ function initVideoBackground() {
     const videoDiv = document.createElement("div");
     videoDiv.className = "video-background";
 
-    const isMobile = window.matchMedia('(max-width: 500px)').matches;
+    const isMobile = window.matchMedia("(max-width: 500px)").matches;
 
     if (isMobile) {
       videoDiv.innerHTML = `
@@ -56,7 +56,6 @@ function initVideoBackground() {
       </video>
     `;
     }
-
 
     document.body.insertBefore(videoDiv, document.body.firstChild);
 
@@ -254,12 +253,23 @@ export function applyTheme(themeName) {
   }
 
   switch (themeName) {
-    case "hueshift": newHref = "/style/theme-hueshift.css"; break;
-    case "miku": newHref = "/style/theme-miku.css"; break;
-    case "dark": newHref = "/style/theme-dark.css"; break;
-    case "teddy": newHref = "/style/theme-teddy.css"; break;
-    case "mike": newHref = "/style/theme-mike.css"; break;
-    default: newHref = "/style/theme-light.css";
+    case "hueshift":
+      newHref = "/style/theme-hueshift.css";
+      break;
+    case "miku":
+      newHref = "/style/theme-miku.css";
+      break;
+    case "dark":
+      newHref = "/style/theme-dark.css";
+      break;
+    case "teddy":
+      newHref = "/style/theme-teddy.css";
+      break;
+    case "mike":
+      newHref = "/style/theme-mike.css";
+      break;
+    default:
+      newHref = "/style/theme-light.css";
   }
 
   if (themeLink) themeLink.href = newHref;
@@ -272,7 +282,7 @@ function showAutoplayGuide() {
   overlay.className = "guide-overlay";
 
   // Scoped styles for the guide to match your Miku theme
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     .guide-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -310,7 +320,7 @@ function showAutoplayGuide() {
     </div>
   `;
 
-  overlay.querySelector('button').onclick = () => {
+  overlay.querySelector("button").onclick = () => {
     overlay.remove();
     localStorage.setItem("autoplay-guide-shown", "true");
   };
@@ -331,11 +341,41 @@ export function initThemeListeners() {
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
 }
+function createSecretMikuButton() {
+  if (document.getElementById("secret-miku-btn")) return;
+
+  const btn = document.createElement("button");
+  btn.id = "secret-miku-btn";
+  btn.title = "";
+  btn.setAttribute("aria-hidden", "true");
+  btn.innerHTML = `<img src="/media/MiKuba-Button.png" alt="" draggable="false" />`;
+
+  document.body.appendChild(btn);
+
+  btn.addEventListener("click", () => {
+    const flash = document.createElement("div");
+    flash.className = "miku-activate-flash";
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 750);
+
+    applyTheme("miku");
+
+    btn.style.opacity = "1";
+    btn.style.filter = "drop-shadow(0 0 14px #00e5cc)";
+    setTimeout(() => {
+      btn.style.opacity = "";
+      btn.style.filter = "";
+    }, 1200);
+  });
+}
 
 const savedTheme = localStorage.getItem("theme") || "light";
 applyTheme(savedTheme);
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
-  if (!videoInitialized && (localStorage.getItem("theme") === "miku")) { initVideoBackground(); }
+  createSecretMikuButton(); //
+  if (!videoInitialized && localStorage.getItem("theme") === "miku") {
+    initVideoBackground();
+  }
 });
