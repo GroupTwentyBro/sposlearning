@@ -302,7 +302,6 @@ export function applyTheme(themeName) {
   localStorage.setItem("theme", themeName);
   initVideoBackground();
 
-  // Zajisti button hned po aplikaci tématu — CSS ho skryje na miku, zobrazí na ostatních
   if (document.body) createSecretMikuButton();
 }
 
@@ -376,6 +375,7 @@ applyTheme(savedTheme);
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
   createSecretMikuButton();
+  console.log("Secret btn:", document.getElementById("secret-miku-btn")); // debug
   if (!videoInitialized && localStorage.getItem("theme") === "miku") {
     initVideoBackground();
   }
