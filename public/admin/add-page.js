@@ -61,7 +61,6 @@ async function loadAddPageUI() {
  */
 function initializeEventListeners() {
     const pageForm = document.getElementById('page-form');
-    const pageTypeSelect = document.getElementById('page-type');
     const pickPathBtn = document.getElementById('pickpath-button');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const modalSelectBtn = document.getElementById('modal-select-btn');
@@ -70,15 +69,6 @@ function initializeEventListeners() {
     // Tab Indentation for editors
     enableTabIndentation(document.getElementById('md-content'));
     enableTabIndentation(document.getElementById('html-content'));
-
-    // Toggle Editor Visibility
-    pageTypeSelect.addEventListener('change', (e) => {
-        const type = e.target.value;
-        document.getElementById('editor-markdown').style.display = (type === 'markdown') ? 'block' : 'none';
-        document.getElementById('editor-html').style.display = (type === 'html') ? 'block' : 'none';
-        document.getElementById('editor-files').style.display = (type === 'files') ? 'block' : 'none';
-        document.getElementById('editor-redirection').style.display = (type === 'redirection') ? 'block' : 'none';
-    });
 
     // Form Submission
     pageForm.addEventListener('submit', handlePageSubmit);
@@ -134,7 +124,7 @@ async function handlePageSubmit(e) {
             name: name,
             path: path,
             fullPath: fullPath,
-            type: document.getElementById('page-type').value,
+            type: 'markdown',
             accessLevel: document.getElementById('page-is-admin').checked ? 'admin' : 'public',
             createdAt: serverTimestamp(),
             createdBy: auth.currentUser.email
@@ -142,17 +132,10 @@ async function handlePageSubmit(e) {
 
         // Handle content based on type
         if (pageData.type === 'markdown') pageData.content = document.getElementById('md-content').value;
-        else if (pageData.type === 'html') pageData.content = document.getElementById('html-content').value;
-        else if (pageData.type === 'redirection') pageData.content = document.getElementById('redirect-url').value;
-        else if (pageData.type === 'files') {
-            const files = document.getElementById('file-upload-input').files;
-            pageData.content = files.length > 0 ? await uploadFilesToCloudinary(files) : [];
-        }
 
         await setDoc(docRef, pageData);
         statusSuccess.textContent = `Success! Created /${fullPath}`;
         document.getElementById('page-form').reset();
-        document.getElementById('page-type').dispatchEvent(new Event('change'));
 
     } catch (err) {
         statusError.textContent = `Error: ${err.message}`;

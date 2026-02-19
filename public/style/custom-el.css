@@ -182,6 +182,62 @@ ol > li > h4:first-child {
     background: var(--box-overlay-clr);
 }
 
+.box.nopad {
+    padding: 0;
+    overflow: hidden;
+}
+
+
+
+.box.green {
+    color: hsla(from var(--primary-hl-clr) 92 60% 90% / 1);
+    background: hsla(from var(--primary-bg-clr) 92 60% 30% / 1);
+    border-color: hsla(from var(--primary-bg-clr) 92 60% 80% / 1);
+}
+
+.box.red {
+    color: hsla(from var(--primary-hl-clr) 1 60% 90% / 1);
+    background: hsla(from var(--primary-bg-clr) 1 60% 30% / 1);
+    border-color: hsla(from var(--primary-bg-clr) 1 60% 80% / 1);
+}
+
+.box.blue {
+    color: hsla(from var(--primary-hl-clr) 210 60% 90% / 1);
+    background: hsla(from var(--primary-bg-clr) 210 60% 30% / 1);
+    border-color: hsla(from var(--primary-bg-clr) 210 60% 80% / 1);
+}
+
+.box-inline.last {
+    display: flex;
+    border: none;
+    border-radius: 0;
+    border-left-radius: 0;
+    border-left: 1px solid var(--box-overlay-border-clr);
+    padding: 20px;
+    flex: 1;
+    background: none;
+}
+
+.box-inline {
+    display: flex;
+    align-items: center; /* Center text vertically */
+    padding: 15px 20px;
+    flex: 1;
+    background: transparent; /* Essential: let parent color show through */
+    border-right: 1px solid rgba(0,0,0,0.1);
+}
+
+.box-inline.first {
+    display: flex;
+    border: none;
+    border-radius: 0;
+    border-right-radius: 0;
+    border-right: 1px solid var(--box-overlay-border-clr);
+    padding: 20px;
+    padding-left: 40px;
+    background: none;
+}
+
 icon.boxed {
     display: flex;
     width: 50px;
