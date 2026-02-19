@@ -150,7 +150,6 @@ function handleTabletChange(e) {
 }
 
 mediaQuery.addEventListener("change", handleTabletChange);
-
 handleTabletChange(mediaQuery);
 
 function createSoundToggle() {
@@ -231,6 +230,34 @@ function updateSoundButtonIcon(isMuted) {
   }
 }
 
+function createSecretMikuButton() {
+  if (document.getElementById("secret-miku-btn")) return;
+
+  const btn = document.createElement("button");
+  btn.id = "secret-miku-btn";
+  btn.title = "";
+  btn.setAttribute("aria-hidden", "true");
+  btn.innerHTML = `<img src="/media/MiKuba-Button.png" alt="" draggable="false" />`;
+
+  document.body.appendChild(btn);
+
+  btn.addEventListener("click", () => {
+    const flash = document.createElement("div");
+    flash.className = "miku-activate-flash";
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 750);
+
+    applyTheme("miku");
+
+    btn.style.opacity = "1";
+    btn.style.filter = "drop-shadow(0 0 14px #00e5cc)";
+    setTimeout(() => {
+      btn.style.opacity = "";
+      btn.style.filter = "";
+    }, 1200);
+  });
+}
+
 export function applyTheme(themeName) {
   let newHref = "/style/theme-light.css";
 
@@ -248,7 +275,6 @@ export function applyTheme(themeName) {
     }
     videoInitialized = false;
   } else if (!guideShown && !window.matchMedia("(max-width: 500px)").matches) {
-    // Show guide if it's a video theme and hasn't been shown yet
     showAutoplayGuide();
   }
 
@@ -275,13 +301,15 @@ export function applyTheme(themeName) {
   if (themeLink) themeLink.href = newHref;
   localStorage.setItem("theme", themeName);
   initVideoBackground();
+
+  // Zajisti button hned po aplikaci tématu — CSS ho skryje na miku, zobrazí na ostatních
+  if (document.body) createSecretMikuButton();
 }
 
 function showAutoplayGuide() {
   const overlay = document.createElement("div");
   overlay.className = "guide-overlay";
 
-  // Scoped styles for the guide to match your Miku theme
   const style = document.createElement("style");
   style.textContent = `
     .guide-overlay {
@@ -341,40 +369,13 @@ export function initThemeListeners() {
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
 }
-function createSecretMikuButton() {
-  if (document.getElementById("secret-miku-btn")) return;
-
-  const btn = document.createElement("button");
-  btn.id = "secret-miku-btn";
-  btn.title = "";
-  btn.setAttribute("aria-hidden", "true");
-  btn.innerHTML = `<img src="/media/MiKuba-Button.png" alt="" draggable="false" />`;
-
-  document.body.appendChild(btn);
-
-  btn.addEventListener("click", () => {
-    const flash = document.createElement("div");
-    flash.className = "miku-activate-flash";
-    document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 750);
-
-    applyTheme("miku");
-
-    btn.style.opacity = "1";
-    btn.style.filter = "drop-shadow(0 0 14px #00e5cc)";
-    setTimeout(() => {
-      btn.style.opacity = "";
-      btn.style.filter = "";
-    }, 1200);
-  });
-}
 
 const savedTheme = localStorage.getItem("theme") || "light";
 applyTheme(savedTheme);
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
-  createSecretMikuButton(); //
+  createSecretMikuButton();
   if (!videoInitialized && localStorage.getItem("theme") === "miku") {
     initVideoBackground();
   }
