@@ -79,6 +79,8 @@ icon,
   font-variation-settings:
     "FILL" 1,
     "wght" 400;
+
+  text-shadow: none;
 }
 
 spacer {
