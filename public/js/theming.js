@@ -233,7 +233,7 @@ function updateSoundButtonIcon(isMuted) {
 }
 
 export function applyTheme(themeName) {
-  let newHref = "/style/theme-light.css";
+  let newHref = "/style/theme-dark.css";
 
   const isVideoTheme = themeName === "miku";
   const guideShown = localStorage.getItem("autoplay-guide-shown");
@@ -260,6 +260,27 @@ export function applyTheme(themeName) {
     case "teddy": newHref = "/style/theme-teddy.css"; break;
     case "mike": newHref = "/style/theme-mike.css"; break;
     default: newHref = "/style/theme-light.css";
+=======
+    case "hueshift":
+      newHref = "/style/theme-hueshift.css";
+      const savedHue = localStorage.getItem("hue-val") || 0;
+      root.style.setProperty('--hue-val', savedHue);
+      break;
+    case "miku":
+      newHref = "/style/theme-miku.css";
+      break;
+    case "light":
+      newHref = "/style/theme-light.css";
+      break;
+    case "teddy":
+      newHref = "/style/theme-teddy.css";
+      break;
+    case "mike":
+      newHref = "/style/theme-mike.css";
+      break;
+    default:
+      newHref = "/style/theme-dark.css";
+>>>>>>> Stashed changes
   }
 
   if (themeLink) themeLink.href = newHref;
@@ -337,5 +358,17 @@ applyTheme(savedTheme);
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
+<<<<<<< Updated upstream
   if (!videoInitialized && (localStorage.getItem("theme") === "miku")) { initVideoBackground(); }
+=======
+
+  const savedTheme = localStorage.getItem("theme") || "dark";
+  applyTheme(savedTheme);
+
+  createSecretMikuButton();
+  console.log("Secret btn:", document.getElementById("secret-miku-btn"));
+  if (!videoInitialized && localStorage.getItem("theme") === "miku") {
+    initVideoBackground();
+  }
+>>>>>>> Stashed changes
 });
