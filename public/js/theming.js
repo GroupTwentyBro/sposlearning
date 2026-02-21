@@ -371,6 +371,28 @@ export function initThemeListeners() {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
+  
+  const hueSlider = document.getElementById("hueSlider");
+  if (hueSlider) {
+    // 1. Set initial value from storage
+    const savedHue = localStorage.getItem("hue-val") || 0;
+    hueSlider.value = savedHue;
+
+    // 2. Apply it to the root immediately
+    root.style.setProperty('--hue-val', savedHue);
+
+    // 3. Single listener for updates
+    hueSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      localStorage.setItem("hue-val", val);
+      root.style.setProperty('--hue-val', val);
+
+      // Only trigger applyTheme if we aren't already on hueshift
+      if (localStorage.getItem("theme") !== "hueshift") {
+        applyTheme("hueshift");
+      }
+    });
+  }
 }
 
 const savedTheme = localStorage.getItem("theme") || "dark";
