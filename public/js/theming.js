@@ -254,13 +254,6 @@ export function applyTheme(themeName) {
   }
 
   switch (themeName) {
-    case "hueshift": newHref = "/style/theme-hueshift.css"; break;
-    case "miku": newHref = "/style/theme-miku.css"; break;
-    case "dark": newHref = "/style/theme-dark.css"; break;
-    case "teddy": newHref = "/style/theme-teddy.css"; break;
-    case "mike": newHref = "/style/theme-mike.css"; break;
-    default: newHref = "/style/theme-light.css";
-=======
     case "hueshift":
       newHref = "/style/theme-hueshift.css";
       const savedHue = localStorage.getItem("hue-val") || 0;
@@ -280,7 +273,6 @@ export function applyTheme(themeName) {
       break;
     default:
       newHref = "/style/theme-dark.css";
->>>>>>> Stashed changes
   }
 
   if (themeLink) themeLink.href = newHref;
@@ -358,9 +350,6 @@ applyTheme(savedTheme);
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
-<<<<<<< Updated upstream
-  if (!videoInitialized && (localStorage.getItem("theme") === "miku")) { initVideoBackground(); }
-=======
 
   const savedTheme = localStorage.getItem("theme") || "dark";
   applyTheme(savedTheme);
@@ -370,5 +359,4 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!videoInitialized && localStorage.getItem("theme") === "miku") {
     initVideoBackground();
   }
->>>>>>> Stashed changes
 });
