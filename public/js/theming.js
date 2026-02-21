@@ -232,6 +232,34 @@ function updateSoundButtonIcon(isMuted) {
   }
 }
 
+function createSecretMikuButton() {
+  if (document.getElementById("secret-miku-btn")) return;
+
+  const btn = document.createElement("button");
+  btn.id = "secret-miku-btn";
+  btn.title = "";
+  btn.setAttribute("aria-hidden", "true");
+  btn.innerHTML = `<img src="/media/MiKuba-Button.png" alt="" draggable="false" />`;
+
+  document.body.appendChild(btn);
+
+  btn.addEventListener("click", () => {
+    const flash = document.createElement("div");
+    flash.className = "miku-activate-flash";
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 750);
+
+    applyTheme("miku");
+
+    btn.style.opacity = "1";
+    btn.style.filter = "drop-shadow(0 0 14px #00e5cc)";
+    setTimeout(() => {
+      btn.style.opacity = "";
+      btn.style.filter = "";
+    }, 1200);
+  });
+}
+
 export function applyTheme(themeName) {
   let newHref = "/style/theme-dark.css";
 
