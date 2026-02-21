@@ -161,23 +161,6 @@ function createSoundToggle() {
 
   const toggleBtn = document.createElement("button");
 
-  const hueSlider = document.getElementById("hueSlider");
-  if (hueSlider) {
-    if (localStorage.getItem("theme") === 'hueshift') {
-      hueSlider.value = localStorage.getItem("hue-val") || 0;
-    }
-
-    hueSlider.addEventListener('input', (e) => {
-      const val = e.target.value;
-      localStorage.setItem("hue-val", val);
-      root.style.setProperty('--hue-val', val);
-
-      if (localStorage.getItem("theme") !== "hueshift") {
-        applyTheme("hueshift");
-      }
-    });
-  }
-
   const isMobile = window.matchMedia("(max-width: 500px)").matches;
 
   if (isMobile) {
@@ -382,17 +365,42 @@ export function initThemeListeners() {
     "miketheme-btn": "mike",
     "teddytheme-btn": "teddy",
   };
+
   Object.entries(themeMap).forEach(([id, theme]) => {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
-}
 
-const savedTheme = localStorage.getItem("theme") || "light";
-applyTheme(savedTheme);
+  // --- NEW SLIDER LOGIC ---
+  const hueSlider = document.getElementById("hueSlider");
+  if (hueSlider) {
+    // 1. Set initial value from storage
+    const savedHue = localStorage.getItem("hue-val") || 0;
+    hueSlider.value = savedHue;
+
+    // 2. Apply it to the root immediately
+    root.style.setProperty('--hue-val', savedHue);
+
+    // 3. Single listener for updates
+    hueSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      localStorage.setItem("hue-val", val);
+      root.style.setProperty('--hue-val', val);
+
+      // Only trigger applyTheme if we aren't already on hueshift
+      if (localStorage.getItem("theme") !== "hueshift") {
+        applyTheme("hueshift");
+      }
+    });
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
+
+  const savedTheme = localStorage.getItem("theme") || "light";
+  applyTheme(savedTheme);
+
   createSecretMikuButton();
   console.log("Secret btn:", document.getElementById("secret-miku-btn"));
   if (!videoInitialized && localStorage.getItem("theme") === "miku") {
