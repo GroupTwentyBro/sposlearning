@@ -161,6 +161,23 @@ function createSoundToggle() {
 
   const toggleBtn = document.createElement("button");
 
+  const hueSlider = document.getElementById("hueSlider");
+  if (hueSlider) {
+    if (localStorage.getItem("theme") === 'hueshift') {
+      hueSlider.value = localStorage.getItem("hue-val") || 0;
+    }
+
+    hueSlider.addEventListener('input', (e) => {
+      const val = e.target.value;
+      localStorage.setItem("hue-val", val);
+      root.style.setProperty('--hue-val', val);
+
+      if (localStorage.getItem("theme") !== "hueshift") {
+        applyTheme("hueshift");
+      }
+    });
+  }
+
   const isMobile = window.matchMedia("(max-width: 500px)").matches;
 
   if (isMobile) {
@@ -281,6 +298,8 @@ export function applyTheme(themeName) {
   switch (themeName) {
     case "hueshift":
       newHref = "/style/theme-hueshift.css";
+      const savedHue = localStorage.getItem("hue-val") || 0;
+      root.style.setProperty('--hue-val', savedHue);
       break;
     case "miku":
       newHref = "/style/theme-miku.css";
