@@ -194,9 +194,15 @@ function setupAdminTools() {
             } else {
                 // --- USER IS ADMIN: Show Edit, Delete, and Dashboard ---
                 let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
-                    ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
+                    ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>
+                        <a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary mobile">
+                            <span class="icon">edit</span>
+                        </a>` : '';
 
-                let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
+                let deleteBtn = currentPage ? `<button id="delete-button-pc" class="btn btn-sm btn-danger pc">Smazat</button>
+                            <button class="btn btn-sm btn-danger mobile" id="delete-button-mob">
+                                <span class="icon">delete</span>
+                            </button>` : '';
 
                 adminBar.innerHTML = `
                     <div class="admin-controls">
@@ -216,7 +222,8 @@ function setupAdminTools() {
                     </div>`;
 
                 // Attach Delete Listener (Only for admins)
-                document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
+                document.getElementById('delete-button-pc')?.addEventListener('click', handleDeletePage);
+                document.getElementById('delete-button-mob')?.addEventListener('click', handleDeletePage);
             }
 
             // Attach Logout Listeners (For both admin and standard users)
