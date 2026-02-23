@@ -107,4 +107,56 @@
     .mobile {
         display: block !important;
     }
+
+    /* Container for the mobile menu */
+    .mobile-admin-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    /* The vertical stack - Hidden by default */
+    .admin-menu-vertical {
+        visibility: hidden;
+        opacity: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: absolute;
+        bottom: 50px; /* Position it above the toggle button */
+        right: 0;
+        background: var(--root-box-bg-clr);
+        padding: 10px;
+        border-radius: 15px;
+        border: 1px solid var(--box-border-clr);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform: translateY(15px) scale(0.9);
+        z-index: 1000;
+    }
+
+    /* Active State */
+    .admin-menu-vertical.show {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    /* The Toggle Button interaction */
+    #mobile-admin-toggle.active .icon {
+        transform: rotate(90deg);
+        color: var(--primary-hl-clr);
+    }
+
+    /* Ensure consistent sizing inside the vertical menu */
+    .admin-menu-vertical .btn {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%; /* Makes buttons circular in the pop-up */
+    }
 }
