@@ -144,7 +144,7 @@ function setupAdminTools() {
                             <button class="btn btn-sm btn-danger ctrl-btn" id="logout-button-mob"><span class="icon">logout</span></button>
                         </div>
                         <button id="mobile-admin-toggle" class="btn btn-sm btn-primary ctrl-btn">
-                            <span class="icon">settings</span>
+                            <span class="icon">construction</span>
                         </button>
                     </div>
                 </div>`;
