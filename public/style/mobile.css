@@ -57,17 +57,13 @@
         margin: 0;
     }
 
-    /* Buttons */
     .ctrl-btn {
-        /* 1. Hide the original text "Domů" */
         font-size: 0 !important;
 
-        /* 2. Set up the container to center the new icon */
         display: inline-flex;
         align-items: center;
         justify-content: center;
 
-        /* 3. Optional: Adjust sizing if you want a square button */
         padding: 0.5rem;
         min-width: 32px;
         min-height: 32px;

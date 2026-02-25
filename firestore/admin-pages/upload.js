@@ -22,7 +22,6 @@ async function uploadHtmlFiles() {
 
             const $ = cheerio.load(rawHtml);
 
-            // Get ONLY the content inside #secure
             const finalHtml = $('#secure').html();
 
             if (!finalHtml) {
@@ -33,7 +32,7 @@ async function uploadHtmlFiles() {
             const docId = path.parse(file).name;
 
             await db.collection('admin-pages').doc(docId).set({
-                html: finalHtml.trim(), // trim removes extra whitespace/newlines
+                html: finalHtml.trim(),
                 lastUpdated: admin.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 

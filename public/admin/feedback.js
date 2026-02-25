@@ -6,7 +6,6 @@ import { initThemeListeners } from '../js/theming.js';
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 
-// State Variables
 let allFeedback = [];
 let currentSort = 'desc';
 let hideResolved = false;
@@ -14,11 +13,9 @@ let hideResolved = false;
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
-
             await loadFeedbackUI();
 
             setupControls();
-            // Call the NEW data loader that populates the cache
             await loadFeedbackData();
 
             initThemeListeners();
@@ -58,7 +55,7 @@ function setupControls() {
     });
 
     searchInput?.addEventListener('input', (e) => {
-        renderFeedback(e.target.value); // Instant local search
+        renderFeedback(e.target.value);
     });
 }
 
@@ -71,7 +68,6 @@ async function loadFeedbackData() {
     listContainer.innerHTML = '';
 
     try {
-        // Fetch everything once
         const q = query(collection(db, 'feedback'), orderBy('timestamp', currentSort));
         const snapshot = await getDocs(q);
 
@@ -95,7 +91,6 @@ function renderFeedback(term = "") {
     const searchTerm = (term || '').trim().toLowerCase();
     listContainer.innerHTML = '';
 
-    // 1. Filter local array
     let filtered = allFeedback.filter(item => {
         const matchesResolved = hideResolved ? !item.resolved : true;
         const matchesSearch = searchTerm === "" ||
@@ -106,7 +101,6 @@ function renderFeedback(term = "") {
         return matchesResolved && matchesSearch;
     });
 
-    // 2. Sort (Resolved at bottom, then by timestamp)
     filtered.sort((a, b) => {
         if (a.resolved !== b.resolved) return a.resolved - b.resolved;
         const timeA = a.timestamp?.seconds || 0;
@@ -119,7 +113,6 @@ function renderFeedback(term = "") {
         return;
     }
 
-    // 3. Render
     filtered.forEach(data => {
         const preview = (data.message || '').substring(0, 100) + (data.message?.length > 100 ? '...' : '');
         const a = document.createElement('a');

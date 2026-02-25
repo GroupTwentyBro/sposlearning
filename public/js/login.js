@@ -10,10 +10,8 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// Modular Theme Import
 import {applyTheme, initThemeListeners} from './theming.js';
 
-// Initialize UI
 initThemeListeners();
 
 async function checkAdminAndRedirect(user) {
@@ -30,12 +28,10 @@ async function checkAdminAndRedirect(user) {
         }
     } catch (error) {
         console.error("Error checking admin status:", error);
-        // Fallback to home if database check fails (e.g. permission denied)
         window.location.href = '/';
     }
 }
 
-// Handle the toggle specifically for the login page sun/moon button
 const toggleBtn = document.getElementById("theme-toggle");
 
 if (toggleBtn) {
@@ -100,9 +96,7 @@ if (googleBtn) {
 const microsoftProvider = new OAuthProvider('microsoft.com');
 
 microsoftProvider.setCustomParameters({
-    // Use 'common' for multi-tenant and personal accounts
     tenant: 'common',
-    // Force the user to select an account even if they are logged in
     prompt: 'select_account'
 });
 

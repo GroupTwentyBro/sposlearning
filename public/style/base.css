@@ -4,7 +4,6 @@ body {
   font-family: var(--base-font);
   margin-bottom: 40px;
   text-shadow: 0 0 5px black;
-  /* transition: background 0.5s, color 0.5s; */
 }
 
 a {
@@ -184,7 +183,7 @@ spacer {
   width: 20px;
   height: 20px;
   display: inline-block;
-  vertical-align: middle; /* Aligns icon vertically in the button */
+  vertical-align: middle;
 }
 
 .icon-stack icon,
@@ -241,9 +240,8 @@ body {
   height: 100vh;
 }
 
-/* 1. Make the dot container overlay the top of the page */
 .dot-container {
-  position: absolute; /* Take it out of the normal flow */
+  position: absolute;
   top: 200px;
   left: 50%;
   transform: translateX(-50%);
@@ -253,14 +251,13 @@ body {
   transition:
     opacity 0.5s ease,
     visibility 0.5s;
-  z-index: 10; /* Keep it above the content while loading */
+  z-index: 10;
 }
 
-/* 2. Hide the loader properly */
 .dot-container.hidden {
   opacity: 0;
   visibility: hidden;
-  pointer-events: none; /* Prevent it from blocking clicks */
+  pointer-events: none;
 }
 .dot {
   width: 100px;

@@ -17,7 +17,7 @@ async function renameCollection(oldPath, newPath) {
     snapshots.forEach(doc => {
         const newDocRef = newRef.doc(doc.id);
         batch.set(newDocRef, doc.data());
-        batch.delete(doc.ref); // Deletes the old record
+        batch.delete(doc.ref);
     });
 
     await batch.commit();

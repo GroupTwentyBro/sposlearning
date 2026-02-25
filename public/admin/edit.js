@@ -6,7 +6,6 @@ import { initThemeListeners, applyTheme } from '/js/theming.js';
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 
-// Global variables
 let pageDocId = null;
 let pageType = null;
 let pageFullPath = null;
@@ -14,8 +13,8 @@ let isOldDocument = false;
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        await loadEditorUI(); // First, get the HTML shell from DB
-        await loadPageForEditing(); // Then, get the specific page content
+        await loadEditorUI();
+        await loadPageForEditing();
 
         const loader = document.querySelector('.dot-container');
         if (loader) loader.classList.add('hidden');
@@ -26,29 +25,21 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-/**
- * NEW: Fetches the Editor UI from Firestore (admin/editor)
- */
 async function loadEditorUI() {
-    const docRef = doc(db, "admin-pages", "edit"); // Assuming you store the HTML here
+    const docRef = doc(db, "admin-pages", "edit");
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
         container.innerHTML = docSnap.data().html;
-        // Re-enable Tab Indentation for the new elements
         enableTabIndentation(document.getElementById('md-content'));
         enableTabIndentation(document.getElementById('html-content'));
 
-        // Re-attach the form submit listener
         document.getElementById('edit-form').addEventListener('submit', handleSave);
     } else {
         container.innerHTML = "<h3>Error: Editor shell not found in DB.</h3>";
     }
 }
 
-/**
- * Loads the actual page content into the injected fields
- */
 async function loadPageForEditing() {
     const pageUrlDisplay = document.getElementById('page-url-display');
     const pageTitle = document.getElementById('page-title');
@@ -94,9 +85,6 @@ async function loadPageForEditing() {
     }
 }
 
-/**
- * Consolidated Save Handler
- */
 async function handleSave(e) {
     e.preventDefault();
     const saveButton = document.getElementById('save-button');
@@ -132,40 +120,28 @@ async function handleSave(e) {
     }
 }
 
-// --- HELPER FUNCTION FOR TAB INDENTATION ---
 function enableTabIndentation(textarea) {
     textarea.addEventListener('keydown', function(e) {
-        // Check for Tab key
         if (e.key === 'Tab') {
-            e.preventDefault(); // Stop the browser from changing focus
+            e.preventDefault();
 
-            // Get current cursor position
             var start = this.selectionStart;
             var end = this.selectionEnd;
 
-            // --- Handle SHIFT + TAB (Un-indent) ---
             if (e.shiftKey) {
-                // Find the start of the current line
                 let lineStart = start;
                 while (lineStart > 0 && this.value[lineStart - 1] !== '\n') {
                     lineStart--;
                 }
 
-                // If the line starts with a tab, remove it
                 if (this.value.substring(lineStart, lineStart + 1) === '\t') {
                     this.value = this.value.substring(0, lineStart) + this.value.substring(lineStart + 1);
-                    // Adjust cursor
                     this.selectionStart = start - 1;
                     this.selectionEnd = end - 1;
                 }
-            }
-
-            // --- Handle TAB (Indent) ---
-            else {
-                // Insert a tab character
+            } else {
                 this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
 
-                // Put cursor back in the right place
                 this.selectionStart = this.selectionEnd = start + 1;
             }
         }

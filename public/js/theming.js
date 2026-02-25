@@ -1,7 +1,3 @@
-/**
- * theming.js - Centralized Theme Management
- */
-
 const root = document.documentElement;
 const themeLink = document.getElementById("theme-link");
 
@@ -277,7 +273,6 @@ export function applyTheme(themeName) {
     }
     videoInitialized = false;
   } else if (!guideShown && !window.matchMedia("(max-width: 500px)").matches) {
-    // Show guide if it's a video theme and hasn't been shown yet
     showAutoplayGuide();
   }
 
@@ -312,7 +307,6 @@ function showAutoplayGuide() {
   const overlay = document.createElement("div");
   overlay.className = "guide-overlay";
 
-  // Scoped styles for the guide to match your Miku theme
   const style = document.createElement('style');
   style.textContent = `
     .guide-overlay {

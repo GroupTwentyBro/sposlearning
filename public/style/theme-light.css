@@ -1,5 +1,4 @@
 :root {
-    /* ROOT CLRS */
     --root-bg-clr: hsl(0, 0%, 90%);
     --root-fg-clr: #000;
     --root-txt-clr: #000000DD;
@@ -16,7 +15,6 @@
     --box-overlay-border-clr: hsla(0, 0%, 0%, 8%);
     --box-txt-clr: #000000BB;
 
-    /* PRIMARY CLRS */
     --primary-boxbg-clr: hsl(201, 100%, 12%);
     --primary-boxfg-clr: hsl(201, 100%, 15%);
     --primary-sd-clr: hsla(201, 100%, 64%, 60%);
@@ -24,19 +22,16 @@
     --primary-fg-clr: hsl(201, 100%, 19%);
     --primary-hl-clr: hsl(201, 100%, 15%);
 
-    /* SECONDARY CLRS */
     --secondary-hl-clr: hsl(320, 100%, 10%);
     --secondary-fg-clr: hsl(320, 100%, 19%);
     --secondary-bg-clr: hsl(320, 100%, 32%);
     --secondary-sd-clr: hsl(320, 100%, 64%);
 
-    /* TRIETARY CLRS */
     --trietary-hl-clr: hsl(175, 84%, 15%);
     --trietary-fg-clr: hsl(175, 84%, 19%);
     --trietary-bg-clr: hsl(175, 84%, 32%);
     --trietary-sd-clr: hsla(175, 84%, 64%, 60%);
 
-    /* DISCL ClRS */
     --discl-def-bg-clr: hsl(0, 0%, 19%);
     --discl-def-fg-clr: hsl(0, 0%, 32%);
     --discl-important-bg-clr: hsl(0, 100%, 19%);
@@ -48,7 +43,6 @@
     --discl-info-bg-clr: hsl(200, 100%, 19%);
     --discl-info-fg-clr: hsl(200, 100%, 32%);
 
-    /* UNDERLINE STYLES */
     --ul-dotted: linear-gradient(to right, var(--root-ul-sd-clr) 1px, transparent 1px);
 }
 

@@ -1,4 +1,3 @@
-// public/admin/feedback/post.js
 import { app, auth } from '../../js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -18,13 +17,10 @@ onAuthStateChanged(auth, async (user) => {
         }
 
         try {
-            // 1. Load the UI Shell
             await loadPostUI();
 
-            // 2. Load the Feedback Data
             await loadPostData();
 
-            // 3. Finalize UI
             initThemeListeners();
             document.querySelector('.dot-container')?.classList.add('hidden');
         } catch (err) {
@@ -63,13 +59,11 @@ async function loadPostData() {
     const data = docSnap.data();
     const date = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleString() : 'Unknown';
 
-    // Update button state based on resolved status
     if (data.resolved) {
         resolveBtn.textContent = "Mark Unresolved";
         resolveBtn.classList.replace('btn-success', 'btn-warning');
     }
 
-    // Populate Content
     contentArea.innerHTML = `
         <h2>${escapeHtml(data.page)} - ${escapeHtml(data.title)}</h2>
         <div class="meta-row">
@@ -83,7 +77,6 @@ async function loadPostData() {
         <small class="text-muted">User Agent: ${escapeHtml(data.userAgent)}</small>
     `;
 
-    // Event Listeners
     resolveBtn.onclick = async () => {
         resolveBtn.disabled = true;
         await updateDoc(docRef, { resolved: !data.resolved });

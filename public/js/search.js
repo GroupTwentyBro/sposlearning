@@ -3,39 +3,28 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners, applyTheme } from './theming.js';
 
-// --- Global cache ---
 const db = getFirestore(app);
 let allPages = [];
 let currentPage = null;
 let currentUser = null;
 
-// --- Elements ---
 const searchInput = document.getElementById('search-input');
 const welcomeMessage = document.getElementById('welcome-message');
 const disclamerInfo = document.getElementById('disclamer-info');
 const searchResultsContainer = document.getElementById('search-results');
 
-/**
- * Helper to safely extract access level from messy data
- */
 function getAccessLevel(data) {
     const rawValue = data['access-level'] || data['accessLevel'] || data['access_level'] || 'public';
     return String(rawValue).toLowerCase().trim();
 }
 
-/**
- * 1. Fetch Pages
- */
 async function fetchAllPages() {
     try {
-        // Firestore Rules will automatically filter this based on auth status!
         const querySnapshot = await getDocs(collection(db, 'pages'));
         allPages = [];
 
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            // We no longer need to check accessLevel here for security,
-            // because if the user wasn't allowed to see it, 'doc' wouldn't exist here.
 
             if (data.type !== 'redirection') {
                 allPages.push({
@@ -51,15 +40,9 @@ async function fetchAllPages() {
         searchInput.disabled = false;
 
     } catch (err) {
-        // If the rules are set up correctly, this might trigger if a guest
-        // tries to access a restricted collection, but usually, it just returns
-        // the allowed documents.
         console.error("Failed to fetch pages:", err);
     }
 }
-/**
- * 2. Handle Search
- */
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
 
@@ -77,7 +60,6 @@ function handleSearch(e) {
         return;
     }
 
-    // Basic UI Toggle
     if (searchTerm.length < 2) {
         welcomeMessage.style.display = 'block';
         if(disclamerInfo) disclamerInfo.style.display = 'block';
@@ -86,31 +68,21 @@ function handleSearch(e) {
         return;
     }
 
-    // --- KEY FILTERING LOGIC ---
-
-    // A. Pre-calculate paths of pages that match the TITLE
-    // We do this first so we don't have to re-scan for every single page.
     const matchedTitlePaths = allPages
         .filter(p => {
-            // Security: Don't use a parent path if the user isn't allowed to see that parent
             if (p.accessLevel === 'admin' && !currentUser) return false;
             return p.title.toLowerCase().includes(searchTerm);
         })
         .map(p => p.path);
 
-    // B. Filter the actual results
     const results = allPages.filter(page => {
-        // 1. Access Check (Security)
         if (page.accessLevel === 'admin') {
             if (!currentUser) return false;
         }
 
-        // 2. Direct Match Checks
         const matchesPath = page.path.toLowerCase().includes(searchTerm);
         const matchesTitle = page.title.toLowerCase().includes(searchTerm);
 
-        // 3. Parent Logic Check
-        // Does this page's path include any of the paths we found in Step A?
         const isChildOfTitleMatch = matchedTitlePaths.some(parentPath =>
             page.path.includes(parentPath)
         );
@@ -125,9 +97,6 @@ function handleSearch(e) {
     renderResults(results);
 }
 
-/**
- * 3. Render Results (Tree View)
- */
 function renderResults(results) {
     searchResultsContainer.innerHTML = '';
 
@@ -165,10 +134,8 @@ function buildTree(results) {
                     pageData: null
                 };
 
-                // Check if this folder is actually a page itself
                 const parentPageExists = allPages.find(p => p.path === currentPathAccumulator);
 
-                // If the parent folder is a page, ensure we respect its privacy too
                 if (parentPageExists) {
                     const isHidden = (parentPageExists.accessLevel === 'admin' && !currentUser);
                     if (!isHidden) {
@@ -232,12 +199,10 @@ async function setupAdminTools() {
         adminBar.innerHTML = '';
 
         if (user) {
-            // 1. Check admin status
             const adminDocRef = doc(db, 'administrators', user.uid);
             const adminSnap = await getDoc(adminDocRef);
             const isAdmin = adminSnap.exists();
 
-            // 2. Render UI
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
@@ -262,7 +227,6 @@ async function setupAdminTools() {
             document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
 
         } else {
-            // --- GUEST: Show Login ---
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div style="display: flex; gap: 10px; align-items: center;">
@@ -281,10 +245,8 @@ async function setupAdminTools() {
 }
 
 function initHomeTheming() {
-    // 1. Core listeners (handles hue slider and standard buttons)
     initThemeListeners();
 
-    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
     const toggles = [
         { id: "theme-toggle", type: "toggle" },
         { id: "theme-toggle-ctrl", type: "toggle" },
@@ -318,7 +280,6 @@ function syncToggleUI() {
     if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
 }
 
-// --- Initialize ---
 async function initializePage() {
     setupAdminTools();
     initHomeTheming();

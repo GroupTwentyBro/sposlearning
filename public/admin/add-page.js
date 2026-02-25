@@ -1,4 +1,3 @@
-// public/admin/add-page.js
 import { auth } from '../js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
@@ -13,23 +12,19 @@ import {
 
 import { initThemeListeners, applyTheme } from '../js/theming.js';
 
-// --- CONFIGURATION ---
 const CLOUDINARY_CLOUD_NAME = "dmrefvudz";
 const CLOUDINARY_UPLOAD_PRESET = "sposlearning-upload-v1";
 const db = getFirestore();
 
-// --- STATE ---
 let currentPathSelection = "/";
 let allPagesCache = [];
 
-// --- 1. AUTH & INITIALIZATION ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
             await loadAddPageUI();
             initializeEventListeners();
 
-            // UI Cleanup
             initThemeListeners();
             document.querySelector('.dot-container')?.classList.add('hidden');
         } catch (err) {
@@ -40,9 +35,6 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-/**
- * Fetches the HTML structure from Firestore
- */
 async function loadAddPageUI() {
     const docRef = doc(db, "admin-pages", "add-page");
     const docSnap = await getDoc(docRef);
@@ -56,9 +48,6 @@ async function loadAddPageUI() {
     }
 }
 
-/**
- * Attaches all listeners to the freshly injected HTML
- */
 function initializeEventListeners() {
     const pageForm = document.getElementById('page-form');
     const pickPathBtn = document.getElementById('pickpath-button');
@@ -66,19 +55,15 @@ function initializeEventListeners() {
     const modalSelectBtn = document.getElementById('modal-select-btn');
     const themeToggle = document.getElementById('theme-toggle');
 
-    // Tab Indentation for editors
     enableTabIndentation(document.getElementById('md-content'));
     enableTabIndentation(document.getElementById('html-content'));
 
-    // Form Submission
     pageForm.addEventListener('submit', handlePageSubmit);
 
-    // Path Picker Actions
     pickPathBtn.addEventListener('click', openPathPicker);
     closeModalBtn.addEventListener('click', () => document.getElementById('path-picker-modal').style.display = 'none');
     modalSelectBtn.addEventListener('click', confirmPathSelection);
 
-    // Theme Toggle Logic
     if (themeToggle) {
         themeToggle.addEventListener("click", () => {
             const current = localStorage.getItem("theme");
@@ -87,8 +72,6 @@ function initializeEventListeners() {
         });
     }
 }
-
-// --- 2. CORE LOGIC FUNCTIONS ---
 
 async function handlePageSubmit(e) {
     e.preventDefault();
@@ -114,7 +97,6 @@ async function handlePageSubmit(e) {
         const fullPath = (path === '/') ? name : `${path}/${name}`.replace(/^\/+/, '');
         const newDocId = fullPath.replace(/\//g, '|');
 
-        // Check for duplicates
         const docRef = doc(db, 'pages', newDocId);
         const existing = await getDoc(docRef);
         if (existing.exists()) throw new Error(`Page already exists at /${fullPath}`);
@@ -130,7 +112,6 @@ async function handlePageSubmit(e) {
             createdBy: auth.currentUser.email
         };
 
-        // Handle content based on type
         if (pageData.type === 'markdown') pageData.content = document.getElementById('md-content').value;
 
         await setDoc(docRef, pageData);
@@ -145,8 +126,6 @@ async function handlePageSubmit(e) {
     }
 }
 
-// --- 3. PATH PICKER HELPERS ---
-
 async function openPathPicker() {
     const modal = document.getElementById('path-picker-modal');
     const treeContainer = document.getElementById('path-tree-container');
@@ -156,7 +135,6 @@ async function openPathPicker() {
     currentPathSelection = "/";
     updateSelectionUI();
 
-    // Fetch and build
     const snapshot = await getDocs(collection(db, 'pages'));
     allPagesCache = snapshot.docs.map(d => d.data().fullPath);
     renderTree();
@@ -174,7 +152,6 @@ function renderTree() {
         </div>
     `).join('');
 
-    // Expose selectPath to window for the inline onclicks
     window.selectPath = (p) => {
         currentPathSelection = p;
         updateSelectionUI();
@@ -191,8 +168,6 @@ function confirmPathSelection() {
     document.getElementById('page-path').value = formatted;
     document.getElementById('path-picker-modal').style.display = 'none';
 }
-
-// --- 4. UTILS ---
 
 async function uploadFilesToCloudinary(files) {
     const uploaded = [];

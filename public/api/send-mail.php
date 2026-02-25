@@ -19,18 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mail = new PHPMailer(true);
 
     try {
-        // --- SMTP CONFIGURATION ---
-        // $mail->SMTPDebug = SMTP::DEBUG_SERVER; // Uncomment this to see errors in the console
         $mail->isSMTP();
-        $mail->Host       = 'smtp.forpsi.com'; // Or your hosting SMTP host
+        $mail->Host       = 'smtp.forpsi.com';
         $mail->SMTPAuth   = true;
         $mail->Username   = 'no-reply@sposlearning.cz';
-        $mail->Password   = 'kmzdzQRFw8bga6R#'; // Use an App Password if using Zoho
+        $mail->Password   = 'kmzdzQRFw8bga6R#';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         $mail->CharSet    = 'UTF-8';
 
-        // --- EMAIL CONTENT ---
         $mail->setFrom('no-reply@sposlearning.cz', 'SPOŠLearning');
         $mail->addAddress('itsteddy@zohomail.eu');
         $mail->addReplyTo($data['contact'], $data['name']);

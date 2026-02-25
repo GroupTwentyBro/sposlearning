@@ -26,15 +26,11 @@ regForm.addEventListener('submit', async (e) => {
     regBtn.textContent = "Vytváření...";
 
     try {
-        // 1. Create the user
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         const user = userCredential.user;
 
-        // 2. Send verification email
         await sendEmailVerification(user);
 
-        // 3. Sign them out immediately
-        // We do this so they have to log in AFTER verifying
         await signOut(auth);
 
         statusMsg.className = "text-success";

@@ -20,19 +20,13 @@ import {
     deleteDoc
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-// Import modular theming functions
 import { initThemeListeners, applyTheme } from './theming.js';
 
 const db = getFirestore(app);
 const contentContainer = document.getElementById('wiki-content-container');
 
-// Store the current page data globally for admin tools
 let currentPage = null;
 
-/**
- * 1. MARKDOWN CONFIGURATION
- * Custom extension to prevent Marked from breaking MathJax delimiters
- */
 const mathExtension = {
     name: 'math',
     level: 'inline',
@@ -51,12 +45,9 @@ const mathExtension = {
 
 marked.use({ extensions: [mathExtension] });
 
-/**
- * 2. CONTENT LOADING LOGIC
- */
 async function loadContent() {
     let fullPath = window.location.pathname.substring(1);
-    fullPath = fullPath.replace(/\/+$/, ''); // Clean trailing slashes
+    fullPath = fullPath.replace(/\/+$/, '');
 
     if (fullPath === '') {
         window.location.href = '/';
@@ -64,13 +55,11 @@ async function loadContent() {
     }
 
     try {
-        // Try New ID format (path|to|page)
         const newDocId = fullPath.replace(/\//g, '|');
         const docRef = doc(db, 'pages', newDocId);
         let docSnap = await getDoc(docRef);
         let pageDoc = docSnap;
 
-        // Fallback to Old Query method (field search)
         if (!docSnap.exists()) {
             const q = query(collection(db, 'pages'), where("fullPath", "==", fullPath));
             const querySnapshot = await getDocs(q);
@@ -90,7 +79,6 @@ async function loadContent() {
         const accessLevel = (pageData['accessLevel'] || pageData['access-level'] || 'public').toLowerCase();
 
         onAuthStateChanged(auth, async (user) => {
-            // Security Check
             if (accessLevel === "admin" && !user) {
                 window.location.href = '/';
                 return;
@@ -98,7 +86,6 @@ async function loadContent() {
 
             document.title = pageData.title;
 
-            // 1. Prepare the HTML but keep container hidden
             let htmlToRender = "";
             if (pageData.type === 'markdown') {
                 htmlToRender = marked.parse(pageData.content, {breaks: true});
@@ -106,26 +93,21 @@ async function loadContent() {
             } else if (pageData.type === 'html') {
                 htmlToRender = pageData.content;
             } else if (pageData.type === 'files') {
-                // You might want to update renderFileExplorer to return a string
-                // instead of setting innerHTML directly
                 htmlToRender = getFileExplorerHtml(pageData.title, pageData.content);
             }
 
-            // 2. Set the content
             contentContainer.innerHTML = htmlToRender;
 
-            // 3. Trigger Syntax Highlighting & MathJax
             contentContainer.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
             if (window.MathJax && window.MathJax.typesetPromise) {
                 await window.MathJax.typesetPromise([contentContainer]);
             }
 
-            // 4. ANIMATION TRIGGER
             const loader = document.querySelector('.dot-container');
             if (loader) {
-                loader.classList.add('hidden'); // Fade out dot
+                loader.classList.add('hidden');
             }
-            contentContainer.classList.add('visible'); // Fade in content
+            contentContainer.classList.add('visible');
         });
 
     } catch (error) {
@@ -134,9 +116,6 @@ async function loadContent() {
     }
 }
 
-/**
- * 3. UI RENDERING HELPERS
- */
 function renderFileExplorer(title, files) {
     const fileListHtml = files.map(file => {
         const size = (file.bytes / 1048576 > 1)
@@ -165,24 +144,18 @@ function renderError(slug) {
         <a href="/" class="btn btn-primary">Zpět domů</a>`;
 }
 
-/**
- * 4. ADMIN TOOLS & DELETION
- */
 function setupAdminTools() {
     const adminBar = document.getElementById('admin-bar');
     if(!adminBar) return;
 
-    onAuthStateChanged(auth, async (user) => { // Added async here
-        // Clear bar to prevent duplicates on state change
+    onAuthStateChanged(auth, async (user) => {
         adminBar.innerHTML = '';
 
         if (user) {
-            // --- NEW: Check if user is an admin ---
             const adminDocRef = doc(db, 'administrators', user.uid);
             const adminSnap = await getDoc(adminDocRef);
             const isAdmin = adminSnap.exists();
 
-            // If not an admin, they just see the basic Logout (or nothing)
             if (!isAdmin) {
                 adminBar.innerHTML = `
                     <div class="admin-controls">
@@ -192,7 +165,6 @@ function setupAdminTools() {
                         </button>
                     </div>`;
             } else {
-                // --- USER IS ADMIN: Show Edit, Delete, and Dashboard ---
                 let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
                     ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
 
@@ -215,17 +187,14 @@ function setupAdminTools() {
                         </div>
                     </div>`;
 
-                // Attach Delete Listener (Only for admins)
                 document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
             }
 
-            // Attach Logout Listeners (For both admin and standard users)
             const performLogout = () => signOut(auth).then(() => window.location.reload());
             document.getElementById('logout-button-pc')?.addEventListener('click', performLogout);
             document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
 
         } else {
-            // --- GUEST: Show Login Buttons ---
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div style="display: flex; gap: 10px; align-items: center;">
@@ -289,10 +258,8 @@ function setupFeedbackLink() {
 }
 
 function initHomeTheming() {
-    // 1. Core listeners (handles hue slider and standard buttons)
     initThemeListeners();
 
-    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
     const toggles = [
         { id: "theme-toggle", type: "toggle" },
         { id: "theme-toggle-ctrl", type: "toggle" },
@@ -312,11 +279,9 @@ function initHomeTheming() {
             }
             syncToggleUI();
         });function initHomeTheming() {
-    // 1. Core listeners (handles hue slider and standard buttons)
-    initThemeListeners();
+            initThemeListeners();
 
-    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
-    const toggles = [
+            const toggles = [
         { id: "theme-toggle", type: "toggle" },
         { id: "theme-toggle-ctrl", type: "toggle" },
         { id: "mike-toggle", type: "mike" }
@@ -362,7 +327,6 @@ function syncToggleUI() {
     if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
 }
 
-// Start everything
 async function initializePage() {
     await loadContent();
     setupAdminTools();
