@@ -1,4 +1,4 @@
-string heslo = "Kakao";
+string heslo = "Viliam Středa";
 int pokusy = 3;
 
 while (pokusy > 0)
