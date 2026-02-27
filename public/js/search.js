@@ -292,7 +292,7 @@ function hideResults() {
         // Optional: Show the welcome message again when results are hidden
         if (welcomeMessage) welcomeMessage.style.display = 'block';
         if (disclamerInfo) disclamerInfo.style.display = 'block';
-    }, 100);
+    }, 200);
 }
 
 initializePage();
