@@ -24,7 +24,7 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         console.log('No user, redirecting...');
-        window.location.href = '/';
+        window.location.href = '/login';
     }
 });
 
@@ -54,7 +54,7 @@ function initializeGeneralScripts() {
     const logoutBtn = document.getElementById('logout-button');
     if(logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            signOut(auth).then(() => window.location.href = '/');
+            signOut(auth).then(() => window.location.href = '/login');
         });
     }
 
