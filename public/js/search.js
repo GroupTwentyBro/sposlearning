@@ -293,4 +293,4 @@ initializePage();
 fetchAllPages();
 searchInput.addEventListener('input', handleSearch);
 searchInput.addEventListener('focus', handleSearch);
-document.body.addEventListener('focus', hideResults);
+searchInput.addEventListener('blur', hideResults);
