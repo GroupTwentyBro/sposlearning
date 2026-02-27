@@ -208,8 +208,8 @@ async function setupAdminTools() {
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
                         
                         ${isAdmin ? `
-                            <a href="https://sposlearning.cz/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
-                            <a href="https://sposlearning.cz/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
+                            <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
+                            <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile">
                                 <span class="icon">team_dashboard</span>
                             </a>
                         ` : ''}
