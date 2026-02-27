@@ -13,6 +13,7 @@ const db = getFirestore(app);
 let allPages = [];
 let currentPage = null;
 let currentUser = null;
+let isAdminUser = false;
 
 const searchInput = document.getElementById('search-input');
 const welcomeMessage = document.getElementById('welcome-message');
@@ -65,7 +66,7 @@ function handleSearch(e) {
         searchResultsContainer.style.display = 'block';
 
         const allVisible = allPages.filter(page => {
-            if (page.accessLevel === 'admin' && !isUserAdmin()) return false;
+            if (page.accessLevel === 'admin' && !isAdminUser) return false;
             return true;
         });
 
@@ -83,14 +84,14 @@ function handleSearch(e) {
 
     const matchedTitlePaths = allPages
         .filter(p => {
-            if (p.accessLevel === 'admin' && !isUserAdmin()) return false;
+            if (p.accessLevel === 'admin' && !isAdminUser) return false;
             return p.title.toLowerCase().includes(searchTerm);
         })
         .map(p => p.path);
 
     const results = allPages.filter(page => {
         if (page.accessLevel === 'admin') {
-            if (!isUserAdmin()) return false;
+            if (!isAdminUser) return false;
         }
 
         const matchesPath = page.path.toLowerCase().includes(searchTerm);
@@ -150,7 +151,7 @@ function buildTree(results) {
                 const parentPageExists = allPages.find(p => p.path === currentPathAccumulator);
 
                 if (parentPageExists) {
-                    const isHidden = (parentPageExists.accessLevel === 'admin' && !isUserAdmin());
+                    const isHidden = (parentPageExists.accessLevel === 'admin' && !isAdminUser);
                     if (!isHidden) {
                         currentLevel[part].pageData = parentPageExists;
                     }
@@ -210,6 +211,7 @@ async function setupAdminTools() {
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
         adminBar.innerHTML = '';
+        isAdminUser = await isUserAdmin();
 
         if (user) {
 
@@ -217,7 +219,7 @@ async function setupAdminTools() {
                 <div class="admin-controls">
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
                         
-                        ${await isUserAdmin() ? `
+                        ${isAdminUser ? `
                             <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
                             <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile">
                                 <span class="icon">team_dashboard</span>
