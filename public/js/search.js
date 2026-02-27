@@ -1,7 +1,13 @@
-import {app, auth} from './firebaseConfig.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { initThemeListeners, applyTheme } from './theming.js';
+import {app} from './firebaseConfig.js';
+import {getAuth, onAuthStateChanged, signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    getFirestore
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {applyTheme, initThemeListeners} from './theming.js';
 
 const db = getFirestore(app);
 let allPages = [];
@@ -16,6 +22,13 @@ const searchResultsContainer = document.getElementById('search-results');
 function getAccessLevel(data) {
     const rawValue = data['access-level'] || data['accessLevel'] || data['access_level'] || 'public';
     return String(rawValue).toLowerCase().trim();
+}
+
+async function isUserAdmin() {
+    if (!currentUser) { return false; }
+    const adminDocRef = doc(db, 'administrators', currentUser.uid);
+    const adminSnap = await getDoc(adminDocRef);
+    return adminSnap.exists();
 }
 
 async function fetchAllPages() {
@@ -52,7 +65,7 @@ function handleSearch(e) {
         searchResultsContainer.style.display = 'block';
 
         const allVisible = allPages.filter(page => {
-            if (page.accessLevel === 'admin' && !currentUser) return false;
+            if (page.accessLevel === 'admin' && !isUserAdmin()) return false;
             return true;
         });
 
@@ -70,14 +83,14 @@ function handleSearch(e) {
 
     const matchedTitlePaths = allPages
         .filter(p => {
-            if (p.accessLevel === 'admin' && !currentUser) return false;
+            if (p.accessLevel === 'admin' && !isUserAdmin()) return false;
             return p.title.toLowerCase().includes(searchTerm);
         })
         .map(p => p.path);
 
     const results = allPages.filter(page => {
         if (page.accessLevel === 'admin') {
-            if (!currentUser) return false;
+            if (!isUserAdmin()) return false;
         }
 
         const matchesPath = page.path.toLowerCase().includes(searchTerm);
@@ -137,7 +150,7 @@ function buildTree(results) {
                 const parentPageExists = allPages.find(p => p.path === currentPathAccumulator);
 
                 if (parentPageExists) {
-                    const isHidden = (parentPageExists.accessLevel === 'admin' && !currentUser);
+                    const isHidden = (parentPageExists.accessLevel === 'admin' && !isUserAdmin());
                     if (!isHidden) {
                         currentLevel[part].pageData = parentPageExists;
                     }
@@ -166,7 +179,7 @@ function createTreeDOM(node) {
         contentElement.textContent = node.pageData.title;
 
         if(node.pageData.accessLevel === 'admin') {
-            contentElement.innerHTML += ' <span style="font-size:0.8em; color:red;">(Admin)</span>';
+            contentElement.innerHTML += ' <span style="font-size:0.8em; color:red;"> (Admin)</span>';
         }
     } else {
         contentElement = document.createElement('span');
@@ -199,15 +212,12 @@ async function setupAdminTools() {
         adminBar.innerHTML = '';
 
         if (user) {
-            const adminDocRef = doc(db, 'administrators', user.uid);
-            const adminSnap = await getDoc(adminDocRef);
-            const isAdmin = adminSnap.exists();
 
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
                         
-                        ${isAdmin ? `
+                        ${await isUserAdmin() ? `
                             <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
                             <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile">
                                 <span class="icon">team_dashboard</span>
