@@ -286,7 +286,7 @@ async function initializePage() {
 }
 
 function hideResults() {
-    searchResultsContainer.style.display = 'block'
+    searchResultsContainer.style.display = 'none';
 }
 
 initializePage();
