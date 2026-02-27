@@ -1,4 +1,4 @@
-import {auth} from './firebaseConfig.js';
+import {auth} from '/js/firebaseConfig.js';
 import {
     browserLocalPersistence,
     GithubAuthProvider,
@@ -10,7 +10,7 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {applyTheme, initThemeListeners} from './theming.js';
+import {applyTheme, initThemeListeners} from '/js/theming.js';
 
 initThemeListeners();
 
@@ -21,14 +21,14 @@ async function checkAdminAndRedirect(user) {
 
         if (adminDocSnap.exists()) {
             console.log("Admin verified via database.");
-            window.location.href = '/admin/dashboard';
+            window.location.href = '/';
         } else {
             console.log("Regular user detected.");
-            window.location.href = '/';
+            window.location.href = 'https://sposlearning.cz/';
         }
     } catch (error) {
         console.error("Error checking admin status:", error);
-        window.location.href = '/';
+        window.location.href = 'https://sposlearning.cz/';
     }
 }
 
