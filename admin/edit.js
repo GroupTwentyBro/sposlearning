@@ -21,7 +21,7 @@ onAuthStateChanged(auth, async (user) => {
 
         initThemeListeners();
     } else {
-        window.location.href = '/admin';
+        window.location.href = '/login';
     }
 });
 

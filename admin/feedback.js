@@ -25,7 +25,7 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Initialization failed:", err);
         }
     } else {
-        window.location.href = '/admin';
+        window.location.href = '/login';
     }
 });
 
@@ -116,7 +116,7 @@ function renderFeedback(term = "") {
     filtered.forEach(data => {
         const preview = (data.message || '').substring(0, 100) + (data.message?.length > 100 ? '...' : '');
         const a = document.createElement('a');
-        a.href = `/admin/feedback/post?id=${data.id}`;
+        a.href = `/feedback/post?id=${data.id}`;
         a.className = `feedback-item list-group-item list-group-item-action ${data.resolved ? 'read' : ''}`;
 
         a.innerHTML = `

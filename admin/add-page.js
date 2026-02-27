@@ -31,7 +31,7 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Initialization failed:", err);
         }
     } else {
-        window.location.href = '../admin';
+        window.location.href = '/login';
     }
 });
 

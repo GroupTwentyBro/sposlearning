@@ -27,7 +27,7 @@ onAuthStateChanged(auth, async (user) => {
             console.error("Initialization failed:", err);
         }
     } else {
-        window.location.href = '/admin';
+        window.location.href = '/login';
     }
 });
 
@@ -87,7 +87,7 @@ async function loadPostData() {
         if (confirm("Permanently delete this feedback?")) {
             deleteBtn.disabled = true;
             await deleteDoc(docRef);
-            window.location.href = '/admin/feedback.html';
+            window.location.href = '/feedback';
         }
     };
 }
