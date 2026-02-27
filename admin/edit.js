@@ -101,6 +101,7 @@ async function handleSave(e) {
         const updatedData = {
             title: document.getElementById('page-title').value,
             content: newContent,
+            accessLevel: document.getElementById('page-is-admin').checked ? 'admin' : 'public',
             lastEditedBy: auth.currentUser.email,
             lastEditedAt: serverTimestamp()
         };
