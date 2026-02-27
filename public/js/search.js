@@ -287,22 +287,16 @@ async function initializePage() {
 
 function hideResults() {
     setTimeout(() => {
-    searchResultsContainer.style.display = 'none';
+        searchResultsContainer.style.display = 'none';
 
-    if (welcomeMessage) welcomeMessage.style.display = 'block';
-    if (disclamerInfo) disclamerInfo.style.display = 'block';
-}, 200);
+        // Optional: Show the welcome message again when results are hidden
+        if (welcomeMessage) welcomeMessage.style.display = 'block';
+        if (disclamerInfo) disclamerInfo.style.display = 'block';
+    }, 200);
 }
-
-searchInput.addEventListener('focus', (e) => {
-    if (e.target.value.length >= 2) {
-        searchResultsContainer.style.display = 'block';
-        welcomeMessage.style.display = 'none';
-        if(disclamerInfo) disclamerInfo.style.display = 'none';
-    }
-});
 
 initializePage();
 fetchAllPages();
 searchInput.addEventListener('input', handleSearch);
+searchInput.addEventListener('focus', handleSearch);
 searchInput.addEventListener('focusout', hideResults);
