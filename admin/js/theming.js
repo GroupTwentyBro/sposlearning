@@ -1,3 +1,16 @@
+function setGlobalItem(name, value) {
+  const domain = ".sposlearning.cz";
+  const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
+}
+
+function getGlobalItem(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
 const root = document.documentElement;
 const themeLink = document.getElementById("theme-link");
 
@@ -6,7 +19,7 @@ let videoActivated = false;
 let tetrisAudio = null;
 
 function initVideoBackground() {
-  const currentTheme = localStorage.getItem("theme");
+  const currentTheme = getGlobalItem("theme");
 
   const existingVideo = document.querySelector(".video-background");
   if (existingVideo) {
@@ -53,9 +66,7 @@ function initVideoBackground() {
     `;
     }
 
-
     document.body.insertBefore(videoDiv, document.body.firstChild);
-
     videoInitialized = true;
 
     setTimeout(() => {
@@ -71,10 +82,8 @@ function initMikuAudio() {
   const mainVideo = document.getElementById("miku-main-video");
   if (!mainVideo) return;
 
-  const isTetrisPage = window.location.pathname
-    .toLowerCase()
-    .includes("tetris");
-  const soundEnabled = localStorage.getItem("miku-sound") === "true";
+  const isTetrisPage = window.location.pathname.toLowerCase().includes("tetris");
+  const soundEnabled = getGlobalItem("miku-sound") === "true";
 
   if (isTetrisPage) {
     mainVideo.muted = true;
@@ -87,26 +96,26 @@ function initMikuAudio() {
     if (soundEnabled) {
       tetrisAudio.currentTime = mainVideo.currentTime;
       tetrisAudio
-        .play()
-        .catch((err) => console.log("MP3 Autoplay blocked:", err));
+          .play()
+          .catch((err) => console.log("MP3 Autoplay blocked:", err));
     }
   } else {
     mainVideo.muted = !soundEnabled;
   }
 
   mainVideo
-    .play()
-    .then(() => {
-      videoActivated = true;
-      updateSoundButtonIcon(
-        isTetrisPage
-          ? tetrisAudio
-            ? tetrisAudio.paused
-            : true
-          : mainVideo.muted,
-      );
-    })
-    .catch((error) => console.log("Video Autoplay prevented:", error.message));
+      .play()
+      .then(() => {
+        videoActivated = true;
+        updateSoundButtonIcon(
+            isTetrisPage ?
+                tetrisAudio ?
+                    tetrisAudio.paused :
+                    true :
+                mainVideo.muted,
+        );
+      })
+      .catch((error) => console.log("Video Autoplay prevented:", error.message));
 }
 
 function synchronizeVideos() {
@@ -129,8 +138,8 @@ function synchronizeVideos() {
   mainVideo.addEventListener("timeupdate", () => {
     videos.forEach((video, index) => {
       if (
-        index > 0 &&
-        Math.abs(video.currentTime - mainVideo.currentTime) > 0.3
+          index > 0 &&
+          Math.abs(video.currentTime - mainVideo.currentTime) > 0.3
       ) {
         video.currentTime = mainVideo.currentTime;
       }
@@ -140,33 +149,25 @@ function synchronizeVideos() {
 
 const mediaQuery = window.matchMedia("(max-width: 500px)");
 
-function handleTabletChange(e) {
-  if (e.matches) {
-  } else {
-  }
-}
-
+function handleTabletChange(e) {}
 mediaQuery.addEventListener("change", handleTabletChange);
-
 handleTabletChange(mediaQuery);
 
 function createSoundToggle() {
   const existingToggle = document.querySelector(".miku-sound-toggle");
   if (existingToggle) existingToggle.remove();
 
-  const soundEnabled = localStorage.getItem("miku-sound") === "true";
+  const soundEnabled = getGlobalItem("miku-sound") === "true";
   const isMuted = !soundEnabled;
 
   const toggleBtn = document.createElement("button");
-
   const isMobile = window.matchMedia("(max-width: 500px)").matches;
 
   if (isMobile) {
     const userControls = document.querySelector(".user-controls");
     if (userControls) {
       userControls.appendChild(toggleBtn);
-      toggleBtn.className =
-        "miku-sound-toggle btn btn-sm btn-primary ctrl-btn mobile";
+      toggleBtn.className = "miku-sound-toggle btn btn-sm btn-primary ctrl-btn mobile";
     }
   } else {
     document.body.appendChild(toggleBtn);
@@ -190,17 +191,15 @@ function toggleMikuSound(e) {
   }
 
   const mainVideo = document.getElementById("miku-main-video");
-  const isTetrisPage = window.location.pathname
-    .toLowerCase()
-    .includes("tetris");
+  const isTetrisPage = window.location.pathname.toLowerCase().includes("tetris");
 
   if (!mainVideo) return;
 
-  const currentlyMuted = isTetrisPage
-    ? tetrisAudio
-      ? tetrisAudio.paused
-      : true
-    : mainVideo.muted;
+  const currentlyMuted = isTetrisPage ?
+      tetrisAudio ?
+          tetrisAudio.paused :
+          true :
+      mainVideo.muted;
   const shouldBeMuted = !currentlyMuted;
 
   if (isTetrisPage && tetrisAudio) {
@@ -216,7 +215,7 @@ function toggleMikuSound(e) {
     if (!shouldBeMuted && mainVideo.paused) mainVideo.play();
   }
 
-  localStorage.setItem("miku-sound", (!shouldBeMuted).toString());
+  setGlobalItem("miku-sound", (!shouldBeMuted).toString());
   updateSoundButtonIcon(shouldBeMuted);
 }
 
@@ -260,7 +259,7 @@ export function applyTheme(themeName) {
   let newHref = "/style/theme-dark.css";
 
   const isVideoTheme = themeName === "miku";
-  const guideShown = localStorage.getItem("autoplay-guide-shown");
+  const guideShown = getGlobalItem("autoplay-guide-shown");
 
   if (!isVideoTheme) {
     const mikuToggle = document.querySelector(".miku-sound-toggle");
@@ -279,7 +278,7 @@ export function applyTheme(themeName) {
   switch (themeName) {
     case "hueshift":
       newHref = "/style/theme-hueshift.css";
-      const savedHue = localStorage.getItem("hue-val") || 0;
+      const savedHue = getGlobalItem("hue-val") || 0;
       root.style.setProperty('--hue-val', savedHue);
       break;
     case "miku":
@@ -299,7 +298,7 @@ export function applyTheme(themeName) {
   }
 
   if (themeLink) themeLink.href = newHref;
-  localStorage.setItem("theme", themeName);
+  setGlobalItem("theme", themeName);
   initVideoBackground();
 }
 
@@ -347,7 +346,7 @@ function showAutoplayGuide() {
 
   overlay.querySelector('button').onclick = () => {
     overlay.remove();
-    localStorage.setItem("autoplay-guide-shown", "true");
+    setGlobalItem("autoplay-guide-shown", "true");
   };
 
   document.body.appendChild(overlay);
@@ -365,38 +364,37 @@ export function initThemeListeners() {
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener("click", () => applyTheme(theme));
   });
-  
+
   const hueSlider = document.getElementById("hueSlider");
   if (hueSlider) {
-    const savedHue = localStorage.getItem("hue-val") || 0;
+    const savedHue = getGlobalItem("hue-val") || 0;
     hueSlider.value = savedHue;
 
     root.style.setProperty('--hue-val', savedHue);
 
     hueSlider.addEventListener('input', (e) => {
       const val = e.target.value;
-      localStorage.setItem("hue-val", val);
+      setGlobalItem("hue-val", val);
       root.style.setProperty('--hue-val', val);
 
-      if (localStorage.getItem("theme") !== "hueshift") {
+      if (getGlobalItem("theme") !== "hueshift") {
         applyTheme("hueshift");
       }
     });
   }
 }
 
-const savedTheme = localStorage.getItem("theme") || "dark";
-applyTheme(savedTheme);
+const initialTheme = getGlobalItem("theme") || "dark";
+applyTheme(initialTheme);
 
 document.addEventListener("DOMContentLoaded", () => {
   initThemeListeners();
 
-  const savedTheme = localStorage.getItem("theme") || "dark";
+  const savedTheme = getGlobalItem("theme") || "dark";
   applyTheme(savedTheme);
 
   createSecretMikuButton();
-  console.log("Secret btn:", document.getElementById("secret-miku-btn"));
-  if (!videoInitialized && localStorage.getItem("theme") === "miku") {
+  if (!videoInitialized && getGlobalItem("theme") === "miku") {
     initVideoBackground();
   }
 });
