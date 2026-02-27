@@ -21,7 +21,7 @@ async function checkAdminAndRedirect(user) {
 
         if (adminDocSnap.exists()) {
             console.log("Admin verified via database.");
-            window.location.href = '/admin/dashboard';
+            window.location.href = 'https://admin.sposlearning.cz/';
         } else {
             console.log("Regular user detected.");
             window.location.href = '/';

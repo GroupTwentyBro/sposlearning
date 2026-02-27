@@ -166,7 +166,7 @@ function setupAdminTools() {
                     </div>`;
             } else {
                 let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
-                    ? `<a href="/admin/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
+                    ? `<a href="https://admin.sposlearning.cz/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
 
                 let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
 
@@ -175,10 +175,10 @@ function setupAdminTools() {
                         <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
                             ${editBtn} 
                             ${deleteBtn}
-                            <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
+                            <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
                             <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
                             
-                            <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
+                            <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile">
                                 <span class="icon">team_dashboard</span>
                             </a>
                             <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">

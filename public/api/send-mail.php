@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->Subject = 'Nová zpětná vazba: ' . $data['title'];
         $mail->Body    = "
             <h1>{$data['page']} - {$data['title']}</h1>
-            <p><b><a href=\"https://www.sposlearning.cz/admin/feedback/post?id={$data['id']}\">Odkaz na post zde</a></b></p>
+            <p><b><a href=\"https://admin.sposlearning.cz/feedback/post?id={$data['id']}\">Odkaz na post zde</a></b></p>
             <p><b>Od:</b> {$data['name']} ({$data['contact']})</p>
             <p><b>Stránka:</b> {$data['page']}</p>
             <hr>
