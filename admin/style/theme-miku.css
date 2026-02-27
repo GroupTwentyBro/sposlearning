@@ -1,0 +1,445 @@
+:root {
+  --root-bg-clr: hsl(177, 100%, 8%);
+  --root-fg-clr: #ffffff;
+  --root-txt-clr: hsla(0, 0%, 100%, 0.95);
+  --root-box-bg-clr: hsl(177, 60%, 10%);
+  --root-box-fg-clr: hsl(177, 50%, 15%);
+  --root-fgd-clr: hsl(177, 30%, 75%);
+  --root-ul-sd-clr: hsl(177, 70%, 50%);
+  --code-bg-clr: hsl(177, 40%, 12%);
+
+  --box-overlay-clr: hsla(177, 70%, 50%, 8%);
+  --box-clr: hsl(177, 60%, 14%);
+  --box-border-clr: hsl(177, 70%, 35%);
+  --box-overlay-fg-clr: hsla(0, 0%, 100%, 50%);
+  --box-overlay-border-clr: hsla(177, 70%, 50%, 15%);
+  --box-txt-clr: hsla(0, 0%, 100%, 0.95);
+
+  --primary-boxbg-clr: hsl(177, 100%, 15%);
+  --primary-boxfg-clr: hsl(177, 100%, 20%);
+  --primary-sd-clr: hsl(177, 85%, 28%);
+  --primary-bg-clr: hsl(177, 85%, 38%);
+  --primary-fg-clr: hsl(177, 70%, 50%);
+  --primary-hl-clr: hsl(177, 60%, 65%);
+
+  --secondary-sd-clr: hsl(328, 85%, 30%);
+  --secondary-bg-clr: hsl(328, 85%, 40%);
+  --secondary-fg-clr: hsl(328, 85%, 53%);
+  --secondary-hl-clr: hsl(328, 85%, 68%);
+
+  --trietary-sd-clr: hsl(186, 50%, 35%);
+  --trietary-bg-clr: hsl(186, 50%, 50%);
+  --trietary-fg-clr: hsl(186, 52%, 68%);
+  --trietary-hl-clr: hsl(186, 52%, 85%);
+
+  --discl-def-bg-clr: hsla(177, 85%, 38%, 0.2);
+  --discl-def-fg-clr: hsl(177, 85%, 45%);
+
+  --discl-important-bg-clr: hsla(328, 85%, 53%, 0.15);
+  --discl-important-fg-clr: hsl(328, 85%, 60%);
+
+  --discl-importantgreen-bg-clr: hsla(177, 70%, 50%, 0.15);
+  --discl-importantgreen-fg-clr: hsl(177, 70%, 55%);
+
+  --discl-warning-bg-clr: hsla(186, 52%, 68%, 0.15);
+  --discl-warning-fg-clr: hsl(186, 52%, 68%);
+
+  --discl-info-bg-clr: hsla(177, 60%, 65%, 0.15);
+  --discl-info-fg-clr: hsl(177, 60%, 65%);
+
+  --ul-dotted: linear-gradient(
+    to right,
+    var(--root-ul-sd-clr) 1px,
+    transparent 1px
+  );
+}
+
+body,
+body *:not(button):not(.btn):not(.btn *),
+.container,
+.container *,
+.content,
+.content *,
+main,
+main *,
+article,
+article *,
+section,
+section *,
+p,
+p *,
+div:not(.btn),
+div:not(.btn) *,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+a,
+li,
+ul,
+ol,
+td,
+th,
+tr,
+blockquote,
+blockquote *,
+em,
+strong,
+b,
+i,
+u,
+mark,
+small,
+del,
+ins,
+sub,
+sup,
+code:not(pre code),
+pre,
+pre *,
+label,
+legend,
+caption,
+figcaption,
+.text,
+.text *,
+.description,
+.description * {
+  color: var(--root-txt-clr) !important;
+}
+
+p,
+p > *,
+.content p,
+.content p > *,
+article p,
+article p > *,
+main p,
+main p > * {
+  color: var(--root-txt-clr) !important;
+}
+
+li,
+li > *,
+ul li,
+ul li > *,
+ol li,
+ol li > * {
+  color: var(--root-txt-clr) !important;
+}
+
+em,
+i,
+strong,
+b {
+  color: var(--root-txt-clr) !important;
+}
+
+blockquote,
+blockquote *,
+blockquote p {
+  color: var(--root-fgd-clr) !important;
+  border-left: 3px solid var(--primary-fg-clr) !important;
+}
+
+a {
+  color: var(--primary-hl-clr) !important;
+  text-decoration: none;
+}
+
+a:hover {
+  background: linear-gradient(
+    90deg,
+    var(--primary-fg-clr),
+    var(--secondary-fg-clr)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  background: linear-gradient(
+    90deg,
+    var(--primary-fg-clr),
+    var(--secondary-fg-clr)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  font-weight: bold !important;
+}
+
+.btn-primary,
+.btn-dark {
+  background: linear-gradient(
+    135deg,
+    var(--primary-fg-clr),
+    var(--primary-bg-clr)
+  ) !important;
+  border-color: var(--primary-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+.btn-secondary {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-fg-clr),
+    var(--secondary-bg-clr)
+  ) !important;
+  border-color: var(--secondary-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+.btn-danger {
+  background: var(--discl-important-fg-clr) !important;
+  border-color: var(--discl-important-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+.btn-warning {
+  background: var(--trietary-fg-clr) !important;
+  border-color: var(--trietary-fg-clr) !important;
+  color: var(--root-box-bg-clr) !important;
+}
+
+.btn-success {
+  background: var(--discl-importantgreen-fg-clr) !important;
+  border-color: var(--discl-importantgreen-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+.btn-white {
+  background: linear-gradient(
+    135deg,
+    var(--primary-fg-clr),
+    var(--secondary-fg-clr)
+  ) !important;
+  border-color: var(--primary-fg-clr) !important;
+  color: var(--root-fg-clr) !important;
+}
+
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-danger:hover,
+.btn-success:hover,
+.btn-warning:hover,
+.btn-white:hover {
+  filter: brightness(1.2);
+  cursor: pointer;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  background: hsl(177, 100%, 8%) !important;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  background: hsl(177, 100%, 8%);
+}
+
+.video-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  display: flex;
+}
+
+.video-background video {
+  flex: 1;
+  min-width: 33.33%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-background::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 178, 169, 0.3),
+    rgba(225, 40, 133, 0.2)
+  );
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.5);
+}
+
+.miku-sound-toggle.pc {
+  position: fixed;
+  bottom: 60px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--primary-fg-clr),
+    var(--secondary-fg-clr)
+  );
+  border: 3px solid var(--secondary-fg-clr);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.miku-sound-toggle.pc:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(225, 40, 133, 0.6);
+}
+
+.miku-sound-toggle.pc span {
+  font-size: 32px;
+}
+
+.box,
+.card,
+.panel,
+.well {
+  background: rgba(
+    10,
+    30,
+    35,
+    0.85
+  ) !important;
+  backdrop-filter: blur(10px);
+  border: 3px solid var(--box-border-clr) !important;
+  color: var(--box-txt-clr) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.box *:not(.btn):not(.btn *),
+.card *:not(.btn):not(.btn *),
+.panel *:not(.btn):not(.btn *),
+.well *:not(.btn):not(.btn *) {
+  color: var(--box-txt-clr) !important;
+}
+
+.page-content,
+.page-content *:not(.btn):not(.btn *),
+.article-content,
+.article-content *:not(.btn):not(.btn *),
+.post-content,
+.post-content *:not(.btn):not(.btn *),
+.entry-content,
+.entry-content *:not(.btn):not(.btn *) {
+  color: var(--root-txt-clr) !important;
+}
+
+table {
+  background: rgba(10, 30, 35, 0.85) !important;
+  color: var(--root-txt-clr) !important;
+  backdrop-filter: blur(10px);
+}
+
+table th {
+  background: linear-gradient(
+    135deg,
+    var(--primary-boxbg-clr),
+    var(--primary-sd-clr)
+  ) !important;
+  color: var(--root-fg-clr) !important;
+  border-color: var(--box-border-clr) !important;
+}
+
+table td {
+  border-color: var(--box-border-clr) !important;
+  color: var(--root-txt-clr) !important;
+}
+
+input,
+textarea,
+select {
+  background: rgba(10, 30, 35, 0.9) !important;
+  color: var(--root-txt-clr) !important;
+  border: 2px solid var(--box-border-clr) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--root-fgd-clr) !important;
+}
+
+code,
+pre {
+  background: rgba(10, 30, 35, 0.9) !important;
+  color: var(--primary-hl-clr) !important;
+  border: 2px solid var(--box-border-clr) !important;
+}
+
+icon.clr1 {
+  background: linear-gradient(
+    135deg,
+    var(--primary-fg-clr),
+    var(--primary-hl-clr)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+icon.clr2 {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-fg-clr),
+    var(--secondary-hl-clr)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+icon.clr3 {
+  background: linear-gradient(
+    135deg,
+    var(--trietary-fg-clr),
+    var(--trietary-hl-clr)
+  ) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+#secret-miku-btn {
+  display: none !important;
+}
+
+body {
+  text-shadow: 0 0 5px black;
+}
