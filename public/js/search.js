@@ -285,7 +285,12 @@ async function initializePage() {
     initHomeTheming();
 }
 
+function hideResults() {
+    searchResultsContainer.style.display = 'block'
+}
+
 initializePage();
 fetchAllPages();
 searchInput.addEventListener('input', handleSearch);
 searchInput.addEventListener('focus', handleSearch);
+document.body.addEventListener('focus', hideResults);
