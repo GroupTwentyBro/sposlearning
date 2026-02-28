@@ -47,6 +47,7 @@ onAuthStateChanged(auth, (user) => {
             '<p>You need to verify your email before using feedback. Please check your mailbox for the verification email or resend it in settings.</p>' +
             '</div>' +
             '</div>';
+        formWrapper.style.display = 'block';
         return;
     }
 
