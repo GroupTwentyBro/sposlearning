@@ -110,7 +110,9 @@ onAuthStateChanged(auth, (user) => {
             renderProvider('password', 'mail', 'Email');
 
     } else {
-        window.location.href = "/login";
+        document.getElementById('v-pills-account-tab').addEventListener("click", async () => {
+            window.location.href('/login')
+        })
     }
 });
 
