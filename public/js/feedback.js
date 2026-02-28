@@ -39,6 +39,11 @@ onAuthStateChanged(auth, (user) => {
         return;
     }
 
+    if (!user.emailVerified) {
+        window.location.href = '/';
+        return;
+    }
+
     if (formWrapper) formWrapper.style.display = 'block';
 
     const providerId = user.providerData[0]?.providerId;

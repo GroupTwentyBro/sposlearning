@@ -66,12 +66,6 @@ loginForm.addEventListener('submit', async (e) => {
         const result = await signInWithEmailAndPassword(auth, email, password);
         const user = result.user;
 
-        if (!user.emailVerified) {
-            errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
-            await signOut(auth);
-            return;
-        }
-
         await checkAdminAndRedirect(user);
     } catch (error) {
         console.error('Chyba přihlášení:', error);
