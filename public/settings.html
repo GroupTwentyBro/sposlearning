@@ -55,8 +55,10 @@
                             <option value="teddy">Teddy Theme</option>
                             <option value="mike">Mike Theme</option>
                         </select>
-                        <input type="range" id="hueSlider" min="0" max="360" value="0" class="form-range" style="margin: 10px; display: none;">
-                        <span id="hue-value-display" class="ms-2 badge bg-dark" style="display: none;">0°</span>
+                        <div id="hue-controls" class="d-flex align-items-center" style="display: none;">
+                            <input type="range" id="hueSlider" min="0" max="360" value="0">
+                            <span id="hue-value-display" class="ms-2 badge bg-dark shadow-sm">0°</span>
+                        </div>
                     </div>
                 </div>
             </div>

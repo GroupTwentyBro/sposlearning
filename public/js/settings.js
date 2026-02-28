@@ -122,9 +122,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const hueDisplay = document.getElementById('hue-value-display');
 
     const updateHueVisibility = (theme) => {
+        const hueControls = document.getElementById('hue-controls');
         const isColor = (theme === "color" || theme === "hueshift");
-        if (hueSlider) hueSlider.style.display = isColor ? "block" : "none";
-        if (hueDisplay) hueDisplay.style.display = isColor ? "inline-block" : "none";
+
+        if (hueControls) {
+            hueControls.style.display = isColor ? "flex" : "none";
+        }
     };
 
     if (themeSelect) {
