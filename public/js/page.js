@@ -147,9 +147,9 @@ function renderError(slug) {
     contentContainer.innerHTML = `
         <h1>404 - Nenalezeno</h1>
         <hr>
-        <p>Stránka "<code>${slug}</code>" v databázi neexistuje.</p>
+        <p>Stránka <code>${slug}</code> v databázi neexistuje.</p>
         <a href="/" class="btn btn-primary">Zpět domů</a>`;
-    
+
     const loader = document.querySelector('.dot-container');
     if (loader) {
         loader.classList.add('hidden');
