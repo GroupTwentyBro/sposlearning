@@ -26,15 +26,26 @@
 <body>
 <div class="container-fluid py-4">
     <div class="d-flex align-items-start">
-        <div class="nav flex-column nav-pills me-5" id="v-pills-tab" role="tablist" aria-orientation="vertical" style="min-width: 250px;">
-            <h4 class="mb-4 px-3">Nastavení</h4>
-            <button class="nav-link active text-start d-flex align-items-center mb-2" id="v-pills-general-tab" data-bs-toggle="pill" data-bs-target="#v-pills-general" type="button" role="tab">
-                <span class="material-symbols-outlined me-2">settings</span> Obecné
-            </button>
+        <div class="container-fluid py-4">
+            <div class="d-flex flex-column flex-md-row align-items-start">
 
-            <button class="nav-link text-start d-flex align-items-center mb-2" id="v-pills-account-tab" data-bs-toggle="pill" data-bs-target="#v-pills-account" type="button" role="tab">
-                <span class="material-symbols-outlined me-2">person</span> Účet
-            </button>
+                <div class="nav flex-row flex-md-column nav-pills me-0 me-md-5 mb-4 mb-md-0 w-100 justify-content-center justify-content-md-start"
+                     id="v-pills-tab" role="tablist" aria-orientation="vertical" style="min-width: 250px;">
+
+                    <h4 class="mb-4 px-3 d-none d-md-block text-white">Nastavení</h4>
+
+                    <button class="nav-link active text-md-start d-flex align-items-center mb-2 me-2 me-md-0" id="v-pills-general-tab" data-bs-toggle="pill" data-bs-target="#v-pills-general" type="button" role="tab">
+                        <span class="material-symbols-outlined me-md-2">settings</span> <span class="d-none d-md-inline">Obecné</span>
+                    </button>
+
+                    <button class="nav-link text-md-start d-flex align-items-center mb-2" id="v-pills-account-tab" data-bs-toggle="pill" data-bs-target="#v-pills-account" type="button" role="tab">
+                        <span class="material-symbols-outlined me-md-2">person</span> <span class="d-none d-md-inline">Účet</span>
+                    </button>
+                </div>
+
+                <div class="tab-content flex-grow-1 bg-transparent border-0 p-0 p-md-4 w-100" id="v-pills-tabContent">
+                </div>
+            </div>
         </div>
 
         <div class="tab-content flex-grow-1 bg-transparent border-0 p-4" id="v-pills-tabContent">
