@@ -226,3 +226,24 @@
     color: var(--root-fgd-clr);
     font-size: 0.95rem;
 }
+
+.form-select {
+    background-color: var(--box-overlay-clr) !important;
+    color: var(--box-txt-clr) !important;
+    border: 1px solid var(--box-overlay-border-clr) !important;
+    border-radius: var(--box-border-radius, 8px);
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus {
+    background-color: var(--root-box-bg-clr) !important;
+    border-color: var(--primary-fg-clr) !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem var(--primary-boxfg-clr);
+    color: var(--root-txt-clr) !important;
+}
+
+.form-select option {
+    background-color: var(--box-clr);
+    color: var(--root-txt-clr);
+}
