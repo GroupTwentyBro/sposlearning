@@ -364,9 +364,12 @@ export function initThemeListeners() {
     "miketheme-btn": "mike",
     "teddytheme-btn": "teddy",
   };
+
   Object.entries(themeMap).forEach(([id, theme]) => {
     const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", () => applyTheme(theme));
+    if (btn) {
+      btn.onclick = () => applyTheme(theme);
+    }
   });
 
   const hueSlider = document.getElementById("hueSlider");

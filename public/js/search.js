@@ -9,6 +9,13 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import {applyTheme, initThemeListeners} from './theming.js';
 
+function getGlobalItem(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
 const db = getFirestore(app);
 let allPages = [];
 let currentPage = null;
@@ -270,7 +277,8 @@ function initHomeTheming() {
         if (!btn) return;
 
         btn.addEventListener("click", () => {
-            const current = localStorage.getItem("theme");
+            const current = getGlobalItem("theme") || "dark";
+
             if (t.type === "mike") {
                 applyTheme("mike");
             } else {
@@ -284,7 +292,9 @@ function initHomeTheming() {
 }
 
 function syncToggleUI() {
-    const isDark = localStorage.getItem("theme") === "dark";
+    const currentTheme = getGlobalItem("theme") || "dark";
+    const isDark = currentTheme === "dark";
+
     const pcBtn = document.getElementById("theme-toggle");
     const mobBtn = document.getElementById("theme-toggle-ctrl");
 
@@ -301,7 +311,6 @@ function hideResults() {
     setTimeout(() => {
         searchResultsContainer.style.display = 'none';
 
-        // Optional: Show the welcome message again when results are hidden
         if (welcomeMessage) welcomeMessage.style.display = 'block';
         if (disclamerInfo) disclamerInfo.style.display = 'block';
     }, 200);
