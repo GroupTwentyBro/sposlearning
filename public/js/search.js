@@ -268,8 +268,7 @@ function initHomeTheming() {
 
     const toggles = [
         { id: "theme-toggle", type: "toggle" },
-        { id: "theme-toggle-ctrl", type: "toggle" },
-        { id: "mike-toggle", type: "mike" }
+        { id: "theme-toggle-ctrl", type: "toggle" }
     ];
 
     toggles.forEach(t => {
@@ -278,12 +277,9 @@ function initHomeTheming() {
 
         btn.addEventListener("click", () => {
             const current = getGlobalItem("theme") || "dark";
+            document.body.style.setProperty("transition", "ease 200ms");
 
-            if (t.type === "mike") {
-                applyTheme("mike");
-            } else {
-                applyTheme(current === "dark" ? "light" : "dark");
-            }
+            applyTheme(current === "dark" ? "light" : "dark");
             syncToggleUI();
         });
     });
