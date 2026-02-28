@@ -172,6 +172,10 @@ function setupAdminTools() {
             if (!isAdmin) {
                 adminBar.innerHTML = `
                     <div class="admin-controls">
+                        <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                        <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
+                            <span class="icon">settings</span>
+                        </a>
                         <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
                         <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
                             <span class="icon">logout</span>
@@ -185,6 +189,10 @@ function setupAdminTools() {
 
                 adminBar.innerHTML = `
                     <div class="admin-controls">
+                        <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                        <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
+                            <span class="icon">settings</span>
+                        </a>
                         <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
                             ${editBtn} 
                             ${deleteBtn}
@@ -211,6 +219,10 @@ function setupAdminTools() {
             adminBar.innerHTML = `
                 <div class="admin-controls">
                     <div style="display: flex; gap: 10px; align-items: center;">
+                        <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                        <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
+                            <span class="icon">settings</span>
+                        </a>
                         <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
                         <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
                             <span class="icon">login</span>
