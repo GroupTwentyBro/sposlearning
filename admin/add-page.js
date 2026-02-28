@@ -118,7 +118,7 @@ async function handlePageSubmit(e) {
         statusSuccess.textContent = `Success! Created /${fullPath}`;
         document.getElementById('page-form').reset();
 
-        window.location.href = `https://sposlearning.cz/${fullPath}`;
+        window.location.href = `https://www.sposlearning.cz/${fullPath}`;
     } catch (err) {
         statusError.textContent = `Error: ${err.message}`;
     } finally {

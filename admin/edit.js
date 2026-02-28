@@ -114,7 +114,7 @@ async function handleSave(e) {
             await updateDoc(doc(db, 'pages', pageDocId), updatedData);
         }
 
-        window.location.href = `https://sposlearning.cz/${pageFullPath}`;
+        window.location.href = `https://www.sposlearning.cz/${pageFullPath}`;
     } catch (error) {
         status.textContent = `Error: ${error.message}`;
         saveButton.disabled = false;
