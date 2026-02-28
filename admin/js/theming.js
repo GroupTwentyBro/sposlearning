@@ -4,7 +4,7 @@ function setGlobalItem(name, value) {
   document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
 }
 
-function getGlobalItem(name) {
+export function getGlobalItem(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
@@ -227,38 +227,11 @@ function updateSoundButtonIcon(isMuted) {
   }
 }
 
-function createSecretMikuButton() {
-  if (document.getElementById("secret-miku-btn")) return;
-
-  const btn = document.createElement("button");
-  btn.id = "secret-miku-btn";
-  btn.title = "";
-  btn.setAttribute("aria-hidden", "true");
-  btn.innerHTML = `<img src="/media/MiKuba-Button.png" alt="" draggable="false" />`;
-
-  document.body.appendChild(btn);
-
-  btn.addEventListener("click", () => {
-    const flash = document.createElement("div");
-    flash.className = "miku-activate-flash";
-    document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 750);
-
-    applyTheme("miku");
-
-    btn.style.opacity = "1";
-    btn.style.filter = "drop-shadow(0 0 14px #00e5cc)";
-    setTimeout(() => {
-      btn.style.opacity = "";
-      btn.style.filter = "";
-    }, 1200);
-  });
-}
-
 export function applyTheme(themeName) {
-  let newHref = "/style/theme-dark.css";
+  const activeTheme = themeName || getGlobalItem("theme") || "dark";
 
-  const isVideoTheme = themeName === "miku";
+  let newHref = "/style/theme-dark.css";
+  const isVideoTheme = activeTheme === "miku";
   const guideShown = getGlobalItem("autoplay-guide-shown");
 
   if (!isVideoTheme) {
@@ -275,7 +248,7 @@ export function applyTheme(themeName) {
     showAutoplayGuide();
   }
 
-  switch (themeName) {
+  switch (activeTheme) {
     case "hueshift":
       newHref = "/style/theme-hueshift.css";
       const savedHue = getGlobalItem("hue-val") || 0;
@@ -297,8 +270,11 @@ export function applyTheme(themeName) {
       newHref = "/style/theme-dark.css";
   }
 
-  if (themeLink) themeLink.href = newHref;
-  setGlobalItem("theme", themeName);
+  if (themeLink) {
+    themeLink.href = newHref;
+  }
+
+  setGlobalItem("theme", activeTheme);
   initVideoBackground();
 }
 
@@ -360,9 +336,12 @@ export function initThemeListeners() {
     "miketheme-btn": "mike",
     "teddytheme-btn": "teddy",
   };
+
   Object.entries(themeMap).forEach(([id, theme]) => {
     const btn = document.getElementById(id);
-    if (btn) btn.addEventListener("click", () => applyTheme(theme));
+    if (btn) {
+      btn.onclick = () => applyTheme(theme);
+    }
   });
 
   const hueSlider = document.getElementById("hueSlider");
@@ -393,7 +372,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const savedTheme = getGlobalItem("theme") || "dark";
   applyTheme(savedTheme);
 
-  createSecretMikuButton();
   if (!videoInitialized && getGlobalItem("theme") === "miku") {
     initVideoBackground();
   }
