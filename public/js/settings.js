@@ -48,10 +48,10 @@ onAuthStateChanged(auth, (user) => {
         const resendContainer = document.getElementById('resend-container');
 
         if (user.emailVerified) {
-            statusDiv.innerHTML = `<span class="text-success"><span class="material-symbols-outlined me-1 fs-6">check_circle</span> Email is verified</span>`;
+            statusDiv.innerHTML = `<span class="text-success"><span class="material-symbols-outlined me-1 fs-6">check_circle</span> Email je ověřený</span>`;
         } else {
-            statusDiv.innerHTML = `<span class="text-warning"><span class="material-symbols-outlined me-1 fs-6">error</span> Email is not verified</span>`;
-            resendContainer.innerHTML = `<button class="btn btn-sm btn-link text-primary-hl p-0" id="btn-resend">Resend verification email</button>`;
+            statusDiv.innerHTML = `<span class="text-warning"><span class="material-symbols-outlined me-1 fs-6">error</span> Email není ověřený</span>`;
+            resendContainer.innerHTML = `<button class="btn btn-sm btn-link text-primary-hl p-0" id="btn-resend">Poslat ověřovací email</button>`;
             document.getElementById('btn-resend').onclick = async () => {
                 await user.reload();
                 await sendEmailVerification(auth.currentUser);
@@ -73,7 +73,7 @@ onAuthStateChanged(auth, (user) => {
                 : `<span class="material-symbols-outlined" style="font-size: 24px;">${iconPath}</span>`;
             return `<div class="text-center ${isLinked ? '' : 'opacity-25'}" title="${label}" style="min-width: 60px;">
                         <div class="mb-1">${iconHtml}</div>
-                        <div style="font-size: 10px;">${isLinked ? 'LINKED' : ''}</div>
+                        <div style="font-size: 10px;">${isLinked ? 'PROPOJENO' : ''}</div>
                     </div>`;
         };
 

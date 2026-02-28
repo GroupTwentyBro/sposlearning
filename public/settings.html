@@ -27,24 +27,24 @@
 <div class="container-fluid py-4">
     <div class="d-flex align-items-start">
         <div class="nav flex-column nav-pills me-5" id="v-pills-tab" role="tablist" aria-orientation="vertical" style="min-width: 250px;">
-            <h4 class="mb-4 px-3">Settings</h4>
+            <h4 class="mb-4 px-3">Nastavení</h4>
             <button class="nav-link active text-start d-flex align-items-center mb-2" id="v-pills-general-tab" data-bs-toggle="pill" data-bs-target="#v-pills-general" type="button" role="tab">
-                <span class="material-symbols-outlined me-2">settings</span> General
+                <span class="material-symbols-outlined me-2">settings</span> Obecné
             </button>
 
             <button class="nav-link text-start d-flex align-items-center mb-2" id="v-pills-account-tab" data-bs-toggle="pill" data-bs-target="#v-pills-account" type="button" role="tab">
-                <span class="material-symbols-outlined me-2">person</span> Account
+                <span class="material-symbols-outlined me-2">person</span> Účet
             </button>
         </div>
 
         <div class="tab-content flex-grow-1 bg-transparent border-0 p-4" id="v-pills-tabContent">
 
             <div class="tab-pane fade show active box" id="v-pills-general" role="tabpanel">
-                <h3 class="mb-4">General Settings</h3>
+                <h3 class="mb-4">Obecná nastavení</h3>
                 <div class="row align-items-center box">
                     <div class="col-md-6">
                         <label class="h5">Theme</label>
-                        <p class="small">Select your preferred interface color scheme.</p>
+                        <p class="small">Vyber si svůj preferovaný theme.</p>
                     </div>
                     <div class="col-md-6">
                         <select class="form-select" aria-label="Theme picker">
@@ -64,22 +64,22 @@
             </div>
 
             <div class="tab-pane fade box" id="v-pills-account" role="tabpanel">
-                <h3 class="mb-4 text-white">Account Settings</h3>
+                <h3 class="mb-4 text-white">Nastavení účtu</h3>
 
                 <div class="row align-items-center box p-3">
                     <div class="col-md-6">
-                        <label class="h5">Name</label>
-                        <p class="small">Set your display name.</p>
+                        <label class="h5">Jméno</label>
+                        <p class="small">Nastav si svoje jméno (ukazuje se třeba ve zpětné vazbě).</p>
                     </div>
                     <div class="col-md-6 text-end">
                         <span id="display-name-text" class="fw-bold"></span>
-                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleNameEdit()">Edit</button>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleNameEdit()">Změnit</button>
                     </div>
                 </div>
 
                 <div class="row align-items-center box p-3">
                     <div class="col-md-6">
-                        <label class="h5">Email address</label>
+                        <label class="h5">Email</label>
                         <div id="email-verification-status" class="small mt-1"></div>
                     </div>
                     <div class="col-md-6">
@@ -90,18 +90,18 @@
 
                 <div class="row align-items-center box p-3">
                     <div class="col-md-6">
-                        <label class="h5">Password</label>
-                        <p class="small">Receive a secure link to change your password.</p>
+                        <label class="h5">Heslo</label>
+                        <p class="small">Pošli si na email odkaz pro změnu hesla.</p>
                     </div>
                     <div class="col-md-6 text-end">
-                        <button id="btn-reset-pw" class="btn btn-outline-primary w-100">Send password reset email</button>
+                        <button id="btn-reset-pw" class="btn btn-outline-primary w-100">Poslat email na změnu hesla</button>
                     </div>
                 </div>
 
                 <div class="row align-items-center box p-3">
                     <div class="col-md-6">
-                        <label class="h5">Linked providers</label>
-                        <p class="small">Authentication methods linked to your account.</p>
+                        <label class="h5">Propojení poskytovatelé</label>
+                        <p class="small">Možnosti přihlášení spojené s tvým účtem.</p>
                     </div>
                     <div class="col-md-6">
                         <div id="provider-list" class="d-flex justify-content-end gap-3">
