@@ -40,7 +40,13 @@ onAuthStateChanged(auth, (user) => {
     }
 
     if (!user.emailVerified) {
-        window.location.href = '/';
+        formWrapper.innerHTML = '' +
+            '<div class="box">' +
+            '<div class="col-md-6">' +
+            '<h2>Your email hasn\'t been verified.</h2>' +
+            '<p>You need to verify your email before using feedback. Please check your mailbox for the verification email or resend it in settings.</p>' +
+            '</div>' +
+            '</div>';
         return;
     }
 
