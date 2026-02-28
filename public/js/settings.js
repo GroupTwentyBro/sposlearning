@@ -1,5 +1,49 @@
-import {auth} from './firebaseConfig.js';
-import { onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { auth } from './firebaseConfig.js';
+import {
+    onAuthStateChanged,
+    sendEmailVerification,
+    sendPasswordResetEmail,
+    updateProfile
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+window.toggleNameEdit = function() {
+    const textSpan = document.getElementById('display-name-text');
+    const container = textSpan.parentElement;
+    const currentName = textSpan.textContent === "Not set" ? "" : textSpan.textContent;
+
+    container.innerHTML = `
+        <div class="d-flex align-items-center">
+            <input type="text" id="name-edit-input" class="form-control form-control-sm me-2" 
+                   value="${currentName}" style="max-width: 200px;">
+            <button class="btn btn-sm btn-success me-1" onclick="saveNameChange()" 
+                    style="background: var(--discl-importantgreen-bg-clr); border-color: var(--discl-importantgreen-fg-clr);">
+                <span class="material-symbols-outlined fs-6">check</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
+                <span class="material-symbols-outlined fs-6">close</span>
+            </button>
+        </div>
+    `;
+};
+
+window.saveNameChange = async function() {
+    const newName = document.getElementById('name-edit-input').value;
+    const user = auth.currentUser;
+
+    if (user) {
+        try {
+            await updateProfile(user, { displayName: newName });
+            const container = document.getElementById('name-edit-input').parentElement.parentElement;
+            container.innerHTML = `
+                <span id="display-name-text" class="fw-bold">${newName || "Not set"}</span>
+                <button class="btn btn-sm btn-outline-secondary ms-2" onclick="toggleNameEdit()">Edit</button>
+            `;
+        } catch (error) {
+            console.error("Name update failed:", error);
+            alert("Chyba při ukládání jména.");
+        }
+    }
+};
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -22,18 +66,14 @@ onAuthStateChanged(auth, (user) => {
 
             document.getElementById('btn-resend').onclick = async () => {
                 try {
-                    const user = auth.currentUser;
-                    if (user) {
-                        await user.reload();
-                        await sendEmailVerification(auth.currentUser);
-                        alert("Ověřovací e-mail byl odeslán! Zkontrolujte prosím svou schránku.");
-                    }
+                    await user.reload();
+                    await sendEmailVerification(auth.currentUser);
+                    alert("Ověřovací e-mail byl odeslán!");
                 } catch (error) {
-                    console.error("Chyba při odesílání:", error);
                     if (error.code === 'auth/too-many-requests') {
                         alert("Příliš mnoho požadavků. Zkuste to prosím za chvíli.");
                     } else {
-                        alert("Nepodařilo se odeslat e-mail. Zkuste se znovu přihlásit.");
+                        alert("Nepodařilo se odeslat e-mail.");
                     }
                 }
             };
@@ -51,22 +91,17 @@ onAuthStateChanged(auth, (user) => {
         const renderProvider = (id, iconPath, label) => {
             const isLinked = providers.includes(id);
             const isUrl = iconPath.startsWith('http');
-
             const iconHtml = isUrl
                 ? `<img src="${iconPath}" alt="${label}" style="width: 24px; height: 24px; filter: ${isLinked ? 'none' : 'grayscale(100%)'};">`
                 : `<span class="material-symbols-outlined" style="font-size: 24px;">${iconPath}</span>`;
 
             return `
-        <div class="text-center ${isLinked ? 'text-white' : 'opacity-25'}" 
-             title="${label}" 
-             style="min-width: 60px; transition: opacity 0.3s ease;">
-            <div class="mb-1 d-flex justify-content-center align-items-center" style="height: 30px;">
-                ${iconHtml}
-            </div>
-            <div style="font-size: 10px; font-weight: bold; height: 12px;">
-                ${isLinked ? 'LINKED' : ''}
-            </div>
-        </div>`;
+                <div class="text-center ${isLinked ? 'text-white' : 'opacity-25'}" title="${label}" style="min-width: 60px;">
+                    <div class="mb-1 d-flex justify-content-center align-items-center" style="height: 30px;">
+                        ${iconHtml}
+                    </div>
+                    <div style="font-size: 10px; font-weight: bold;">${isLinked ? 'LINKED' : ''}</div>
+                </div>`;
         };
 
         providerList.innerHTML =
