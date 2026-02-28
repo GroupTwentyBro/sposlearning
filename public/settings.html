@@ -27,8 +27,21 @@
 <div class="container-fluid py-4">
     <div class="d-flex flex-column flex-md-row align-items-start">
 
-        <div class="nav nav-pills flex-row flex-md-column me-0 me-md-5 mb-4 mb-md-0 w-100 w-md-auto"
-             id="v-pills-tab" role="tablist" aria-orientation="vertical" style="min-width: 250px;">
+        <div class="nav flex-row flex-md-column nav-pills me-0 me-md-5 mb-4 mb-md-0 w-100"
+             id="v-pills-tab"
+             role="tablist"
+             aria-orientation="vertical"
+             style="flex: 0 0 auto; width: 100%; max-width: 100%;">
+
+            <style>
+                /* Scoped CSS to handle the desktop width strictly */
+                @media (min-width: 768px) {
+                    #v-pills-tab {
+                        width: 250px !important; /* Forces exactly 250px on desktop */
+                        max-width: 250px !important;
+                    }
+                }
+            </style>
 
             <h4 class="mb-4 px-3 d-none d-md-block text-white">Nastavení</h4>
 
