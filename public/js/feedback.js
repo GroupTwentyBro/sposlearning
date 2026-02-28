@@ -43,8 +43,8 @@ onAuthStateChanged(auth, (user) => {
         formWrapper.innerHTML = '' +
             '<div class="box">' +
             '<div class="col-md-6">' +
-            '<h2>Your email hasn\'t been verified.</h2>' +
-            '<p>You need to verify your email before using feedback. Please check your mailbox for the verification email or resend it in settings.</p>' +
+            '<h2>Nemáte ověřený email.</h2>' +
+            '<p>Pro použití feedbacku musíte mít z bezpečnostních důvodů ověřený email. Odkaz najdete v mailu, nebo pokud tam není tak si můžete nechat poslat nový v nastavení.</p>' +
             '</div>' +
             '</div>';
         formWrapper.style.display = 'block';
