@@ -4,7 +4,7 @@ function setGlobalItem(name, value) {
   document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
 }
 
-function getGlobalItem(name) {
+export function getGlobalItem(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();

@@ -5,6 +5,7 @@ import {
     sendPasswordResetEmail,
     updateProfile
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { applyTheme, getGlobalItem } from './theming.js';
 
 window.toggleNameEdit = function() {
     const textSpan = document.getElementById('display-name-text');
@@ -113,4 +114,43 @@ onAuthStateChanged(auth, (user) => {
     } else {
         window.location.href = "/login";
     }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const themeSelect = document.querySelector('.form-select[aria-label="Theme picker"]');
+    const hueSlider = document.getElementById('hueSlider');
+    const hueDisplay = document.getElementById('hue-value-display');
+
+    const updateHueVisibility = (theme) => {
+        const isColor = (theme === "color" || theme === "hueshift");
+        if (hueSlider) hueSlider.style.display = isColor ? "block" : "none";
+        if (hueDisplay) hueDisplay.style.display = isColor ? "inline-block" : "none";
+    };
+
+    if (themeSelect) {
+        const savedTheme = getGlobalItem("theme") || "dark";
+        themeSelect.value = savedTheme;
+        updateHueVisibility(savedTheme);
+
+        themeSelect.addEventListener('change', (e) => {
+            let selectedTheme = e.target.value;
+
+            const themeToApply = selectedTheme === "color" ? "hueshift" : selectedTheme;
+
+            applyTheme(themeToApply);
+            updateHueVisibility(selectedTheme);
+        });
+    }
+
+    if (hueSlider) {
+        const savedHue = getGlobalItem("hue-val") || 0;
+        hueSlider.value = savedHue;
+        if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
+
+        hueSlider.addEventListener('input', (e) => {
+            if (hueDisplay) hueDisplay.textContent = `${e.target.value}°`;
+        });
+    }
+
+    initThemeListeners();
 });
