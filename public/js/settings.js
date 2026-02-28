@@ -33,8 +33,8 @@ window.saveNameChange = async function() {
             await updateProfile(auth.currentUser, { displayName: newName });
             location.reload();
         } catch (error) {
-            console.error(error);
-            alert("Chyba při ukládání.");
+            console.error("Name update error:", error);
+            alert("Chyba při ukládání jména.");
         }
     }
 };
@@ -48,33 +48,59 @@ onAuthStateChanged(auth, (user) => {
         const resendContainer = document.getElementById('resend-container');
 
         if (user.emailVerified) {
-            statusDiv.innerHTML = `<span class="text-success"><span class="material-symbols-outlined me-1 fs-6">check_circle</span> Email je ověřený</span>`;
+            statusDiv.innerHTML = `
+                <span class="text-success d-flex align-items-center">
+                    <span class="material-symbols-outlined me-1 fs-6">check_circle</span> Email je ověřený
+                </span>`;
+            resendContainer.innerHTML = '';
         } else {
-            statusDiv.innerHTML = `<span class="text-warning"><span class="material-symbols-outlined me-1 fs-6">error</span> Email není ověřený</span>`;
+            statusDiv.innerHTML = `
+                <span class="text-warning d-flex align-items-center">
+                    <span class="material-symbols-outlined me-1 fs-6">error</span> Email není ověřený
+                </span>`;
             resendContainer.innerHTML = `<button class="btn btn-sm btn-link text-primary-hl p-0" id="btn-resend">Poslat ověřovací email</button>`;
+
             document.getElementById('btn-resend').onclick = async () => {
-                await user.reload();
-                await sendEmailVerification(auth.currentUser);
-                alert("Email odeslán!");
+                try {
+                    await user.reload();
+                    await sendEmailVerification(auth.currentUser);
+                    alert("Ověřovací email byl odeslán!");
+                } catch (err) {
+                    console.error(err);
+                    alert("Chyba při odesílání. Zkuste to později.");
+                }
             };
         }
 
-        document.getElementById('btn-reset-pw').onclick = () => {
-            sendPasswordResetEmail(auth, user.email).then(() => alert("Reset link odeslán!"));
-        };
+        const providers = user.providerData.map(p => p.providerId);
+        const passwordResetRow = document.getElementById('btn-reset-pw')?.closest('.row');
+
+        if (providers.includes('password')) {
+            if (passwordResetRow) passwordResetRow.style.display = 'flex';
+            document.getElementById('btn-reset-pw').onclick = () => {
+                sendPasswordResetEmail(auth, user.email)
+                    .then(() => alert("Resetovací odkaz byl odeslán na tvůj email!"))
+                    .catch((err) => console.error(err));
+            };
+        } else if (passwordResetRow) {
+            passwordResetRow.style.display = 'none';
+        }
 
         const providerList = document.getElementById('provider-list');
-        const providers = user.providerData.map(p => p.providerId);
         const renderProvider = (id, iconPath, label) => {
             const isLinked = providers.includes(id);
             const isUrl = iconPath.startsWith('http');
             const iconHtml = isUrl
-                ? `<img src="${iconPath}" style="width: 24px; filter: ${isLinked ? 'none' : 'grayscale(100%)'};">`
+                ? `<img src="${iconPath}" alt="${label}" style="width: 24px; height: 24px; filter: ${isLinked ? 'none' : 'grayscale(100%)'};">`
                 : `<span class="material-symbols-outlined" style="font-size: 24px;">${iconPath}</span>`;
-            return `<div class="text-center ${isLinked ? '' : 'opacity-25'}" title="${label}" style="min-width: 60px;">
-                        <div class="mb-1">${iconHtml}</div>
-                        <div style="font-size: 10px;">${isLinked ? 'PROPOJENO' : ''}</div>
-                    </div>`;
+
+            return `
+                <div class="text-center ${isLinked ? 'text-white' : 'opacity-25'}" title="${label}" style="min-width: 60px;">
+                    <div class="mb-1 d-flex justify-content-center align-items-center" style="height: 30px;">
+                        ${iconHtml}
+                    </div>
+                    <div style="font-size: 10px; font-weight: bold;">${isLinked ? 'PROPOJENO' : ''}</div>
+                </div>`;
         };
 
         providerList.innerHTML =
@@ -92,11 +118,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const themeSelect = document.querySelector('.form-select');
     const hueSlider = document.getElementById('hueSlider');
     const hueDisplay = document.getElementById('hue-value-display');
+    const hueControls = document.getElementById('hue-controls');
 
     const updateHueVisibility = (theme) => {
         const isColor = (theme === "color" || theme === "hueshift");
-        if (hueSlider) hueSlider.style.display = isColor ? "block" : "none";
-        if (hueDisplay) hueDisplay.style.display = isColor ? "inline-block" : "none";
+        if (hueControls) {
+            hueControls.style.setProperty('display', isColor ? 'flex' : 'none', 'important');
+        }
     };
 
     if (themeSelect) {
@@ -106,7 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         themeSelect.addEventListener('change', (e) => {
             const val = e.target.value;
-            applyTheme(val === "color" ? "hueshift" : val);
+            const themeToApply = (val === "color") ? "hueshift" : val;
+            applyTheme(themeToApply);
             updateHueVisibility(val);
         });
     }
