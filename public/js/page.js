@@ -22,6 +22,13 @@ import {
 
 import { initThemeListeners, applyTheme } from './theming.js';
 
+function getGlobalItem(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+}
+
 const db = getFirestore(app);
 const contentContainer = document.getElementById('wiki-content-container');
 
@@ -271,28 +278,8 @@ function initHomeTheming() {
         if (!btn) return;
 
         btn.addEventListener("click", () => {
-            const current = localStorage.getItem("theme");
-            if (t.type === "mike") {
-                applyTheme("mike");
-            } else {
-                applyTheme(current === "dark" ? "light" : "dark");
-            }
-            syncToggleUI();
-        });function initHomeTheming() {
-            initThemeListeners();
+            const current = getGlobalItem("theme") || "dark";
 
-            const toggles = [
-        { id: "theme-toggle", type: "toggle" },
-        { id: "theme-toggle-ctrl", type: "toggle" },
-        { id: "mike-toggle", type: "mike" }
-    ];
-
-    toggles.forEach(t => {
-        const btn = document.getElementById(t.id);
-        if (!btn) return;
-
-        btn.addEventListener("click", () => {
-            const current = localStorage.getItem("theme");
             if (t.type === "mike") {
                 applyTheme("mike");
             } else {
@@ -306,20 +293,9 @@ function initHomeTheming() {
 }
 
 function syncToggleUI() {
-    const isDark = localStorage.getItem("theme") === "dark";
-    const pcBtn = document.getElementById("theme-toggle");
-    const mobBtn = document.getElementById("theme-toggle-ctrl");
+    const currentTheme = getGlobalItem("theme") || "dark";
+    const isDark = currentTheme === "dark";
 
-    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
-    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
-}
-    });
-
-    syncToggleUI();
-}
-
-function syncToggleUI() {
-    const isDark = localStorage.getItem("theme") === "dark";
     const pcBtn = document.getElementById("theme-toggle");
     const mobBtn = document.getElementById("theme-toggle-ctrl");
 
