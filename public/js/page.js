@@ -149,6 +149,12 @@ function renderError(slug) {
         <hr>
         <p>Stránka "<code>${slug}</code>" v databázi neexistuje.</p>
         <a href="/" class="btn btn-primary">Zpět domů</a>`;
+    
+    const loader = document.querySelector('.dot-container');
+    if (loader) {
+        loader.classList.add('hidden');
+    }
+    contentContainer.classList.add('visible');
 }
 
 function setupAdminTools() {
