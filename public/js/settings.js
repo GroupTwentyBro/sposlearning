@@ -111,7 +111,7 @@ onAuthStateChanged(auth, (user) => {
 
     } else {
         document.getElementById('v-pills-account-tab').addEventListener("click", async () => {
-            window.location.href('/login')
+            window.location.href = '/login';
         })
     }
 });
