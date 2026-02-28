@@ -256,9 +256,10 @@ function createSecretMikuButton() {
 }
 
 export function applyTheme(themeName) {
-  let newHref = "/style/theme-dark.css";
+  const activeTheme = themeName || getGlobalItem("theme") || "dark";
 
-  const isVideoTheme = themeName === "miku";
+  let newHref = "/style/theme-dark.css";
+  const isVideoTheme = activeTheme === "miku";
   const guideShown = getGlobalItem("autoplay-guide-shown");
 
   if (!isVideoTheme) {
@@ -275,7 +276,7 @@ export function applyTheme(themeName) {
     showAutoplayGuide();
   }
 
-  switch (themeName) {
+  switch (activeTheme) {
     case "hueshift":
       newHref = "/style/theme-hueshift.css";
       const savedHue = getGlobalItem("hue-val") || 0;
@@ -297,8 +298,11 @@ export function applyTheme(themeName) {
       newHref = "/style/theme-dark.css";
   }
 
-  if (themeLink) themeLink.href = newHref;
-  setGlobalItem("theme", themeName);
+  if (themeLink) {
+    themeLink.href = newHref;
+  }
+
+  setGlobalItem("theme", activeTheme);
   initVideoBackground();
 }
 
