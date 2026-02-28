@@ -1,0 +1,59 @@
+import { getAuth, onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // 1. Fetch Name
+        document.getElementById('display-name-text').textContent = user.displayName || "Not set";
+
+        // 2. Fetch Email & Verification
+        const emailInput = document.getElementById('account-email');
+        const statusDiv = document.getElementById('email-verification-status');
+        const resendContainer = document.getElementById('resend-container');
+
+        emailInput.value = user.email;
+
+        if (user.emailVerified) {
+            statusDiv.innerHTML = `<span class="text-success d-flex align-items-center">
+                <span class="material-symbols-outlined me-1 fs-6">check_circle</span> Email is verified</span>`;
+            resendContainer.innerHTML = '';
+        } else {
+            statusDiv.innerHTML = `<span class="text-warning d-flex align-items-center">
+                <span class="material-symbols-outlined me-1 fs-6">error</span> Email is not verified</span>`;
+            resendContainer.innerHTML = `<button class="btn btn-sm btn-link text-primary-hl p-0" id="btn-resend">Resend verification email</button>`;
+
+            document.getElementById('btn-resend').onclick = () => {
+                sendEmailVerification(user).then(() => alert("Verification email sent!"));
+            };
+        }
+
+        // 3. Password Reset
+        document.getElementById('btn-reset-pw').onclick = () => {
+            sendPasswordResetEmail(auth, user.email)
+                .then(() => alert("Reset link sent to your email!"))
+                .catch((error) => console.error(error));
+        };
+
+        // 4. Providers Logic
+        const providerList = document.getElementById('provider-list');
+        const providers = user.providerData.map(p => p.providerId);
+
+        // Helper to render provider status
+        const renderProvider = (id, iconName, label) => {
+            const isLinked = providers.includes(id);
+            return `<div class="text-center ${isLinked ? 'text-white' : 'opacity-25'}" title="${label}">
+                <span class="material-symbols-outlined">${iconName}</span>
+                <div style="font-size: 10px;">${isLinked ? 'Linked' : ''}</div>
+            </div>`;
+        };
+
+        providerList.innerHTML =
+            renderProvider('google.com', 'google', 'Google') +
+            renderProvider('github.com', 'terminal', 'GitHub') +
+            renderProvider('password', 'mail', 'Email');
+
+    } else {
+        window.location.href = "/login";
+    }
+});
