@@ -277,10 +277,11 @@ function initHomeTheming() {
 
         btn.addEventListener("click", () => {
             const current = getGlobalItem("theme") || "dark";
-            document.body.style.setProperty("transition", "ease 200ms");
+            document.body.style.setProperty("transition", "ease 350ms");
 
             applyTheme(current === "dark" ? "light" : "dark");
             syncToggleUI();
+            document.body.style.setProperty("transition", "none");
         });
     });
 
