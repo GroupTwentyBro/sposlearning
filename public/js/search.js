@@ -281,11 +281,11 @@ function initHomeTheming() {
 
             applyTheme(current === "dark" ? "light" : "dark");
             syncToggleUI();
-            document.body.style.setProperty("transition", "none");
         });
     });
 
     syncToggleUI();
+    document.body.style.setProperty("transition", "none")
 }
 
 function syncToggleUI() {
