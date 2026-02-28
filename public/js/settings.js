@@ -48,17 +48,31 @@ onAuthStateChanged(auth, (user) => {
         const providerList = document.getElementById('provider-list');
         const providers = user.providerData.map(p => p.providerId);
 
-        const renderProvider = (id, iconName, label) => {
+        const renderProvider = (id, iconPath, label) => {
             const isLinked = providers.includes(id);
-            return `<div class="text-center ${isLinked ? 'text-white' : 'opacity-25'}" title="${label}">
-                <span class="material-symbols-outlined">${iconName}</span>
-                <div style="font-size: 10px;">${isLinked ? 'Linked' : ''}</div>
-            </div>`;
+            const isUrl = iconPath.startsWith('http');
+
+            const iconHtml = isUrl
+                ? `<img src="${iconPath}" alt="${label}" style="width: 24px; height: 24px; filter: ${isLinked ? 'none' : 'grayscale(100%)'};">`
+                : `<span class="material-symbols-outlined" style="font-size: 24px;">${iconPath}</span>`;
+
+            return `
+        <div class="text-center ${isLinked ? 'text-white' : 'opacity-25'}" 
+             title="${label}" 
+             style="min-width: 60px; transition: opacity 0.3s ease;">
+            <div class="mb-1 d-flex justify-content-center align-items-center" style="height: 30px;">
+                ${iconHtml}
+            </div>
+            <div style="font-size: 10px; font-weight: bold; height: 12px;">
+                ${isLinked ? 'LINKED' : ''}
+            </div>
+        </div>`;
         };
 
         providerList.innerHTML =
-            renderProvider('google.com', 'google', 'Google') +
-            renderProvider('github.com', 'terminal', 'GitHub') +
+            renderProvider('google.com', 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg', 'Google') +
+            renderProvider('microsoft.com', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Microsoft_icon.svg/1280px-Microsoft_icon.svg.png?20220610071042', 'Microsoft') +
+            renderProvider('github.com', 'https://github.githubassets.com/favicons/favicon-dark.png', 'GitHub') +
             renderProvider('password', 'mail', 'Email');
 
     } else {
