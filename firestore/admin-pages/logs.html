@@ -20,34 +20,22 @@
 </head>
 <body>
 <div id="secure">
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <h1>Logy</h1>
-            <div class="d-flex" style="gap: 20px">
-                <a href="/">
-                    <button class="btn btn-primary" id="home-button" style="border-radius: 999px !important; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; padding: 0;">
-                        <span class="material-symbols-outlined" style="font-size: 28px; line-height: 1">
-                            home
-                        </span>
-                    </button>
-                </a>
-            </div>
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-white">Systémové logy</h2>
+            <a href="/dashboard" class="btn btn-outline-light">Zpět na Dashboard</a>
         </div>
-        <hr />
-
-        <div class="table-responsive mt-4">
-            <table class="table" style="color: var(--root-txt-clr);">
+        <div class="table-responsive">
+            <table class="table table-dark table-hover table-striped">
                 <thead>
                 <tr>
-                    <th scope="col">Datum a čas</th>
-                    <th scope="col">Uživatel</th>
-                    <th scope="col">Akce</th>
+                    <th>Timestamp & IP</th>
+                    <th>Type</th>
+                    <th>User</th>
+                    <th>Action & Details</th>
                 </tr>
                 </thead>
                 <tbody id="logs-tbody">
-                <tr>
-                    <td colspan="3" class="text-center">Načítání logů...</td>
-                </tr>
                 </tbody>
             </table>
         </div>
