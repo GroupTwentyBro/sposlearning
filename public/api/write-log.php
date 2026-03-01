@@ -25,7 +25,7 @@ if ($data && isset($data['action'])) {
     $data['type'] = isset($data['type']) ? $data['type'] : 'system';
 
     $logEntry = json_encode($data) . PHP_EOL;
-    $logFile = dirname(__DIR__, 2) . '/system_logs.jsonl';
+    $logFile = __DIR__ . '/system_logs.jsonl';
 
     file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
     echo json_encode(["status" => "success"]);
