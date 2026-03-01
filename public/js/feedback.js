@@ -15,20 +15,6 @@ const formWrapper = document.getElementById('feedback-form-wrapper');
 
 initThemeListeners();
 
-const toggleBtn = document.getElementById("theme-toggle");
-if (toggleBtn) {
-    const updateToggleUI = () => {
-        const isDark = localStorage.getItem("theme") === "dark";
-        toggleBtn.classList.toggle("is-dark", isDark);
-    };
-    toggleBtn.addEventListener("click", () => {
-        const current = localStorage.getItem("theme");
-        applyTheme(current === "dark" ? "light" : "dark");
-        updateToggleUI();
-    });
-    updateToggleUI();
-}
-
 const urlParams = new URLSearchParams(window.location.search);
 const relatedPage = urlParams.get("page");
 if (relatedPage) pageInput.value = relatedPage;

@@ -53,7 +53,6 @@ function initializeEventListeners() {
     const pickPathBtn = document.getElementById('pickpath-button');
     const closeModalBtn = document.getElementById('close-modal-btn');
     const modalSelectBtn = document.getElementById('modal-select-btn');
-    const themeToggle = document.getElementById('theme-toggle');
 
     enableTabIndentation(document.getElementById('md-content'));
     enableTabIndentation(document.getElementById('html-content'));
@@ -63,14 +62,6 @@ function initializeEventListeners() {
     pickPathBtn.addEventListener('click', openPathPicker);
     closeModalBtn.addEventListener('click', () => document.getElementById('path-picker-modal').style.display = 'none');
     modalSelectBtn.addEventListener('click', confirmPathSelection);
-
-    if (themeToggle) {
-        themeToggle.addEventListener("click", () => {
-            const current = localStorage.getItem("theme");
-            applyTheme(current === "dark" ? "light" : "dark");
-            themeToggle.classList.toggle("is-dark", localStorage.getItem("theme") === "dark");
-        });
-    }
 }
 
 async function handlePageSubmit(e) {

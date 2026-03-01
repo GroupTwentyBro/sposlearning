@@ -274,38 +274,7 @@ async function setupAdminTools() {
 
 function initHomeTheming() {
     initThemeListeners();
-
-    const toggles = [
-        { id: "theme-toggle", type: "toggle" },
-        { id: "theme-toggle-ctrl", type: "toggle" }
-    ];
-
-    toggles.forEach(t => {
-        const btn = document.getElementById(t.id);
-        if (!btn) return;
-
-        btn.addEventListener("click", () => {
-            const current = getGlobalItem("theme") || "dark";
-            document.body.style.setProperty("transition", "ease 350ms");
-
-            applyTheme(current === "dark" ? "light" : "dark");
-            syncToggleUI();
-        });
-    });
-
-    syncToggleUI();
     document.body.style.setProperty("transition", "none")
-}
-
-function syncToggleUI() {
-    const currentTheme = getGlobalItem("theme") || "dark";
-    const isDark = currentTheme === "dark";
-
-    const pcBtn = document.getElementById("theme-toggle");
-    const mobBtn = document.getElementById("theme-toggle-ctrl");
-
-    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
-    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
 }
 
 async function initializePage() {

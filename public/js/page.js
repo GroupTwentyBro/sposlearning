@@ -284,41 +284,6 @@ function setupFeedbackLink() {
 
 function initHomeTheming() {
     initThemeListeners();
-
-    const toggles = [
-        { id: "theme-toggle", type: "toggle" },
-        { id: "theme-toggle-ctrl", type: "toggle" },
-        { id: "mike-toggle", type: "mike" }
-    ];
-
-    toggles.forEach(t => {
-        const btn = document.getElementById(t.id);
-        if (!btn) return;
-
-        btn.addEventListener("click", () => {
-            const current = getGlobalItem("theme") || "dark";
-
-            if (t.type === "mike") {
-                applyTheme("mike");
-            } else {
-                applyTheme(current === "dark" ? "light" : "dark");
-            }
-            syncToggleUI();
-        });
-    });
-
-    syncToggleUI();
-}
-
-function syncToggleUI() {
-    const currentTheme = getGlobalItem("theme") || "dark";
-    const isDark = currentTheme === "dark";
-
-    const pcBtn = document.getElementById("theme-toggle");
-    const mobBtn = document.getElementById("theme-toggle-ctrl");
-
-    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
-    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
 }
 
 async function initializePage() {

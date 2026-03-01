@@ -436,10 +436,6 @@ icon.clr3 {
   background-clip: text !important;
 }
 
-#secret-miku-btn {
-  display: none !important;
-}
-
 body {
   text-shadow: 0 0 5px black;
 }
