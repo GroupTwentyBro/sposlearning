@@ -102,7 +102,7 @@ export async function createServerLog(type, actionDescription, details = {}) {
             payload.userEmail = 'Anonym/Neznámý';
         }
 
-        const response = await fetch('/api/write-log.php', {
+        const response = await fetch('https://www.sposlearning.cz/api/write-log.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
