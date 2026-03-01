@@ -30,7 +30,7 @@ async function fetchLogData() {
     const tbody = document.getElementById('logs-tbody');
 
     try {
-        const response = await fetch(`/api/read-logs.php?t=${new Date().getTime()}`, {
+        const response = await fetch(`https://www.sposlearning.cz/api/read-logs.php?t=${new Date().getTime()}`, {
             method: 'GET',
             headers: {
                 'X-Admin-Secret': 'a8Fk2#9zLp$5vQx1@wErT'
