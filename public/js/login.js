@@ -1,4 +1,4 @@
-import {auth} from './firebaseConfig.js';
+import { app, auth } from './firebaseConfig.js';
 import {
     browserLocalPersistence,
     GithubAuthProvider,
@@ -10,8 +10,16 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {applyTheme, initThemeListeners} from './theming.js';
-import {createServerLog} from "./logging.js";
+import {
+    getFirestore,
+    doc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import {applyTheme, initThemeListeners} from '/js/theming.js';
+import {createServerLog} from "/js/logging.js";
+
+const db = getFirestore(app);
 
 initThemeListeners();
 
