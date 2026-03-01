@@ -16,7 +16,7 @@ import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10
 import { applyTheme, initThemeListeners } from '/js/theming.js';
 
 // 1. Import your global logger function
-import { createServerLog } from '/logs.js';
+import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 

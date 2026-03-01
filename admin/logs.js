@@ -89,31 +89,3 @@ async function fetchLogData() {
         tbody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">Zatím žádné logy nebo chyba načítání.</td></tr>`;
     }
 }
-
-export async function createServerLog(type, actionDescription, details = {}) {
-    try {
-        const payload = {
-            type: type,
-            action: actionDescription,
-            ...details
-        };
-
-        if (!payload.userEmail) {
-            payload.userEmail = 'Anonym/Neznámý';
-        }
-
-        const response = await fetch('https://www.sposlearning.cz/api/write-log.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            console.error("Nepodařilo se zapsat log.");
-        }
-    } catch (error) {
-        console.error("Chyba sítě při logování:", error);
-    }
-}
