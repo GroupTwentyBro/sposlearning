@@ -23,7 +23,7 @@ import {
 import { initThemeListeners, applyTheme } from './theming.js';
 
 // 1. Import your global logger function
-import { createServerLog } from '/js/logger.js';
+import { createServerLog } from '/js/logging.js';
 
 function getGlobalItem(name) {
     const value = `; ${document.cookie}`;
