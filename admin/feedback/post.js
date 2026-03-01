@@ -3,6 +3,9 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/f
 import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners } from '../../js/theming.js';
 
+// 1. Import your global logger function
+import { createServerLog } from '/js/logger.js';
+
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 const params = new URLSearchParams(window.location.search);
@@ -18,7 +21,6 @@ onAuthStateChanged(auth, async (user) => {
 
         try {
             await loadPostUI();
-
             await loadPostData();
 
             initThemeListeners();
@@ -79,7 +81,22 @@ async function loadPostData() {
 
     resolveBtn.onclick = async () => {
         resolveBtn.disabled = true;
-        await updateDoc(docRef, { resolved: !data.resolved });
+        const newResolvedState = !data.resolved;
+
+        await updateDoc(docRef, { resolved: newResolvedState });
+
+        // 2. Log the resolution toggle
+        const actionText = "Edited Feedback";
+        await createServerLog('admin', `${actionText}: ${data.title}`, {
+            isUser: true,
+            userEmail: auth.currentUser.email,
+            userName: auth.currentUser.displayName || 'none',
+            feedbackID: postId,
+            feedbackTitle: data.title,
+            feedbackCreatorEmail: data.contact,
+            feedbackResolved: newResolvedState
+        });
+
         location.reload();
     };
 
@@ -87,6 +104,17 @@ async function loadPostData() {
         if (confirm("Permanently delete this feedback?")) {
             deleteBtn.disabled = true;
             await deleteDoc(docRef);
+
+            // 3. Log the deletion
+            await createServerLog('admin', `Deleted Feedback`, {
+                isUser: true,
+                userEmail: auth.currentUser.email,
+                userName: auth.currentUser.displayName || 'none',
+                feedbackID: postId,
+                feedbackTitle: data.title,
+                feedbackCreatorEmail: data.contact
+            });
+
             window.location.href = '/feedback';
         }
     };

@@ -3,6 +3,9 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/f
 import { getFirestore, collection, deleteDoc, query, where, getDocs, setDoc, getDoc, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners, applyTheme } from '/js/theming.js';
 
+// 1. Import your new logger function
+import { createServerLog } from '/logs.js';
+
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 
@@ -113,6 +116,19 @@ async function handleSave(e) {
         } else {
             await updateDoc(doc(db, 'pages', pageDocId), updatedData);
         }
+
+        // 2. Call the logger with your specific parameters BEFORE redirecting
+        await createServerLog('page', `Edited Page: ${updatedData.title}`, {
+            isUser: !!auth.currentUser,
+            userEmail: auth.currentUser.email,
+            userEmailVerified: auth.currentUser.emailVerified,
+            userName: auth.currentUser.displayName || 'none',
+            pageAccessLevel: updatedData.accessLevel,
+            pageContent: updatedData.content, // Logs the raw markdown/html
+            pageFullPath: pageFullPath,
+            pageEditedBy: auth.currentUser.email,
+            pageTitle: updatedData.title
+        });
 
         window.location.href = `https://www.sposlearning.cz/${pageFullPath}`;
     } catch (error) {

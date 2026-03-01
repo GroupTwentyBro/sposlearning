@@ -1,4 +1,4 @@
-import {auth} from '/js/firebaseConfig.js';
+import { app, auth } from '/js/firebaseConfig.js';
 import {
     browserLocalPersistence,
     GithubAuthProvider,
@@ -10,7 +10,15 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {applyTheme, initThemeListeners} from '/js/theming.js';
+// Missing Firestore imports added:
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+import { applyTheme, initThemeListeners } from '/js/theming.js';
+
+// 1. Import your global logger function
+import { createServerLog } from '/logs.js';
+
+const db = getFirestore(app);
 
 initThemeListeners();
 
@@ -18,8 +26,18 @@ async function checkAdminAndRedirect(user) {
     try {
         const adminDocRef = doc(db, "administrators", user.uid);
         const adminDocSnap = await getDoc(adminDocRef);
+        const isAdmin = adminDocSnap.exists();
 
-        if (adminDocSnap.exists()) {
+        // 2. Log successful login (applies to ALL providers)
+        await createServerLog('auth', `Login`, {
+            isUser: true,
+            userEmail: user.email,
+            userName: user.displayName || 'none',
+            userEmailVerified: user.emailVerified,
+            isAdmin: isAdmin
+        });
+
+        if (isAdmin) {
             console.log("Admin verified via database.");
             window.location.href = '/';
         } else {
@@ -61,6 +79,12 @@ loginForm.addEventListener('submit', async (e) => {
     } catch (error) {
         console.error('Chyba přihlášení:', error);
         errorMessage.textContent = 'Špatný email nebo heslo';
+
+        // 3. Log failed login attempt
+        await createServerLog('auth', `Neúspěšný pokus o přihlášení`, {
+            isUser: false,
+            userEmail: email
+        });
     }
 });
 

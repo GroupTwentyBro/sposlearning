@@ -3,6 +3,9 @@ import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/
 import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners, applyTheme } from './theming.js';
 
+// 1. Import your global logger function
+import { createServerLog } from '/js/logger.js';
+
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -107,6 +110,22 @@ form.addEventListener('submit', async (e) => {
 
         const docRef = await addDoc(collection(db, 'feedback'), feedbackData);
         const postId = docRef.id;
+
+        // 2. Call the logger with detailed parameters for the feedback
+        await createServerLog('feedback', `Feedback Sent: ${feedbackData.title}`, {
+            isUser: !!user,
+            userEmail: user.email,
+            userEmailVerified: user.emailVerified,
+            userName: name,
+            feedbackID: postId,
+            feedbackCreatorEmail: user.email,
+            feedbackCreatorUserName: name,
+            feedbackCreatorUID: user.uid,
+            feedbackTitle: feedbackData.title,
+            feedbackMessage: feedbackData.message,
+            feedbackRelatedPage: feedbackData.relatedPage,
+            feedbackResolved: false
+        });
 
         fetch('/api/send-mail.php', {
             method: 'POST',

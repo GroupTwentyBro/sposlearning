@@ -7,6 +7,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { applyTheme, getGlobalItem, initThemeListeners } from './theming.js';
 
+// 1. Import your global logger function
+import { createServerLog } from '/js/logger.js';
+
 window.toggleNameEdit = function() {
     const textSpan = document.getElementById('display-name-text');
     const container = textSpan.parentElement;
@@ -31,6 +34,15 @@ window.saveNameChange = async function() {
     if (auth.currentUser) {
         try {
             await updateProfile(auth.currentUser, { displayName: newName });
+
+            // 2. Log the name change
+            await createServerLog('auth', `User changed name`, {
+                isUser: true,
+                userEmail: auth.currentUser.email,
+                userName: newName,
+                userEmailVerified: auth.currentUser.emailVerified
+            });
+
             location.reload();
         } catch (error) {
             console.error("Name update error:", error);
@@ -64,6 +76,14 @@ onAuthStateChanged(auth, (user) => {
                 try {
                     await user.reload();
                     await sendEmailVerification(auth.currentUser);
+
+                    // 3. Log the verification email request
+                    await createServerLog('auth', `Verification Email Requested`, {
+                        isUser: true,
+                        userEmail: user.email,
+                        userName: user.displayName || 'none'
+                    });
+
                     alert("Ověřovací email byl odeslán!");
                 } catch (err) {
                     console.error(err);
@@ -79,7 +99,15 @@ onAuthStateChanged(auth, (user) => {
             if (passwordResetRow) passwordResetRow.style.display = 'flex';
             document.getElementById('btn-reset-pw').onclick = () => {
                 sendPasswordResetEmail(auth, user.email)
-                    .then(() => alert("Resetovací odkaz byl odeslán na tvůj email!"))
+                    .then(async () => {
+                        // 4. Log the password reset request
+                        await createServerLog('auth', `Password Reset Requested`, {
+                            isUser: true,
+                            userEmail: user.email,
+                            userName: user.displayName || 'none'
+                        });
+                        alert("Resetovací odkaz byl odeslán na tvůj email!");
+                    })
                     .catch((err) => console.error(err));
             };
         } else if (passwordResetRow) {

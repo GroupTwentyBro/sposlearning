@@ -5,6 +5,9 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
+// 1. Import your global logger function
+import { createServerLog } from '/js/logger.js';
+
 const regForm = document.getElementById('register-form');
 const statusMsg = document.getElementById('status-message');
 const regBtn = document.getElementById('reg-btn');
@@ -35,6 +38,13 @@ regForm.addEventListener('submit', async (e) => {
             statusMsg.textContent = "Dočasné e-mailové adresy nejsou povoleny.";
             regBtn.disabled = false;
             regBtn.textContent = "Vytvořit účet";
+
+            // 2. Log blocked disposable email attempts
+            await createServerLog('auth', `Zablokována registrace z dočasného emailu`, {
+                isUser: false,
+                userEmail: email
+            });
+
             return;
         }
 
@@ -44,6 +54,15 @@ regForm.addEventListener('submit', async (e) => {
         const user = userCredential.user;
 
         await sendEmailVerification(user);
+
+        // 3. Log successful registration BEFORE signing the user out
+        await createServerLog('auth', `New Registration`, {
+            isUser: true,
+            userEmail: user.email,
+            userEmailVerified: user.emailVerified, // Will be false at this point
+            userName: user.displayName || 'none'
+        });
+
         await signOut(auth);
 
         statusMsg.className = "text-success";

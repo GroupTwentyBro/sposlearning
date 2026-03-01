@@ -12,6 +12,9 @@ import {
 
 import { initThemeListeners, applyTheme } from '../js/theming.js';
 
+// 1. Import your global logger function
+import { createServerLog } from '/logs.js';
+
 const CLOUDINARY_CLOUD_NAME = "dmrefvudz";
 const CLOUDINARY_UPLOAD_PRESET = "sposlearning-upload-v1";
 const db = getFirestore();
@@ -106,6 +109,20 @@ async function handlePageSubmit(e) {
         if (pageData.type === 'markdown') pageData.content = document.getElementById('md-content').value;
 
         await setDoc(docRef, pageData);
+
+        // 2. Call the logger with detailed parameters BEFORE the redirect
+        await createServerLog('page', `Add Page: ${pageData.title}`, {
+            isUser: !!auth.currentUser,
+            userEmail: auth.currentUser.email,
+            userEmailVerified: auth.currentUser.emailVerified,
+            userName: auth.currentUser.displayName || 'none',
+            pageAccessLevel: pageData.accessLevel,
+            pageContent: pageData.content || 'none', // Logs the raw content
+            pageFullPath: pageData.fullPath,
+            pageCreatedBy: auth.currentUser.email,
+            pageTitle: pageData.title
+        });
+
         statusSuccess.textContent = `Success! Created /${fullPath}`;
         document.getElementById('page-form').reset();
 

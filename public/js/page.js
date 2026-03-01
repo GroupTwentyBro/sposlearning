@@ -22,6 +22,9 @@ import {
 
 import { initThemeListeners, applyTheme } from './theming.js';
 
+// 1. Import your global logger function
+import { createServerLog } from '/js/logger.js';
+
 function getGlobalItem(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -251,6 +254,19 @@ async function handleDeletePage() {
         }
 
         await deleteDoc(doc(db, 'pages', currentPage.id));
+
+        // 2. Call the logger with detailed parameters BEFORE the redirect
+        await createServerLog('page', `Deleted Page: ${currentPage.data.title}`, {
+            isUser: !!user,
+            userEmail: user.email,
+            userEmailVerified: user.emailVerified,
+            userName: user.displayName || 'none',
+            pageAccessLevel: currentPage.data.accessLevel || 'public',
+            pageFullPath: currentPage.data.fullPath,
+            pageDeletedBy: user.email,
+            pageTitle: currentPage.data.title
+        });
+
         alert('Smazáno.');
         window.location.href = '/';
     } catch (error) {

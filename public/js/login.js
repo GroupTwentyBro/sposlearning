@@ -11,6 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {applyTheme, initThemeListeners} from './theming.js';
+import {createServerLog} from "./logging";
 
 initThemeListeners();
 
@@ -21,9 +22,21 @@ async function checkAdminAndRedirect(user) {
 
         if (adminDocSnap.exists()) {
             console.log("Admin verified via database.");
+            await createServerLog('auth', 'Login', {
+                isUser: true,
+                userEmail: auth.currentUser.email,
+                userEmailVerified: auth.currentUser.emailVerified,
+                userIsAdmin: true
+            });
             window.location.href = 'https://admin.sposlearning.cz/';
         } else {
             console.log("Regular user detected.");
+            await createServerLog('auth', 'Login', {
+                isUser: true,
+                userEmail: auth.currentUser.email,
+                userEmailVerified: auth.currentUser.emailVerified,
+                userIsAdmin: false
+            });
             window.location.href = '/';
         }
     } catch (error) {
