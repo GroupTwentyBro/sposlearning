@@ -7,9 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-    getFirestore,
-    doc,
-    updateDoc
+    getFirestore
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 import { applyTheme, getGlobalItem, initThemeListeners } from './theming.js';
@@ -41,13 +39,11 @@ window.saveNameChange = async function() {
     if (auth.currentUser) {
         try {
             await updateProfile(auth.currentUser, { displayName: newName });
-
             await createServerLog('auth', `Změna jména na: ${newName}`, {
                 isUser: true,
                 userEmail: auth.currentUser.email,
                 userName: newName
             });
-
             location.reload();
         } catch (error) {
             console.error("Name update error:", error);
@@ -81,13 +77,11 @@ onAuthStateChanged(auth, (user) => {
 
         const providers = user.providerData.map(p => p.providerId);
         const providerList = document.getElementById('provider-list');
-
         const renderProvider = (id, iconUrl, label) => {
             const isLinked = providers.includes(id);
-            return `
-                <div class="text-center ${isLinked ? '' : 'opacity-25'}" title="${label}">
-                    <img src="${iconUrl}" width="24" height="24" style="${isLinked ? '' : 'filter: grayscale(1);'}">
-                </div>`;
+            return `<div class="text-center ${isLinked ? '' : 'opacity-25'}" title="${label}">
+                        <img src="${iconUrl}" width="24" height="24" style="${isLinked ? '' : 'filter: grayscale(1);'}">
+                    </div>`;
         };
 
         providerList.innerHTML =
@@ -102,7 +96,6 @@ onAuthStateChanged(auth, (user) => {
                 alert("Email pro změnu hesla byl odeslán.");
             } catch (e) { alert("Chyba při odesílání."); }
         };
-
     } else {
         window.location.href = '/login';
     }
@@ -114,14 +107,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const hueDisplay = document.getElementById('hue-value-display');
     const hueControls = document.getElementById('hue-controls');
 
-    const updateHueVisibility = (theme) => {
-        const isColor = (theme === "color" || theme === "hueshift");
-        if (hueControls) hueControls.style.display = isColor ? 'flex' : 'none';
+    const updateHueVisibility = (themeValue) => {
+        if (hueControls) {
+            if (themeValue === "color") {
+                hueControls.classList.remove('d-none');
+                hueControls.classList.add('d-flex');
+            } else {
+                hueControls.classList.remove('d-flex');
+                hueControls.classList.add('d-none');
+            }
+        }
     };
 
     if (themeSelect) {
         const savedTheme = getGlobalItem("theme") || "dark";
         themeSelect.value = (savedTheme === "hueshift") ? "color" : savedTheme;
+
         updateHueVisibility(themeSelect.value);
 
         themeSelect.addEventListener('change', (e) => {
