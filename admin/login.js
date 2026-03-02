@@ -2,26 +2,20 @@ import { app, auth } from '/js/firebaseConfig.js';
 import {
     browserLocalPersistence,
     GithubAuthProvider,
+    GoogleAuthProvider,
     OAuthProvider,
     setPersistence,
     signInWithEmailAndPassword,
     signInWithPopup,
-    signInWithCredential,
     signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
 import { initThemeListeners } from '/js/theming.js';
-
 import { createServerLog } from '/js/logging.js';
 
-import { GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 const urlParams = new URLSearchParams(window.location.search);
-const checkSession = urlParams.get('check');
-
-if (checkSession) {
+if (urlParams.get('check') === '1') {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
@@ -31,24 +25,22 @@ if (checkSession) {
     const unsubscribe = auth.onAuthStateChanged((user) => {
         if (user) {
             unsubscribe();
+            window.history.replaceState({}, document.title, "/login");
             window.location.href = '/dashboard';
-        } else {
-            setTimeout(() => {
-                if (!auth.currentUser) {
-                    unsubscribe();
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = "Log in";
-                    }
-                    console.log("Session sync timed out.");
-                }
-            }, 3000);
         }
     });
+
+    setTimeout(() => {
+        unsubscribe();
+        if (!auth.currentUser && submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Log in";
+            console.log("Session sync timed out - user must log in manually.");
+        }
+    }, 4000);
 }
 
 const db = getFirestore(app);
-
 initThemeListeners();
 
 async function checkAdminAndRedirect(user) {
@@ -66,10 +58,8 @@ async function checkAdminAndRedirect(user) {
         });
 
         if (isAdmin) {
-            console.log("Admin verified via database.");
-            window.location.href = '/';
+            window.location.href = '/dashboard';
         } else {
-            console.log("Regular user detected.");
             window.location.href = 'https://sposlearning.cz/';
         }
     } catch (error) {
@@ -79,87 +69,48 @@ async function checkAdminAndRedirect(user) {
 }
 
 const loginForm = document.getElementById('login-form');
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
-const errorMessage = document.getElementById('error-message');
-const googleBtn = document.getElementById('google-login-btn');
-const microsoftBtn = document.getElementById('microsoft-login-btn');
-const githubBtn = document.getElementById('github-login-btn');
+if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = '';
 
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = emailInput.value;
-    const password = passwordInput.value;
-    errorMessage.textContent = '';
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            const result = await signInWithEmailAndPassword(auth, email, password);
 
+            if (!result.user.emailVerified) {
+                errorMessage.textContent = "Váš e-mail není ověřen.";
+                await signOut(auth);
+                return;
+            }
+
+            await checkAdminAndRedirect(result.user);
+        } catch (error) {
+            console.error('Chyba přihlášení:', error);
+            errorMessage.textContent = 'Špatný email nebo heslo';
+            await createServerLog('auth', `Neúspěšný pokus (Email/Heslo)`, { userEmail: email });
+        }
+    });
+}
+
+const handleSocialLogin = async (provider) => {
     try {
         await setPersistence(auth, browserLocalPersistence);
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        const user = result.user;
-
-        if (!user.emailVerified) {
-            errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
-            await signOut(auth);
-            return;
-        }
-
-        await checkAdminAndRedirect(user);
+        const result = await signInWithPopup(auth, provider);
+        await checkAdminAndRedirect(result.user);
     } catch (error) {
-        console.error('Chyba přihlášení:', error);
-        errorMessage.textContent = 'Špatný email nebo heslo';
-
-        await createServerLog('auth', `Neúspěšný pokus o přihlášení`, {
-            isUser: false,
-            userEmail: email
-        });
+        console.error("Social login failed:", error);
     }
+};
+
+document.getElementById('google-login-btn')?.addEventListener('click', () => handleSocialLogin(new GoogleAuthProvider()));
+document.getElementById('github-login-btn')?.addEventListener('click', () => handleSocialLogin(new GithubAuthProvider()));
+
+document.getElementById('microsoft-login-btn')?.addEventListener('click', async () => {
+    const provider = new OAuthProvider('microsoft.com');
+    provider.setCustomParameters({ tenant: 'common', prompt: 'select_account' });
+    await handleSocialLogin(provider);
 });
-
-if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        const provider = new GoogleAuthProvider();
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Příhlášení přes Google selhalo.';
-        }
-    });
-}
-
-const microsoftProvider = new OAuthProvider('microsoft.com');
-
-microsoftProvider.setCustomParameters({
-    tenant: 'common',
-    prompt: 'select_account'
-});
-
-if (microsoftBtn) {
-    microsoftBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, microsoftProvider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Příhlášení přes Microsoft selhalo.';
-        }
-    });
-}
-
-if (githubBtn) {
-    githubBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        const provider = new GithubAuthProvider();
-        provider.addScope('user:email');
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Přihlášení přes GitHub selhalo.';
-        }
-    });
-}
