@@ -8,7 +8,7 @@ const container = document.getElementById('secure-container');
 async function callAdminEndpoint(action, data = {}) {
     const user = auth.currentUser;
     if (!user) throw new Error('Not authenticated');
-    const idToken = await user.getIdToken();
+    const idToken = await user.getIdToken(true);
     console.log('Sending token:', idToken.substring(0,20) + '...'); // log first 20 chars
 
 
