@@ -40,7 +40,8 @@ async function checkAdminAndRedirect(user) {
         });
 
         if (isAdmin) {
-            window.location.href = 'https://admin.sposlearning.cz/';
+            const idToken = await user.getIdToken();
+            window.location.href = `https://admin.sposlearning.cz/?token=${idToken}`;
         } else {
             window.location.href = 'https://sposlearning.cz/';
         }

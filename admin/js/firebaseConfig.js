@@ -16,10 +16,18 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 onAuthStateChanged(auth, (user) => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenInUrl = urlParams.get('token');
     const hasLoginCookie = document.cookie.includes('isLoggedIn=true');
 
-    if (!user) {
-        if (hasLoginCookie) {
+    if (user) {
+        if (tokenInUrl) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        console.log("Admin session active:", user.email);
+    } else {
+        if (tokenInUrl || hasLoginCookie) {
+            console.log("Synchronizing session...");
             setTimeout(() => {
                 if (!auth.currentUser) {
                     window.location.href = "https://sposlearning.cz/login";
