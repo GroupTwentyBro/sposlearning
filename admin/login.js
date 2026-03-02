@@ -7,16 +7,16 @@ import {
     setPersistence,
     signInWithEmailAndPassword,
     signInWithPopup,
-    signOut
+    signOut,
+    signInWithCustomToken,
+    signInWithCredential
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { applyTheme, initThemeListeners } from '/js/theming.js';
+import { initThemeListeners } from '/js/theming.js';
 
 import { createServerLog } from '/js/logging.js';
-
-import { signInWithCustomToken, signInWithCredential, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const transferToken = urlParams.get('token');
@@ -28,12 +28,16 @@ if (transferToken) {
         submitBtn.textContent = "Synchronizace relace...";
     }
 
-    auth.onAuthStateChanged((user) => {
+    const checkAuth = setInterval(() => {
+        const user = auth.currentUser;
         if (user) {
+            clearInterval(checkAuth);
             window.history.replaceState({}, document.title, "/login");
             window.location.href = '/dashboard';
         }
-    });
+    }, 500);
+
+    setTimeout(() => clearInterval(checkAuth), 5000);
 }
 
 const db = getFirestore(app);

@@ -27,7 +27,6 @@ async function checkAdminAndRedirect(user) {
     try {
         const adminDocRef = doc(db, "administrators", user.uid);
         const adminDocSnap = await getDoc(adminDocRef);
-
         const isAdmin = adminDocSnap.exists();
 
         await createServerLog('auth', `Login attempt`, {
