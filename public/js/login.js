@@ -29,23 +29,24 @@ async function checkAdminAndRedirect(user) {
         const adminDocSnap = await getDoc(adminDocRef);
         const isAdmin = adminDocSnap.exists();
 
-        document.cookie = `isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=3600; Secure; SameSite=Lax`;
+        document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=3600; Secure; SameSite=Lax";
 
-        await createServerLog('auth', 'Login', {
+        await createServerLog('auth', `Login`, {
             isUser: true,
-            userEmail: auth.currentUser.email,
-            userEmailVerified: auth.currentUser.emailVerified,
-            userIsAdmin: isAdmin
+            userEmail: user.email,
+            userName: user.displayName || 'none',
+            userEmailVerified: user.emailVerified,
+            isAdmin: isAdmin
         });
 
         if (isAdmin) {
             window.location.href = 'https://admin.sposlearning.cz/';
         } else {
-            window.location.href = '/';
+            window.location.href = 'https://sposlearning.cz/';
         }
     } catch (error) {
         console.error("Error checking admin status:", error);
-        window.location.href = '/';
+        window.location.href = 'https://sposlearning.cz/';
     }
 }
 

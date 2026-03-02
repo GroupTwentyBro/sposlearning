@@ -21,9 +21,15 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 onAuthStateChanged(auth, (user) => {
     const hasLoginCookie = document.cookie.includes('isLoggedIn=true');
 
-    if (!user && hasLoginCookie) {
-        window.location.href = "https://sposlearning.cz/login";
-    } else if (!user && !hasLoginCookie) {
-        window.location.href = "https://sposlearning.cz/login";
+    if (!user) {
+        if (hasLoginCookie) {
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                    window.location.href = "https://sposlearning.cz/login";
+                }
+            }, 2000);
+        } else {
+            window.location.href = "https://sposlearning.cz/login";
+        }
     }
 });

@@ -24,7 +24,7 @@ onAuthStateChanged(auth, async (user) => {
         }
     } else {
         console.log('No user, redirecting...');
-        window.location.href = '/login';
+        window.location.href = 'https://www.sposlearning.cz/login';
     }
 });
 
