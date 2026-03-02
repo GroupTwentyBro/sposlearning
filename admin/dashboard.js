@@ -22,9 +22,6 @@ onAuthStateChanged(auth, async (user) => {
                     <a href="/" style="color: var(--primary-hl-clr);">Go back...</a>
                 </div>`;
         }
-    } else {
-        console.log('No user, redirecting...');
-        window.location.href = 'https://www.sposlearning.cz/login';
     }
 });
 
