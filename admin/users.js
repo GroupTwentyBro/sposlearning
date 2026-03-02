@@ -1,5 +1,5 @@
 import { app, auth } from '/js/firebaseConfig.js';
-import { getFirestore, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, setDoc, deleteDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
