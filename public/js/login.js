@@ -36,7 +36,7 @@ async function checkAdminAndRedirect(user) {
 
             document.cookie = `admin_auth_token=${token}; expires=${date.toUTCString()}; path=/; domain=.sposlearning.cz; SameSite=Lax; Secure`;
 
-            window.location.href = 'https://admin.sposlearning.cz/login';
+            window.location.href = 'https://admin.sposlearning.cz/login?check=1';
         } else {
             window.location.href = '/';
         }

@@ -18,37 +18,33 @@ import { createServerLog } from '/js/logging.js';
 
 import { GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
+const urlParams = new URLSearchParams(window.location.search);
+const checkSession = urlParams.get('check');
 
-const savedToken = getCookie('admin_auth_token');
-
-if (savedToken) {
+if (checkSession) {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = "Synchronizace relace...";
+        submitBtn.textContent = "Synchronizace...";
     }
 
-    const credential = GoogleAuthProvider.credential(null, savedToken);
-
-    signInWithCredential(auth, credential)
-        .then(() => {
-            document.cookie = "admin_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.sposlearning.cz;";
-            console.log("Session synchronized!");
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+        if (user) {
+            unsubscribe();
             window.location.href = '/dashboard';
-        })
-        .catch((error) => {
-            console.error("Sync failed:", error);
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = "Log in";
-            }
-            document.cookie = "admin_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.sposlearning.cz;";
-        });
+        } else {
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                    unsubscribe();
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Log in";
+                    }
+                    console.log("Session sync timed out.");
+                }
+            }, 3000);
+        }
+    });
 }
 
 const db = getFirestore(app);
