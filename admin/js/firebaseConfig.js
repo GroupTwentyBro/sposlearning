@@ -18,7 +18,7 @@ const urlParams = new URLSearchParams(window.location.search);
 const token = urlParams.get('token');
 
 async function exchangeToken(idToken) {
-    const response = await fetch('https://admin.sposlearning.cz/exchange-token.php', {
+    const response = await fetch('https://admin.sposlearning.cz/debug_exchange.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ idToken })
