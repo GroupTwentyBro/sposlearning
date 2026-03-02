@@ -10,13 +10,31 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// Missing Firestore imports added:
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 import { applyTheme, initThemeListeners } from '/js/theming.js';
 
-// 1. Import your global logger function
 import { createServerLog } from '/js/logging.js';
+
+import { signInWithCustomToken, signInWithCredential, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const urlParams = new URLSearchParams(window.location.search);
+const transferToken = urlParams.get('token');
+
+if (transferToken) {
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Synchronizace relace...";
+    }
+
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            window.history.replaceState({}, document.title, "/login");
+            window.location.href = '/dashboard';
+        }
+    });
+}
 
 const db = getFirestore(app);
 
@@ -28,7 +46,6 @@ async function checkAdminAndRedirect(user) {
         const adminDocSnap = await getDoc(adminDocRef);
         const isAdmin = adminDocSnap.exists();
 
-        // 2. Log successful login (applies to ALL providers)
         await createServerLog('auth', `Login`, {
             isUser: true,
             userEmail: user.email,
@@ -80,7 +97,6 @@ loginForm.addEventListener('submit', async (e) => {
         console.error('Chyba přihlášení:', error);
         errorMessage.textContent = 'Špatný email nebo heslo';
 
-        // 3. Log failed login attempt
         await createServerLog('auth', `Neúspěšný pokus o přihlášení`, {
             isUser: false,
             userEmail: email
