@@ -1,7 +1,7 @@
 import { app, auth } from '/js/firebaseConfig.js';
 import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { createServerLog } from '/js/logger.js'; // adjust path if needed
+import { createServerLog } from '/js/logging.js'; // adjust path if needed
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
