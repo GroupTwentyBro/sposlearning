@@ -9,6 +9,8 @@ async function callAdminEndpoint(action, data = {}) {
     const user = auth.currentUser;
     if (!user) throw new Error('Not authenticated');
     const idToken = await user.getIdToken();
+    console.log('Sending token:', idToken.substring(0,20) + '...'); // log first 20 chars
+
 
     const response = await fetch('/users.php', {
         method: 'POST',
