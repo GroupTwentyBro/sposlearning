@@ -1,10 +1,10 @@
 import { app, auth } from '/js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, deleteDoc, query, where, getDocs, setDoc, getDoc, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { initThemeListeners, applyTheme } from '/js/theming.js';
+import { initThemeListeners } from '/js/theming.js';
 
 // 1. Import your new logger function
-import { createServerLog } from '/logs.js';
+import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');

@@ -1,4 +1,4 @@
-import { auth } from '../js/firebaseConfig.js';
+import { auth } from '/js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import {
     getFirestore,
@@ -10,7 +10,7 @@ import {
     getDocs
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-import { initThemeListeners, applyTheme } from '../js/theming.js';
+import { initThemeListeners } from '/js/theming.js';
 
 // 1. Import your global logger function
 import { createServerLog } from '/logs.js';

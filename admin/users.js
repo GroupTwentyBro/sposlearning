@@ -1,4 +1,4 @@
-import { app, auth } from './firebaseConfig.js';
+import { app, auth } from '/js/firebaseConfig.js';
 import { getFirestore, collection, getDocs, doc, updateDoc, deleteDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { sendPasswordResetEmail, sendEmailVerification } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { createServerLog } from './logger.js';

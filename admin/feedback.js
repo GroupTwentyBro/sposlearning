@@ -1,7 +1,7 @@
-import { app, auth } from '../js/firebaseConfig.js';
+import { app, auth } from '/js/firebaseConfig.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { initThemeListeners } from '../js/theming.js';
+import { initThemeListeners } from '/js/theming.js';
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
