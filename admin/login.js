@@ -32,24 +32,22 @@ if (savedToken) {
         submitBtn.textContent = "Synchronizace relace...";
     }
 
-    let checkCount = 0;
-    const checkAuth = setInterval(() => {
-        checkCount++;
-        if (auth.currentUser) {
-            clearInterval(checkAuth);
-            document.cookie = "admin_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.sposlearning.cz;";
-            window.location.href = '/dashboard';
-        }
+    const credential = GoogleAuthProvider.credential(null, savedToken);
 
-        if (checkCount > 8) {
-            clearInterval(checkAuth);
+    signInWithCredential(auth, credential)
+        .then(() => {
+            document.cookie = "admin_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.sposlearning.cz;";
+            console.log("Session synchronized!");
+            window.location.href = '/dashboard';
+        })
+        .catch((error) => {
+            console.error("Sync failed:", error);
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Log in";
             }
-            console.log("Auto-sync timed out, please login manually.");
-        }
-    }, 500);
+            document.cookie = "admin_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.sposlearning.cz;";
+        });
 }
 
 const db = getFirestore(app);
