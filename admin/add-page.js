@@ -13,7 +13,7 @@ import {
 import { initThemeListeners } from '/js/theming.js';
 
 // 1. Import your global logger function
-import { createServerLog } from '/logs.js';
+import { createServerLog } from '/js/logging.js';
 
 const CLOUDINARY_CLOUD_NAME = "dmrefvudz";
 const CLOUDINARY_UPLOAD_PRESET = "sposlearning-upload-v1";
