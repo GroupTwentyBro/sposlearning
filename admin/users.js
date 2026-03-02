@@ -1,12 +1,11 @@
 import { app, auth } from '/js/firebaseConfig.js';
-import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { createServerLog } from '/js/logging.js'; // adjust path if needed
+import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 
-// Load the page HTML from Firestore
 async function loadUsersPage() {
     const docRef = doc(db, "admin-pages", "users");
     const docSnap = await getDoc(docRef);
@@ -16,7 +15,6 @@ async function loadUsersPage() {
         document.querySelector('.dot-container')?.classList.add('hidden');
         container.classList.add('visible');
 
-        // After HTML is loaded, fetch and display users
         loadUserList();
     } else {
         container.innerHTML = "<h3 class='text-center text-danger'>User page configuration not found in Firestore.</h3>";
@@ -24,7 +22,6 @@ async function loadUsersPage() {
     }
 }
 
-// Fetch all users and admin list
 async function loadUserList() {
     const tbody = document.getElementById('user-list-tbody');
     const searchInput = document.getElementById('user-search');
@@ -34,7 +31,6 @@ async function loadUserList() {
     tbody.innerHTML = '<tr><td colspan="5" class="text-center">Loading...</td></tr>';
 
     try {
-        // Fetch from "users" collection (adjust if you store users elsewhere)
         const usersSnap = await getDocs(collection(db, "users"));
         const adminSnap = await getDocs(collection(db, "administrators"));
         const adminIds = adminSnap.docs.map(d => d.id);
@@ -44,12 +40,8 @@ async function loadUserList() {
             users.push({ uid: doc.id, ...doc.data() });
         });
 
-        // Optional: also fetch users from Firebase Auth via a backend function if you need all users
-        // For now, we rely on the "users" collection.
-
         renderUserTable(users, adminIds);
 
-        // Search functionality
         searchInput.addEventListener('input', () => {
             const term = searchInput.value.toLowerCase();
             const filtered = users.filter(u =>
@@ -71,7 +63,7 @@ function renderUserTable(users, adminIds) {
 
     users.forEach(user => {
         const isAdmin = adminIds.includes(user.uid);
-        const emailVerified = user.emailVerified || false; // from your user doc
+        const emailVerified = user.emailVerified || false;
 
         html += `
             <tr data-uid="${user.uid}">
@@ -107,7 +99,6 @@ function renderUserTable(users, adminIds) {
 
     tbody.innerHTML = html;
 
-    // Attach event listeners using delegation
     tbody.addEventListener('click', async (e) => {
         const target = e.target.closest('button');
         if (!target) return;
@@ -136,7 +127,6 @@ function renderUserTable(users, adminIds) {
                         await setDoc(adminRef, { addedBy: auth.currentUser?.email || 'unknown' });
                     }
                     await createServerLog('admin', `Toggled admin for ${uid}`, { newStatus: !current });
-                    // Reload the user list to reflect changes
                     loadUserList();
                 } catch (error) {
                     alert('Error: ' + error.message);
@@ -147,9 +137,7 @@ function renderUserTable(users, adminIds) {
             const uid = target.dataset.uid;
             const email = target.dataset.email;
             if (confirm(`⚠️ Permanently delete user ${email}? This action cannot be undone.`)) {
-                // Delete requires a backend function (Firebase Admin SDK)
                 alert('Deletion requires a server endpoint. For now, use Firebase Console.');
-                // You can later implement a call to a custom endpoint like /delete-user.php
             }
         }
         else if (target.classList.contains('verify-btn')) {
@@ -158,7 +146,6 @@ function renderUserTable(users, adminIds) {
     });
 }
 
-// Helper to escape HTML (prevents XSS)
 function escapeHtml(unsafe) {
     return unsafe.replace(/[&<>"']/g, function(m) {
         if(m === '&') return '&amp;';
@@ -170,5 +157,4 @@ function escapeHtml(unsafe) {
     });
 }
 
-// Start
 loadUsersPage();
