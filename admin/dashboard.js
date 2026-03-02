@@ -54,7 +54,7 @@ function initializeGeneralScripts() {
     const logoutBtn = document.getElementById('logout-button');
     if(logoutBtn) {
         logoutBtn.addEventListener('click', () => {
-            signOut(auth).then(() => window.location.href = '/login');
+            signOut(auth).then(() => window.location.href = 'https://www.sposlearning.cz/login');
         });
     }
 
