@@ -1,6 +1,6 @@
 import { app, auth } from '/js/firebaseConfig.js';
 import { getFirestore, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { createServerLog } from '/js/logger.js';
+import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
@@ -10,7 +10,7 @@ async function callAdminEndpoint(action, data = {}) {
     if (!user) throw new Error('Not authenticated');
     const idToken = await user.getIdToken();
 
-    const response = await fetch('/admin-users.php', {
+    const response = await fetch('/users.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, idToken, ...data })
