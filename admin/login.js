@@ -26,7 +26,7 @@ if (urlParams.get('check') === '1') {
         if (user) {
             unsubscribe();
             window.history.replaceState({}, document.title, "/login");
-            window.location.href = '/dashboard';
+            window.location.href = '/';
         }
     });
 
