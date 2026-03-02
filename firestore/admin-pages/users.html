@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="secure">
+  <div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="text-white">Správa uživatelů</h2>
+      <div class="d-flex gap-2">
+        <input type="text" id="user-search" class="form-control form-control-sm" placeholder="Hledat email...">
+        <a href="/" class="btn btn-outline-light btn-sm">Zpět</a>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-dark table-hover">
+        <thead>
+        <tr>
+          <th>Uživatel</th>
+          <th>Status</th>
+          <th>Role</th>
+          <th>Akce</th>
+        </tr>
+        </thead>
+        <tbody id="user-list-tbody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

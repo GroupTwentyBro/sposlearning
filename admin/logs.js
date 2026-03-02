@@ -74,7 +74,7 @@ async function fetchLogData() {
 
             html += `
                 <tr>
-                    <td>${timestamp || 'Unknown'}<br><small style="color:gray;">IP: ${requestIP || 'unknown'}</small></td>
+                    <td>${timestamp || 'Unknown'}</td>
                     <td><span class="badge ${badgeClass}">${(type || 'system').toUpperCase()}</span></td>
                     <td>${userEmail || 'Neznámý'}</td>
                     <td>${action} ${detailsString}</td>
