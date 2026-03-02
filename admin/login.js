@@ -2,14 +2,11 @@ import { app, auth } from '/js/firebaseConfig.js';
 import {
     browserLocalPersistence,
     GithubAuthProvider,
-    GoogleAuthProvider,
     OAuthProvider,
     setPersistence,
     signInWithEmailAndPassword,
     signInWithPopup,
     signOut,
-    signInWithCustomToken,
-    signInWithCredential
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
@@ -17,6 +14,8 @@ import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10
 import { initThemeListeners } from '/js/theming.js';
 
 import { createServerLog } from '/js/logging.js';
+
+import { GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const urlParams = new URLSearchParams(window.location.search);
 const transferToken = urlParams.get('token');
@@ -28,16 +27,28 @@ if (transferToken) {
         submitBtn.textContent = "Synchronizace relace...";
     }
 
-    const checkAuth = setInterval(() => {
-        const user = auth.currentUser;
-        if (user) {
-            clearInterval(checkAuth);
+    const credential = GoogleAuthProvider.credential(transferToken);
+
+    signInWithCredential(auth, credential)
+        .then((result) => {
+            console.log("Relace úspěšně synchronizována.");
+            return createServerLog('auth', `Admin session synced via token`, {
+                userEmail: result.user.email
+            });
+        })
+        .then(() => {
             window.history.replaceState({}, document.title, "/login");
             window.location.href = '/dashboard';
-        }
-    }, 500);
-
-    setTimeout(() => clearInterval(checkAuth), 5000);
+        })
+        .catch((error) => {
+            console.error("Chyba synchronizace:", error);
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Log in";
+            }
+            const errorMessage = document.getElementById('error-message');
+            if (errorMessage) errorMessage.textContent = "Automatické přihlášení selhalo. Přihlaste se prosím ručně.";
+        });
 }
 
 const db = getFirestore(app);
