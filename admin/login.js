@@ -15,40 +15,41 @@ import { initThemeListeners } from '/js/theming.js';
 
 import { createServerLog } from '/js/logging.js';
 
-import { GoogleAuthProvider, signInWithCredential } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const urlParams = new URLSearchParams(window.location.search);
-const transferToken = urlParams.get('token');
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
 
-if (transferToken) {
+const savedToken = getCookie('admin_auth_token');
+
+if (savedToken) {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.textContent = "Synchronizace relace...";
     }
 
-    const credential = GoogleAuthProvider.credential(transferToken);
-
-    signInWithCredential(auth, credential)
-        .then((result) => {
-            console.log("Relace úspěšně synchronizována.");
-            return createServerLog('auth', `Admin session synced via token`, {
-                userEmail: result.user.email
-            });
-        })
-        .then(() => {
-            window.history.replaceState({}, document.title, "/login");
+    let checkCount = 0;
+    const checkAuth = setInterval(() => {
+        checkCount++;
+        if (auth.currentUser) {
+            clearInterval(checkAuth);
+            document.cookie = "admin_auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.sposlearning.cz;";
             window.location.href = '/dashboard';
-        })
-        .catch((error) => {
-            console.error("Chyba synchronizace:", error);
+        }
+
+        if (checkCount > 8) {
+            clearInterval(checkAuth);
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "Log in";
             }
-            const errorMessage = document.getElementById('error-message');
-            if (errorMessage) errorMessage.textContent = "Automatické přihlášení selhalo. Přihlaste se prosím ručně.";
-        });
+            console.log("Auto-sync timed out, please login manually.");
+        }
+    }, 500);
 }
 
 const db = getFirestore(app);
