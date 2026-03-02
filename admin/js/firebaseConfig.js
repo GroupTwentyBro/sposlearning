@@ -14,3 +14,16 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+
+import { auth } from './firebaseConfig.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+onAuthStateChanged(auth, (user) => {
+    const hasLoginCookie = document.cookie.includes('isLoggedIn=true');
+
+    if (!user && hasLoginCookie) {
+        window.location.href = "https://sposlearning.cz/login";
+    } else if (!user && !hasLoginCookie) {
+        window.location.href = "https://sposlearning.cz/login";
+    }
+});
