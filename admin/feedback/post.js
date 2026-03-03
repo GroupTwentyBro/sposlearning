@@ -4,7 +4,7 @@ import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'https://www.gst
 import { initThemeListeners } from '/js/theming.js';
 
 // 1. Import your global logger function
-import { createServerLog } from '/js/logger.js';
+import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
