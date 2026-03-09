@@ -6,7 +6,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // 1. Import your global logger function
-import { createServerLog } from '/js/logger.js';
+import { createServerLog } from '/js/logging.js';
 
 const regForm = document.getElementById('register-form');
 const statusMsg = document.getElementById('status-message');
