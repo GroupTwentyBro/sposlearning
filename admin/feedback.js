@@ -4,23 +4,22 @@ import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from '
 import { initThemeListeners } from '/js/theming.js';
 
 const db = getFirestore(app);
-const container = document.getElementById('secure-container');
+const container = document.getElementById('secure'); // Changed from 'secure-container' to match your HTML ID
 
 let allFeedback = [];
 let currentSort = 'desc';
 let hideResolved = false;
+let currentPriority = 'all'; // New filter state
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
+            // If using a DB shell, load it first
             await loadFeedbackUI();
-
             setupControls();
             await loadFeedbackData();
-
             initThemeListeners();
-            const loader = document.querySelector('.dot-container');
-            if (loader) loader.classList.add('hidden');
+            document.querySelector('.dot-container')?.classList.add('hidden');
         } catch (err) {
             console.error("Initialization failed:", err);
         }
@@ -32,12 +31,8 @@ onAuthStateChanged(auth, async (user) => {
 async function loadFeedbackUI() {
     const docRef = doc(db, "admin-pages", "feedback");
     const docSnap = await getDoc(docRef);
-
     if (docSnap.exists()) {
         container.innerHTML = docSnap.data().html;
-    } else {
-        container.innerHTML = "<h3>Error: Feedback UI shell not found.</h3>";
-        throw new Error("UI Shell Missing");
     }
 }
 
@@ -54,18 +49,21 @@ function setupControls() {
         renderFeedback(searchInput?.value);
     });
 
+    // New Priority Filter Listener
+    document.getElementById('priority-filter')?.addEventListener('change', (e) => {
+        currentPriority = e.target.value;
+        renderFeedback(searchInput?.value);
+    });
+
     searchInput?.addEventListener('input', (e) => {
         renderFeedback(e.target.value);
     });
 }
 
 async function loadFeedbackData() {
-    const loadingText = document.getElementById('loading');
     const listContainer = document.getElementById('feedback-list');
-    if (!listContainer || !loadingText) return;
-
-    loadingText.style.display = 'block';
-    listContainer.innerHTML = '';
+    const loadingText = document.getElementById('loading');
+    if (!listContainer) return;
 
     try {
         const q = query(collection(db, 'feedback'), orderBy('timestamp', currentSort));
@@ -76,11 +74,10 @@ async function loadFeedbackData() {
             ...doc.data()
         }));
 
-        loadingText.style.display = 'none';
+        if(loadingText) loadingText.style.display = 'none';
         renderFeedback();
     } catch (error) {
         console.error("Fetch error:", error);
-        loadingText.textContent = 'Error loading data.';
     }
 }
 
@@ -91,21 +88,26 @@ function renderFeedback(term = "") {
     const searchTerm = (term || '').trim().toLowerCase();
     listContainer.innerHTML = '';
 
+    const statusConfig = {
+        'open': { class: 'badge-primary', label: 'Open' },
+        'in-progress': { class: 'badge-info', label: 'In Progress' },
+        'denied': { class: 'badge-danger', label: 'Denied' },
+        'resolved': { class: 'badge-success', label: 'Resolved' }
+    };
+
     let filtered = allFeedback.filter(item => {
-        const matchesResolved = hideResolved ? !item.resolved : true;
+        // Backward compatibility: if no status, use resolved bool
+        const status = item.status || (item.resolved ? 'resolved' : 'open');
+        const priority = item.priority || 'medium';
+
+        const matchesResolved = hideResolved ? status !== 'resolved' : true;
+        const matchesPriority = currentPriority === 'all' || priority === currentPriority;
         const matchesSearch = searchTerm === "" ||
             (item.title || '').toLowerCase().includes(searchTerm) ||
             (item.page || '').toLowerCase().includes(searchTerm) ||
             (item.message || '').toLowerCase().includes(searchTerm);
 
-        return matchesResolved && matchesSearch;
-    });
-
-    filtered.sort((a, b) => {
-        if (a.resolved !== b.resolved) return a.resolved - b.resolved;
-        const timeA = a.timestamp?.seconds || 0;
-        const timeB = b.timestamp?.seconds || 0;
-        return currentSort === 'desc' ? timeB - timeA : timeA - timeB;
+        return matchesResolved && matchesPriority && matchesSearch;
     });
 
     if (filtered.length === 0) {
@@ -114,20 +116,30 @@ function renderFeedback(term = "") {
     }
 
     filtered.forEach(data => {
+        const currentStatus = data.status || (data.resolved ? 'resolved' : 'open');
+        const config = statusConfig[currentStatus] || statusConfig['open'];
+        const priority = data.priority || 'medium';
+
         const preview = (data.message || '').substring(0, 100) + (data.message?.length > 100 ? '...' : '');
+
         const a = document.createElement('a');
         a.href = `/feedback/post?id=${data.id}`;
-        a.className = `feedback-item list-group-item list-group-item-action ${data.resolved ? 'read' : ''}`;
+        a.className = `feedback-item list-group-item list-group-item-action ${currentStatus === 'resolved' ? 'read' : ''}`;
+
+        // Visual indicator for high priority
+        if (priority === 'high') {
+            a.style.borderLeft = "5px solid #dc3545";
+        }
 
         a.innerHTML = `
             <div class="feedback-header">
                 <div class="feedback-title">
-                    ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
-                    ${data.resolved ? '<span class="badge badge-success ml-2">Resolved</span>' : ''}
+                    <span class="badge ${config.class} mr-2">${config.label}</span>
+                    ${priority === 'high' ? '<span class="badge badge-warning mr-2">HIGH</span>' : ''}
+                    ${escapeHtml(data.page || 'General')} - ${escapeHtml(data.title)}
                 </div>
                 <div class="feedback-meta">
                     <div>${escapeHtml(data.contact)}</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">IP: ${escapeHtml(data.ip || 'Unknown')}</div>
                 </div>
             </div>
             <div class="feedback-preview">${escapeHtml(preview)}</div>
