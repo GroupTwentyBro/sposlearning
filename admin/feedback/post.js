@@ -5,8 +5,7 @@ import { initThemeListeners } from '/js/theming.js';
 import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
-// FIXED: Changed from 'secure-container' to 'secure'
-const container = document.getElementById('secure');
+const container = document.getElementById('secure-container');
 const params = new URLSearchParams(window.location.search);
 const postId = params.get('id');
 

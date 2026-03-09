@@ -4,8 +4,7 @@ import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from '
 import { initThemeListeners } from '/js/theming.js';
 
 const db = getFirestore(app);
-// FIXED: Changed from 'secure-container' to 'secure' to match your HTML
-const container = document.getElementById('secure');
+const container = document.getElementById('secure-container');
 
 let allFeedback = [];
 let currentSort = 'desc';
