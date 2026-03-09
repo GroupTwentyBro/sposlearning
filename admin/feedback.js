@@ -93,10 +93,10 @@ function renderFeedback(term = "") {
     listContainer.innerHTML = '';
 
     const statusConfig = {
-        'open': { class: 'badge-primary', label: 'Open' },
-        'in-progress': { class: 'badge-info', label: 'In Progress' },
-        'denied': { class: 'badge-danger', label: 'Denied' },
-        'resolved': { class: 'badge-success', label: 'Resolved' }
+        'open': { class: 'badge-primary', label: 'Open', weight: 1 },
+        'in-progress': { class: 'badge-info', label: 'In Progress', weight: 2 },
+        'resolved': { class: 'badge-success', label: 'Resolved', weight: 3 },
+        'denied': { class: 'badge-danger', label: 'Denied', weight: 4 }
     };
 
     let filtered = allFeedback.filter(item => {
@@ -111,6 +111,23 @@ function renderFeedback(term = "") {
             (item.message || '').toLowerCase().includes(searchTerm);
 
         return matchesResolved && matchesPriority && matchesSearch;
+    });
+
+    filtered.sort((a, b) => {
+        const statusA = a.status || (a.resolved ? 'resolved' : 'open');
+        const statusB = b.status || (b.resolved ? 'resolved' : 'open');
+
+        const weightA = statusConfig[statusA]?.weight || 5;
+        const weightB = statusConfig[statusB]?.weight || 5;
+
+        if (weightA !== weightB) {
+            return weightA - weightB;
+        }
+
+        const timeA = a.timestamp?.seconds || 0;
+        const timeB = b.timestamp?.seconds || 0;
+
+        return currentSort === 'desc' ? timeB - timeA : timeA - timeB;
     });
 
     if (filtered.length === 0) {
