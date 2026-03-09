@@ -65,13 +65,13 @@ async function loadPostData() {
         <div class="d-flex justify-content-between align-items-start">
             <h2>${escapeHtml(data.page)} - ${escapeHtml(data.title)}</h2>
             <div class="text-right">
-                <select id="status-select" class="form-control mb-2" style="width: 200px;">
+                <select id="status-select" class="form-control feedback-control mb-2" style="width: 200px;">
                     <option value="open" ${currentStatus === 'open' ? 'selected' : ''}>Open</option>
                     <option value="in-progress" ${currentStatus === 'in-progress' ? 'selected' : ''}>In Progress</option>
                     <option value="resolved" ${currentStatus === 'resolved' ? 'selected' : ''}>Resolved</option>
                     <option value="denied" ${currentStatus === 'denied' ? 'selected' : ''}>Denied</option>
                 </select>
-                <select id="priority-select" class="form-control" style="width: 200px;">
+                <select id="priority-select" class="form-control feedback-control" style="width: 200px;">
                     <option value="low" ${currentPriority === 'low' ? 'selected' : ''}>Low Priority</option>
                     <option value="medium" ${currentPriority === 'medium' ? 'selected' : ''}>Medium Priority</option>
                     <option value="high" ${currentPriority === 'high' ? 'selected' : ''}>High Priority</option>

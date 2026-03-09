@@ -154,3 +154,32 @@
     background-color: var(--box-overlay-border-clr);
     opacity: 0.8;
 }
+
+.feedback-control,
+#sort-select,
+#priority-filter,
+#status-select,
+#priority-select {
+    background-color: var(--box-overlay-clr) !important;
+    border: 1px solid var(--box-overlay-border-clr) !important;
+    border-radius: var(--box-border-radius) !important;
+    color: var(--root-fg-clr) !important;
+    padding: 6px 12px;
+    height: auto;
+}
+
+#sort-select option,
+#priority-filter option,
+#status-select option,
+#priority-select option {
+    background-color: var(--root-box-bg-clr);
+    color: var(--root-fg-clr);
+}
+
+.feedback-search input {
+    background-color: var(--box-overlay-clr);
+    border: 1px solid var(--box-overlay-border-clr);
+    border-radius: var(--box-border-radius);
+    color: var(--root-fg-clr);
+    padding-left: 35px;
+}
