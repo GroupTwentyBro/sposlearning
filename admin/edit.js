@@ -34,8 +34,10 @@ async function loadEditorUI() {
 
     if (docSnap.exists()) {
         container.innerHTML = docSnap.data().html;
-        enableTabIndentation(document.getElementById('md-content'));
-        enableTabIndentation(document.getElementById('html-content'));
+        const md = document.getElementById('md-content');
+        const html = document.getElementById('html-content');
+        if(md) enableTabIndentation(md);
+        if(html) enableTabIndentation(html);
 
 
         document.getElementById('edit-form').addEventListener('submit', handleSave);
@@ -71,7 +73,15 @@ async function loadPageForEditing() {
         }
 
         const data = docSnap.data();
-        document.getElementById('page-is-admin').checked = data.accessLevel === 'admin';
+        const adminCheckbox = document.getElementById('page-is-admin');
+
+        if (adminCheckbox) {
+            adminCheckbox.checked = (data.accessLevel === 'admin');
+            console.log("Checkbox set to:", adminCheckbox.checked);
+        } else {
+            console.error("Checkbox 'page-is-admin' not found in DOM!");
+        }
+
         pageType = data.type;
         pageUrlDisplay.value = `/${data.fullPath}`;
         pageTitle.value = data.title;
