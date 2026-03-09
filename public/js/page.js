@@ -192,13 +192,13 @@ function setupAdminTools() {
 
                 adminBar.innerHTML = `
                     <div class="admin-controls">
-                        <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
-                        <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
-                            <span class="icon">settings</span>
-                        </a>
                         <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
                             ${editBtn} 
                             ${deleteBtn}
+                            <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                            <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
+                                <span class="icon">settings</span>
+                            </a>
                             <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
                             <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
                             
