@@ -37,6 +37,7 @@ async function loadEditorUI() {
         enableTabIndentation(document.getElementById('md-content'));
         enableTabIndentation(document.getElementById('html-content'));
 
+
         document.getElementById('edit-form').addEventListener('submit', handleSave);
     } else {
         container.innerHTML = "<h3>Error: Editor shell not found in DB.</h3>";
@@ -70,6 +71,7 @@ async function loadPageForEditing() {
         }
 
         const data = docSnap.data();
+        document.getElementById('page-is-admin').checked = data.accessLevel === 'admin';
         pageType = data.type;
         pageUrlDisplay.value = `/${data.fullPath}`;
         pageTitle.value = data.title;
