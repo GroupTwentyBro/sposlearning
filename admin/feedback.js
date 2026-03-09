@@ -93,10 +93,16 @@ function renderFeedback(term = "") {
     listContainer.innerHTML = '';
 
     const statusConfig = {
-        'open': { class: 'badge-primary', label: 'Open', weight: 1 },
-        'in-progress': { class: 'badge-info', label: 'In Progress', weight: 2 },
-        'resolved': { class: 'badge-success', label: 'Resolved', weight: 3 },
-        'denied': { class: 'badge-danger', label: 'Denied', weight: 4 }
+        'open': { class: 'badge-primary', label: 'Open', weight: 10 },
+        'in-progress': { class: 'badge-info', label: 'In Progress', weight: 20 },
+        'resolved': { class: 'badge-success', label: 'Resolved', weight: 30 },
+        'denied': { class: 'badge-danger', label: 'Denied', weight: 40 }
+    };
+
+    const priorityWeight = {
+        'high': 1,
+        'medium': 2,
+        'low': 3
     };
 
     let filtered = allFeedback.filter(item => {
@@ -113,20 +119,34 @@ function renderFeedback(term = "") {
         return matchesResolved && matchesPriority && matchesSearch;
     });
 
+    // --- ENHANCED SORTING: PRIORITY > STATUS > DATE ---
     filtered.sort((a, b) => {
         const statusA = a.status || (a.resolved ? 'resolved' : 'open');
         const statusB = b.status || (b.resolved ? 'resolved' : 'open');
+        const prioA = a.priority || 'medium';
+        const prioB = b.priority || 'medium';
 
-        const weightA = statusConfig[statusA]?.weight || 5;
-        const weightB = statusConfig[statusB]?.weight || 5;
+        // 1. Check Priority first (High > Medium > Low)
+        // Only prioritize by "Priority" if the items aren't resolved/denied
+        const isClosedA = (statusA === 'resolved' || statusA === 'denied');
+        const isClosedB = (statusB === 'resolved' || statusB === 'denied');
 
-        if (weightA !== weightB) {
-            return weightA - weightB;
+        if (isClosedA !== isClosedB) {
+            return isClosedA ? 1 : -1; // Keep open items above closed ones
         }
 
+        if (priorityWeight[prioA] !== priorityWeight[prioB]) {
+            return priorityWeight[prioA] - priorityWeight[prioB];
+        }
+
+        // 2. Then sort by Status (Open > In Progress)
+        if (statusConfig[statusA].weight !== statusConfig[statusB].weight) {
+            return statusConfig[statusA].weight - statusConfig[statusB].weight;
+        }
+
+        // 3. Finally, sort by Date
         const timeA = a.timestamp?.seconds || 0;
         const timeB = b.timestamp?.seconds || 0;
-
         return currentSort === 'desc' ? timeB - timeA : timeA - timeB;
     });
 
@@ -135,6 +155,7 @@ function renderFeedback(term = "") {
         return;
     }
 
+    // Render loop
     filtered.forEach(data => {
         const currentStatus = data.status || (data.resolved ? 'resolved' : 'open');
         const config = statusConfig[currentStatus] || statusConfig['open'];
@@ -145,13 +166,17 @@ function renderFeedback(term = "") {
         a.href = `/feedback/post?id=${data.id}`;
         a.className = `feedback-item list-group-item list-group-item-action ${currentStatus === 'resolved' ? 'read' : ''}`;
 
-        if (priority === 'high') a.style.borderLeft = "5px solid #dc3545";
+        // Visual indicator for high priority
+        if (priority === 'high') {
+            a.style.borderLeft = "6px solid #ff4d4d"; // Thicker red line
+            a.style.backgroundColor = "rgba(255, 77, 77, 0.05)"; // Subtle highlight
+        }
 
         a.innerHTML = `
             <div class="feedback-header">
                 <div class="feedback-title">
                     <span class="badge ${config.class} mr-2">${config.label}</span>
-                    ${priority === 'high' ? '<span class="badge badge-warning mr-2">HIGH</span>' : ''}
+                    ${priority === 'high' ? '<span class="badge badge-warning mr-2" style="color: #000; font-weight: bold;">HIGH PRIORITY</span>' : ''}
                     ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
                 </div>
                 <div class="feedback-meta">
