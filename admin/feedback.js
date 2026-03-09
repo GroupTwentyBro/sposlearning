@@ -4,17 +4,17 @@ import { getFirestore, collection, getDocs, query, orderBy, doc, getDoc } from '
 import { initThemeListeners } from '/js/theming.js';
 
 const db = getFirestore(app);
-const container = document.getElementById('secure'); // Changed from 'secure-container' to match your HTML ID
+// FIXED: Changed from 'secure-container' to 'secure' to match your HTML
+const container = document.getElementById('secure');
 
 let allFeedback = [];
 let currentSort = 'desc';
 let hideResolved = false;
-let currentPriority = 'all'; // New filter state
+let currentPriority = 'all';
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
-            // If using a DB shell, load it first
             await loadFeedbackUI();
             setupControls();
             await loadFeedbackData();
@@ -29,10 +29,15 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function loadFeedbackUI() {
+    if (!container) return;
     const docRef = doc(db, "admin-pages", "feedback");
     const docSnap = await getDoc(docRef);
+
     if (docSnap.exists()) {
         container.innerHTML = docSnap.data().html;
+    } else {
+        container.innerHTML = "<h3>Error: Feedback UI shell not found.</h3>";
+        throw new Error("UI Shell Missing");
     }
 }
 
@@ -49,7 +54,6 @@ function setupControls() {
         renderFeedback(searchInput?.value);
     });
 
-    // New Priority Filter Listener
     document.getElementById('priority-filter')?.addEventListener('change', (e) => {
         currentPriority = e.target.value;
         renderFeedback(searchInput?.value);
@@ -61,8 +65,8 @@ function setupControls() {
 }
 
 async function loadFeedbackData() {
-    const listContainer = document.getElementById('feedback-list');
     const loadingText = document.getElementById('loading');
+    const listContainer = document.getElementById('feedback-list');
     if (!listContainer) return;
 
     try {
@@ -74,10 +78,11 @@ async function loadFeedbackData() {
             ...doc.data()
         }));
 
-        if(loadingText) loadingText.style.display = 'none';
+        if (loadingText) loadingText.style.display = 'none';
         renderFeedback();
     } catch (error) {
         console.error("Fetch error:", error);
+        if (loadingText) loadingText.textContent = 'Error loading data.';
     }
 }
 
@@ -96,7 +101,6 @@ function renderFeedback(term = "") {
     };
 
     let filtered = allFeedback.filter(item => {
-        // Backward compatibility: if no status, use resolved bool
         const status = item.status || (item.resolved ? 'resolved' : 'open');
         const priority = item.priority || 'medium';
 
@@ -119,24 +123,20 @@ function renderFeedback(term = "") {
         const currentStatus = data.status || (data.resolved ? 'resolved' : 'open');
         const config = statusConfig[currentStatus] || statusConfig['open'];
         const priority = data.priority || 'medium';
-
         const preview = (data.message || '').substring(0, 100) + (data.message?.length > 100 ? '...' : '');
 
         const a = document.createElement('a');
         a.href = `/feedback/post?id=${data.id}`;
         a.className = `feedback-item list-group-item list-group-item-action ${currentStatus === 'resolved' ? 'read' : ''}`;
 
-        // Visual indicator for high priority
-        if (priority === 'high') {
-            a.style.borderLeft = "5px solid #dc3545";
-        }
+        if (priority === 'high') a.style.borderLeft = "5px solid #dc3545";
 
         a.innerHTML = `
             <div class="feedback-header">
                 <div class="feedback-title">
                     <span class="badge ${config.class} mr-2">${config.label}</span>
                     ${priority === 'high' ? '<span class="badge badge-warning mr-2">HIGH</span>' : ''}
-                    ${escapeHtml(data.page || 'General')} - ${escapeHtml(data.title)}
+                    ${escapeHtml(data.page)} - ${escapeHtml(data.title)}
                 </div>
                 <div class="feedback-meta">
                     <div>${escapeHtml(data.contact)}</div>
