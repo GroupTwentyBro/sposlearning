@@ -4,7 +4,7 @@ import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.g
 import { initThemeListeners, applyTheme } from './theming.js';
 
 // 1. Import your global logger function
-import { createServerLog } from '/js/logger.js';
+import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 const auth = getAuth(app);
