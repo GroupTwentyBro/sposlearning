@@ -34,19 +34,14 @@
         <form id="edit-form" class="mt-3">
             <div class="form-group">
                 <label>Page URL (Path)</label>
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">/</span>
-                    </div>
-                    <input
-                            type="text"
-                            class="form-control"
-                            id="page-url-display"
-                            placeholder="folder/page-name"
-                            required
-                            pattern="^[a-z0-9/-]+$"
-                            title="Only lowercase letters, numbers, hyphens, and slashes allowed.">
-                </div>
+                <input
+                        type="text"
+                        class="form-control"
+                        id="page-url-display"
+                        placeholder="folder/page-name"
+                        required
+                        pattern="^[a-z0-9/-]+$"
+                        title="Only lowercase letters, numbers, hyphens, and slashes allowed.">
                 <small class="form-text text-muted">Example: <code>courses/javascript-101</code></small>
             </div>
 
