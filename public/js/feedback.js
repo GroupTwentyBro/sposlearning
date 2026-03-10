@@ -84,7 +84,7 @@ form.addEventListener('submit', async (e) => {
         const feedbackData = {
             title: title.trim(),
             page: page.trim(),
-            name: user.userName,
+            name: user.displayName,
             contact: user.email,
             message: message.trim(),
             relatedPage: pageInput.value || 'General',
