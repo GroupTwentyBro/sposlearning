@@ -3,7 +3,6 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/f
 import { getFirestore, collection, deleteDoc, query, where, getDocs, setDoc, getDoc, doc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners } from '/js/theming.js';
 
-// 1. Import your new logger function
 import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
@@ -13,6 +12,7 @@ let pageDocId = null;
 let pageType = null;
 let pageFullPath = null;
 let isOldDocument = false;
+let originalPath = "";
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -55,6 +55,7 @@ async function loadPageForEditing() {
     try {
         const params = new URLSearchParams(window.location.search);
         pageFullPath = params.get('path');
+        originalPath = pageFullPath;
 
         const newDocId = pageFullPath.replace(/\//g, '|');
         const docRef = doc(db, 'pages', newDocId);
@@ -99,16 +100,28 @@ async function loadPageForEditing() {
         if(saveButton) saveButton.disabled = true;
     }
 }
-
 async function handleSave(e) {
     e.preventDefault();
     const saveButton = document.getElementById('save-button');
     const status = document.getElementById('page-status');
 
+    let newPath = document.getElementById('page-url-display').value.trim().replace(/^\/|\/$/g, '');
+    const newDocId = newPath.replace(/\//g, '|');
+    const oldDocId = pageDocId;
+
     saveButton.disabled = true;
-    saveButton.textContent = 'Saving...';
+    saveButton.textContent = 'Validating...';
 
     try {
+        if (newPath !== originalPath) {
+            const checkDoc = await getDoc(doc(db, 'pages', newDocId));
+            if (checkDoc.exists()) {
+                throw new Error(`A page already exists at /${newPath}. Please choose a different URL.`);
+            }
+        }
+
+        saveButton.textContent = 'Saving...';
+
         let newContent = (pageType === 'markdown')
             ? document.getElementById('md-content').value
             : document.getElementById('html-content').value;
@@ -116,36 +129,37 @@ async function handleSave(e) {
         const updatedData = {
             title: document.getElementById('page-title').value,
             content: newContent,
+            fullPath: newPath,
             accessLevel: document.getElementById('page-is-admin').checked ? 'admin' : 'public',
             lastEditedBy: auth.currentUser.email,
-            lastEditedAt: serverTimestamp()
+            lastEditedAt: serverTimestamp(),
+            type: pageType
         };
 
-        if (isOldDocument) {
-            const newDocId = pageFullPath.replace(/\//g, '|');
-            await setDoc(doc(db, 'pages', newDocId), { ...updatedData, fullPath: pageFullPath, type: pageType });
-            await deleteDoc(doc(db, 'pages', pageDocId));
+        if (newPath !== originalPath || isOldDocument) {
+            await setDoc(doc(db, 'pages', newDocId), updatedData);
+
+            if (newDocId !== oldDocId) {
+                await deleteDoc(doc(db, 'pages', oldDocId));
+            }
         } else {
-            await updateDoc(doc(db, 'pages', pageDocId), updatedData);
+            await updateDoc(doc(db, 'pages', oldDocId), updatedData);
         }
 
-        // 2. Call the logger with your specific parameters BEFORE redirecting
-        await createServerLog('page', `Edited Page: ${updatedData.title}`, {
-            isUser: !!auth.currentUser,
+        await createServerLog('page', `Path Updated: ${originalPath} -> ${newPath}`, {
             userEmail: auth.currentUser.email,
-            userEmailVerified: auth.currentUser.emailVerified,
-            userName: auth.currentUser.displayName || 'none',
-            pageAccessLevel: updatedData.accessLevel,
-            pageContent: updatedData.content, // Logs the raw markdown/html
-            pageFullPath: pageFullPath,
-            pageEditedBy: auth.currentUser.email,
-            pageTitle: updatedData.title
+            oldPath: originalPath,
+            newPath: newPath,
+            title: updatedData.title
         });
 
-        window.location.href = `https://www.sposlearning.cz/${pageFullPath}`;
+        window.location.href = `https://www.sposlearning.cz/${newPath}`;
+
     } catch (error) {
-        status.textContent = `Error: ${error.message}`;
+        console.error("Save Error:", error);
+        status.innerHTML = `<span class="text-danger">⚠️ ${error.message}</span>`;
         saveButton.disabled = false;
+        saveButton.textContent = 'Save Changes';
     }
 }
 
