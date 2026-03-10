@@ -13,7 +13,6 @@ const form = document.getElementById('feedback-form');
 const submitBtn = document.getElementById('submit-btn');
 const statusMsg = document.getElementById('status-message');
 const pageInput = document.getElementById('feedback-page');
-const nameInput = document.getElementById('feedback-name');
 const formWrapper = document.getElementById('feedback-form-wrapper');
 
 initThemeListeners();
@@ -41,17 +40,6 @@ onAuthStateChanged(auth, (user) => {
     }
 
     if (formWrapper) formWrapper.style.display = 'block';
-
-    const providerId = user.providerData[0]?.providerId;
-    if (providerId === 'google.com') {
-        nameInput.value = user.displayName || '';
-        nameInput.readOnly = true;
-        nameInput.style.opacity = "0.7";
-        nameInput.title = "Jméno je načteno z vašeho účtu.";
-    } else {
-        nameInput.readOnly = false;
-        nameInput.style.opacity = "1";
-    }
 });
 
 const isJunk = (name, message) => {
@@ -72,7 +60,6 @@ form.addEventListener('submit', async (e) => {
 
     const title = document.getElementById('feedback-title').value;
     const page = document.getElementById('feedback-page').value;
-    const name = nameInput.value || 'Anonymous';
     const message = document.getElementById('feedback-message').value;
 
     const validationError = isJunk(name, message);
@@ -97,7 +84,7 @@ form.addEventListener('submit', async (e) => {
         const feedbackData = {
             title: title.trim(),
             page: page.trim(),
-            name: name.trim(),
+            name: user.userName,
             contact: user.email,
             message: message.trim(),
             relatedPage: pageInput.value || 'General',
@@ -145,10 +132,6 @@ form.addEventListener('submit', async (e) => {
         statusMsg.className = 'text-success font-weight-bold';
         statusMsg.textContent = 'Děkujeme! Vaše zpětná vazba byla odeslána.';
         form.reset();
-
-        if (user.displayName && (user.providerData[0]?.providerId !== 'password')) {
-            nameInput.value = user.displayName;
-        }
 
         setTimeout(() => { window.location.href = '/'; }, 2000);
 
