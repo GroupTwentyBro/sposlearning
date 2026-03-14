@@ -87,7 +87,7 @@ function renderUserTable(users) {
         html += `
             <tr data-uid="${user.uid}">
                 <td>
-                    ${user.displayName ? '<b>${escapeHtml(user.displayName)}</b><br>' : '' }
+                    ${user.displayName ? '<b>\${escapeHtml(user.displayName)}</b><br>' : '' }
                     <small class="text-muted">${escapeHtml(user.email)}</small>
         </td>
                 <td>
