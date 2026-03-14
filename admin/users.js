@@ -87,8 +87,8 @@ function renderUserTable(users) {
         html += `
             <tr data-uid="${user.uid}">
                 <td>
-                    ${user.displayName ? '<b>\${escapeHtml(user.displayName)}</b><br>' : '' }
-                    ${user.displayName ? '<small class="text-muted">${escapeHtml(user.email)}</small>' : '<b>${escapeHtml(user.email)}</b>' }
+                    ${user.displayName ? `<b>${escapeHtml(user.displayName)}</b><br>` : '' }
+                    ${user.displayName ? `<small class="text-muted">${escapeHtml(user.email)}</small>` : `<b>${escapeHtml(user.email)}</b>`}
         </td>
                 <td>
                     ${user.emailVerified || user.providerData?.[0]?.providerId !== "password" ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
