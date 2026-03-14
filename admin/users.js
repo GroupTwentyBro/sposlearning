@@ -87,23 +87,17 @@ function renderUserTable(users) {
         html += `
             <tr data-uid="${user.uid}">
                 <td>
-                    <b>${escapeHtml(user.displayName || 'No name')}</b><br>
-                    <small class="text-muted">${escapeHtml(user.email || 'No email')}</small>
+                    ${user.displayName ? '<b>${escapeHtml(user.displayName)}</b><br>' : '' }
+                    <small class="text-muted">${escapeHtml(user.email)}</small>
+        </td>
+                <td>
+                    ${user.emailVerified || user.providerData[0]?.providerId !== "password" ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
                 </td>
                 <td>
-                    ${user.emailVerified ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
-                </td>
-                <td>
-                    ${isAdmin ? '<span class="badge bg-danger">ADMIN</span>' : '<span class="badge bg-secondary">User</span>'}
+                    ${isAdmin ? '<span class="badge bg-danger">Admin</span>' : '<span class="badge bg-secondary">User</span>'}
                 </td>
                 <td>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-info verify-btn" data-email="${user.email}" title="Generate verification link">
-                            <span class="material-symbols-outlined fs-6">mail</span>
-                        </button>
-                        <button class="btn btn-sm btn-outline-warning reset-btn" data-email="${user.email}" title="Send password reset">
-                            <span class="material-symbols-outlined fs-6">lock_reset</span>
-                        </button>
                         <button class="btn btn-sm ${isAdmin ? 'btn-danger' : 'btn-outline-danger'} toggle-admin-btn" data-uid="${user.uid}" data-current="${isAdmin}" title="Toggle admin">
                             <span class="material-symbols-outlined fs-6">shield_person</span>
                         </button>
