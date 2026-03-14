@@ -168,7 +168,13 @@ function setupAdminTools() {
         adminBar.innerHTML = '';
 
         if (user) {
-            const isAdmin = user.customClaims?.admin || false;
+            let isAdmin = false;
+            try {
+                const idTokenResult = await user.getIdTokenResult();
+                isAdmin = !!idTokenResult.claims.admin;
+            } catch (err) {
+                console.error("Failed to fetch admin claims:", err);
+            }
 
             if (!isAdmin) {
                 adminBar.innerHTML = `
