@@ -259,6 +259,11 @@ icon.boxed.clr3 {
     background-color: var(--trietary-sd-clr);
 }
 
+icon.boxed.clr4 {
+    color: var(--quaternary-hl-clr);
+    background-color: var(--quaternary-sd-clr);
+}
+
 h2.boxed {
     font-size: 1.5rem;
     margin-top: 1.5rem;
