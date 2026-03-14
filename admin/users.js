@@ -1,16 +1,19 @@
+// users.js
 import { app, auth } from '/js/firebaseConfig.js';
-import { getFirestore, collection, doc, setDoc, deleteDoc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { createServerLog } from '/js/logging.js';
 
 const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 
+/**
+ * Call an admin action on the PHP backend.
+ */
 async function callAdminEndpoint(action, data = {}) {
     const user = auth.currentUser;
     if (!user) throw new Error('Not authenticated');
     const idToken = await user.getIdToken(true);
-    console.log('Sending token:', idToken.substring(0,20) + '...'); // log first 20 chars
-
+    console.log('Sending token:', idToken.substring(0,20) + '...');
 
     const response = await fetch('/users.php', {
         method: 'POST',
@@ -25,6 +28,9 @@ async function callAdminEndpoint(action, data = {}) {
     return response.json();
 }
 
+/**
+ * Load the admin page HTML from Firestore (existing logic).
+ */
 async function loadUsersPage() {
     const docRef = doc(db, "admin-pages", "users");
     const docSnap = await getDoc(docRef);
@@ -39,27 +45,28 @@ async function loadUsersPage() {
     }
 }
 
+/**
+ * Fetch the list of users and render the table.
+ */
 async function loadUserList() {
     const tbody = document.getElementById('user-list-tbody');
     const searchInput = document.getElementById('user-search');
     tbody.innerHTML = '<tr><td colspan="6" class="text-center">Loading...</td></tr>';
 
     try {
-        const adminSnap = await getDocs(collection(db, "administrators"));
-        const adminIds = adminSnap.docs.map(d => d.id);
-
         const result = await callAdminEndpoint('listUsers');
         const users = result.users;
 
-        renderUserTable(users, adminIds);
+        renderUserTable(users);
 
+        // Set up search filtering
         searchInput.addEventListener('input', () => {
             const term = searchInput.value.toLowerCase();
             const filtered = users.filter(u =>
                 (u.email && u.email.toLowerCase().includes(term)) ||
                 (u.displayName && u.displayName.toLowerCase().includes(term))
             );
-            renderUserTable(filtered, adminIds);
+            renderUserTable(filtered);
         });
     } catch (error) {
         console.error("Error loading users:", error);
@@ -67,12 +74,16 @@ async function loadUserList() {
     }
 }
 
-function renderUserTable(users, adminIds) {
+/**
+ * Render the user table rows.
+ * @param {Array} users
+ */
+function renderUserTable(users) {
     const tbody = document.getElementById('user-list-tbody');
     let html = '';
 
     users.forEach(user => {
-        const isAdmin = adminIds.includes(user.uid);
+        const isAdmin = user.customClaims?.admin || false; // from custom claims
         html += `
             <tr data-uid="${user.uid}">
                 <td>
@@ -107,6 +118,7 @@ function renderUserTable(users, adminIds) {
 
     tbody.innerHTML = html;
 
+    // Attach click event listeners (delegation)
     tbody.addEventListener('click', async (e) => {
         const target = e.target.closest('button');
         if (!target) return;
@@ -136,13 +148,14 @@ function renderUserTable(users, adminIds) {
             else if (target.classList.contains('toggle-admin-btn')) {
                 const current = target.dataset.current === 'true';
                 if (confirm(`Are you sure you want to ${current ? 'remove' : 'grant'} admin privileges?`)) {
-                    const result = await callAdminEndpoint('toggleAdmin', { uid });
+                    await callAdminEndpoint('toggleAdmin', { uid });
+                    // Refresh the list to show updated admin status
                     loadUserList();
                 }
             }
             else if (target.classList.contains('delete-btn')) {
                 if (confirm(`⚠️ Permanently delete user ${email}? This cannot be undone.`)) {
-                    const result = await callAdminEndpoint('deleteUser', { uid });
+                    await callAdminEndpoint('deleteUser', { uid });
                     alert('User deleted.');
                     loadUserList();
                 }
@@ -153,6 +166,9 @@ function renderUserTable(users, adminIds) {
     });
 }
 
+/**
+ * Simple HTML escaping.
+ */
 function escapeHtml(unsafe) {
     return unsafe.replace(/[&<>"']/g, function(m) {
         if(m === '&') return '&amp;';
@@ -164,4 +180,5 @@ function escapeHtml(unsafe) {
     });
 }
 
+// Start the page
 loadUsersPage();

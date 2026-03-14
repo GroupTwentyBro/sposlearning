@@ -1,0 +1,30 @@
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_URI} ^/exchange-token
+RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
+
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteCond %{HTTP_HOST} !^dev\. [NC]
+RewriteCond %{HTTP_HOST} !^admin\. [NC]
+RewriteRule ^(.*)$ https://www.sposlearning.cz/$1 [L,R=301]
+
+RewriteRule ^login/?$ login.html [L]
+RewriteRule ^logs/?$ logs.html [L]
+RewriteRule ^dashboard/?$ dashboard.html [L]
+RewriteRule ^feedback/?$ feedback.html [L]
+RewriteRule ^feedback/post/?$ feedback/post.html [L]
+RewriteRule ^add-page/?$ add-page.html [L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+<FilesMatch "\.(js|css)$">
+  FileETag None
+  <IfModule mod_headers.c>
+    Header unset ETag
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+  </IfModule>
+</FilesMatch>
