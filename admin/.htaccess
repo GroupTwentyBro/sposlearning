@@ -11,6 +11,7 @@ RewriteRule ^(.*)$ https://www.sposlearning.cz/$1 [L,R=301]
 
 RewriteRule ^login/?$ login.html [L]
 RewriteRule ^logs/?$ logs.html [L]
+RewriteRule ^users/?$ users.html [L]
 RewriteRule ^dashboard/?$ dashboard.html [L]
 RewriteRule ^feedback/?$ feedback.html [L]
 RewriteRule ^feedback/post/?$ feedback/post.html [L]
