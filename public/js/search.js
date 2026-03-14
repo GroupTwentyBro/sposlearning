@@ -1,13 +1,7 @@
 import {app} from './firebaseConfig.js';
 import {getAuth, onAuthStateChanged, signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    getFirestore
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import {applyTheme, initThemeListeners} from './theming.js';
+import {collection, getDocs, getFirestore} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {initThemeListeners} from './theming.js';
 
 function getGlobalItem(name) {
     const value = `; ${document.cookie}`;
@@ -34,9 +28,7 @@ function getAccessLevel(data) {
 
 async function isUserAdmin() {
     if (!currentUser) { return false; }
-    const adminDocRef = doc(db, 'administrators', currentUser.uid);
-    const adminSnap = await getDoc(adminDocRef);
-    return adminSnap.exists();
+    return currentUser.customClaims?.admin || false;
 }
 
 async function fetchAllPages() {

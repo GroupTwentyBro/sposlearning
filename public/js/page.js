@@ -168,9 +168,7 @@ function setupAdminTools() {
         adminBar.innerHTML = '';
 
         if (user) {
-            const adminDocRef = doc(db, 'administrators', user.uid);
-            const adminSnap = await getDoc(adminDocRef);
-            const isAdmin = adminSnap.exists();
+            const isAdmin = user.customClaims?.admin || false;
 
             if (!isAdmin) {
                 adminBar.innerHTML = `
