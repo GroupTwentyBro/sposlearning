@@ -28,7 +28,17 @@ function getAccessLevel(data) {
 
 async function isUserAdmin() {
     if (!currentUser) { return false; }
-    return currentUser.customClaims?.admin || false;
+
+    try {
+        // Fetch the token result which contains the custom claims
+        const idTokenResult = await currentUser.getIdTokenResult();
+
+        // Check if the 'admin' claim exists and is true
+        return !!idTokenResult.claims.admin;
+    } catch (error) {
+        console.error("Error fetching custom claims:", error);
+        return false;
+    }
 }
 
 async function fetchAllPages() {
