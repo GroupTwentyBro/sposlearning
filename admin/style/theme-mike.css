@@ -32,6 +32,11 @@
     --trietary-fg-clr: hsl(260, 100%, 32%);
     --trietary-hl-clr: hsl(260, 100%, 75%);
 
+    --quaternary-sd-clr: hsl(260, 100%, 10%);
+    --quaternary-bg-clr: hsl(260, 100%, 19%);
+    --quaternary-fg-clr: hsl(260, 100%, 32%);
+    --quaternary-hl-clr: hsl(260, 100%, 75%);
+
     --discl-def-bg-clr: hsl(260, 100%, 19%);
     --discl-def-fg-clr: hsl(260, 100%, 32%);
 

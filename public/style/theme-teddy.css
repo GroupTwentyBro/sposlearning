@@ -25,12 +25,17 @@
     --secondary-sd-clr: hsl(319, 54%, 20%);
     --secondary-bg-clr: hsl(319, 54%, 30%);
     --secondary-fg-clr: hsl(319, 54%, 43%);
-    --secondary-hl-clr: hsl(9, 93%, 66%);
+    --secondary-hl-clr: hsl(319, 93%, 66%);
 
     --trietary-sd-clr: hsl(30, 98%, 20%);
     --trietary-bg-clr: hsl(30, 98%, 35%);
     --trietary-fg-clr: hsl(30, 98%, 65%);
     --trietary-hl-clr: hsl(30, 98%, 85%);
+
+    --quaternary-sd-clr: hsl(244, 37%, 25%);
+    --quaternary-bg-clr: hsl(244, 37%, 35%);
+    --quaternary-fg-clr: hsl(244, 37%, 50%);
+    --quaternary-hl-clr: hsl(244, 20%, 70%);
 
     --discl-def-bg-clr: hsla(273, 47%, 35%, 0.2);
     --discl-def-fg-clr: hsl(273, 47%, 45%);

@@ -34,6 +34,11 @@
     --trietary-fg-clr: hsl(var(--hue-val), 100%, 32%);
     --trietary-hl-clr: hsl(var(--hue-val), 100%, 75%);
 
+    --quaternary-sd-clr: hsl(var(--hue-val), 100%, 10%);
+    --quaternary-bg-clr: hsl(var(--hue-val), 100%, 19%);
+    --quaternary-fg-clr: hsl(var(--hue-val), 100%, 32%);
+    --quaternary-hl-clr: hsl(var(--hue-val), 100%, 75%);
+
     --discl-def-bg-clr: hsl(var(--hue-val), 100%, 19%);
     --discl-def-fg-clr: hsl(var(--hue-val), 100%, 32%);
 
