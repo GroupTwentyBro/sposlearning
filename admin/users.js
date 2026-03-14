@@ -91,7 +91,7 @@ function renderUserTable(users) {
                     <small class="text-muted">${escapeHtml(user.email)}</small>
         </td>
                 <td>
-                    ${user.emailVerified || user.providerData[0]?.providerId !== "password" ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
+                    ${user.emailVerified || user.providerData?.[0]?.providerId !== "password" ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-warning">Unverified</span>'}
                 </td>
                 <td>
                     ${isAdmin ? '<span class="badge bg-danger">Admin</span>' : '<span class="badge bg-secondary">User</span>'}
