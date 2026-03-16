@@ -52,5 +52,8 @@ async function checkAdminSession() {
 const adminUser = await checkAdminSession();
 
 if (adminUser) {
-    document.getElementById('admin-email').textContent = adminUser.traits.email;
+    const emailDisplay = document.getElementById('admin-email');
+    if (emailDisplay && adminUser) {
+        emailDisplay.textContent = adminUser.traits.email;
+    }
 }
