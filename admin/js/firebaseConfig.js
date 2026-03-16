@@ -11,46 +11,46 @@ const firebaseConfig = {
     measurementId: "G-985HT1GDW4"
 };
 
-export const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const LOGIN_URL = "https://sposlearning.cz/login";
 
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('token');
-
-async function exchangeToken(idToken) {
-    const response = await fetch('https://admin.sposlearning.cz/debug_exchange.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken })
-    });
-    if (!response.ok) throw new Error('Exchange failed');
-    const { customToken } = await response.json();
-    if (!customToken) throw new Error('No custom token');
-    return customToken;
-}
-
-async function handleTokenExchange() {
+async function checkAdminSession() {
     try {
-        const customToken = await exchangeToken(token);
-        await signInWithCustomToken(auth, customToken);
-        window.history.replaceState({}, document.title, window.location.pathname);
-        console.log('Signed in via token exchange');
+        const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error('No active session');
+        }
+
+        const session = await response.json();
+        const user = session.identity;
+
+        const isAdmin = user.metadata_public?.admin === true;
+
+        if (!isAdmin) {
+            console.warn("User is not an administrator.");
+            window.location.href = LOGIN_URL;
+            return;
+        }
+
+        console.log("Admin session verified:", user.traits.email);
+        return user;
+
     } catch (error) {
-        console.error('Token exchange error:', error);
-        window.location.href = 'https://sposlearning.cz/login';
+        console.error("Auth check failed:", error);
+        window.location.href = LOGIN_URL;
     }
 }
 
-function setupAuthObserver() {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            console.log("Admin session active:", user.email);
-        } else {
-            window.location.href = 'https://sposlearning.cz/login';
-        }
-    });
-}
+const adminUser = await checkAdminSession();
 
+if (adminUser) {
+    document.getElementById('admin-email').textContent = adminUser.traits.email;
+}
 if (token) {
     handleTokenExchange().then(() => {
         setupAuthObserver();
