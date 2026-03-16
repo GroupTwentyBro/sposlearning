@@ -1,81 +1,71 @@
-import { app } from '/js/firebaseConfig.js';
-import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners } from '/js/theming.js';
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const db = getFirestore(app);
+const PROXY_URL = 'https://admin.sposlearning.cz/get_content.php';
+const LOGIN_URL = 'https://sposlearning.cz/login';
+const KRATOS_LOGOUT_URL = 'https://auth.sposlearning.cz/self-service/browser/flows/logout';
+
 const container = document.getElementById('secure-container');
+const loader = document.querySelector('.dot-container');
 
-async function verifyKratosAdmin() {
+async function loadAdminDashboard() {
     try {
-        const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+        const response = await fetch(PROXY_URL, {
             method: 'GET',
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' }
-        });
-
-        if (!response.ok) throw new Error('Not logged in');
-
-        const session = await response.json();
-        const isAdmin = session.identity.metadata_public?.admin === true;
-
-        if (!isAdmin) throw new Error('Not an admin');
-
-        console.log('Kratos Admin Verified:', session.identity.traits.email);
-        await loadDashboardContent();
-
-    } catch (error) {
-        console.error("Access denied:", error);
-        document.querySelector('.dot-container')?.classList.add('hidden');
-        container.innerHTML = `
-            <div class="alert alert-danger text-center m-5" style="background: none !important; border: none;">
-                <h1 style="color: var(--root-fg-clr);">403</h1>
-                <p style="color: var(--root-txt-clr);">You are not an authorized administrator.</p>
-                <a href="https://sposlearning.cz/login" style="color: var(--primary-hl-clr);">Go back to login...</a>
-            </div>`;
-    }
-}
-
-async function loadSecureDashboard() {
-    try {
-        const response = await fetch('https://admin.sposlearning.cz/get_content.php', {
             credentials: 'include'
         });
 
-        if (!response.ok) throw new Error("Unauthorized or not found");
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Server returned an error:", errorData);
+
+            if (response.status === 401 || response.status === 403) {
+                showAccessDenied("Průchod zakázán. Nejste přihlášen jako administrátor.");
+                return;
+            }
+            throw new Error(errorData.message || "Failed to load dashboard content.");
+        }
 
         const data = await response.json();
-
-        container.innerHTML = data.html;
-
-        document.querySelector('.dot-container')?.classList.add('hidden');
-        container.classList.add('visible');
-
-        initializeGeneralScripts();
+        renderDashboard(data.html);
 
     } catch (error) {
-        console.error("Access denied:", error);
-        window.location.href = "https://sposlearning.cz/login";
+        console.error("Dashboard Load Error:", error);
+        showAccessDenied("Nastala neočekávaná chyba při načítání obsahu.");
     }
+}
+
+function renderDashboard(htmlContent) {
+    container.innerHTML = htmlContent;
+
+    if (loader) loader.classList.add('hidden');
+
+    container.classList.add('visible');
+
+    initializeGeneralScripts();
+    initThemeListeners();
 }
 
 function initializeGeneralScripts() {
     const logoutBtn = document.getElementById('logout-button');
-    if(logoutBtn) {
-        logoutBtn.addEventListener('click', async () => {
-            const res = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
-                method: 'GET',
-                credentials: 'include'
-            });
-            const data = await res.json();
-            if (data.logout_url) {
-                window.location.href = data.logout_url;
-            } else {
-                window.location.href = 'https://www.sposlearning.cz/login';
-            }
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = KRATOS_LOGOUT_URL;
         });
     }
 }
 
-verifyKratosAdmin();
-loadSecureDashboard();
+function showAccessDenied(message) {
+    if (loader) loader.classList.add('hidden');
+
+    container.innerHTML = `
+        <div class="alert alert-danger text-center m-5" style="background: none !important; border: none;">
+            <h1 style="color: var(--root-fg-clr); font-size: 4rem;">403</h1>
+            <p style="color: var(--root-txt-clr); font-size: 1.2rem;">${message}</p>
+            <a href="${LOGIN_URL}" style="color: var(--primary-hl-clr); text-decoration: underline;">
+                Zpět na přihlášení
+            </a>
+        </div>`;
+    container.classList.add('visible');
+}
+
+document.addEventListener('DOMContentLoaded', loadAdminDashboard);
