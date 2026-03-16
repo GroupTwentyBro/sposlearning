@@ -1,55 +1,9 @@
-import { app, auth } from './firebaseConfig.js';
-import {
-    browserLocalPersistence,
-    GithubAuthProvider,
-    GoogleAuthProvider,
-    OAuthProvider,
-    setPersistence,
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-    getFirestore,
-    doc,
-    getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 import {applyTheme, initThemeListeners} from '/js/theming.js';
 import {createServerLog} from "/js/logging.js";
 
-const db = getFirestore(app);
-
 initThemeListeners();
 
-async function checkAdminAndRedirect(user) {
-    try {
-        const tokenResult = await user.getIdTokenResult();
-        const isAdmin = tokenResult.claims.admin === true;
-
-        document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
-
-        await createServerLog('auth', `Login`, {
-            isUser: true,
-            userEmail: user.email,
-            userName: user.displayName || 'none',
-            userEmailVerified: user.emailVerified,
-            isAdmin: isAdmin
-        });
-
-        if (isAdmin) {
-            const idToken = await user.getIdToken();
-            window.location.href = `https://admin.sposlearning.cz/?token=${idToken}`;
-        } else {
-            window.location.href = 'https://sposlearning.cz/';
-        }
-    } catch (error) {
-        console.error("Error checking admin status:", error);
-        window.location.href = 'https://sposlearning.cz/';
-    }
-}
-
+const KRATOS_URL = "https://auth.sposlearning.cz";
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
@@ -58,69 +12,77 @@ const googleBtn = document.getElementById('google-login-btn');
 const microsoftBtn = document.getElementById('microsoft-login-btn');
 const githubBtn = document.getElementById('github-login-btn');
 
+const urlParams = new URLSearchParams(window.location.search);
+let flowId = urlParams.get('flow');
+
+if (!flowId) {
+    window.location.href = `${KRATOS_URL}/self-service/login/browser`;
+}
+
+async function handleKratosSession(session) {
+    try {
+        const user = session.identity;
+        const isAdmin = user.metadata_public?.admin === true;
+
+        document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
+
+        await createServerLog('auth', `Login`, {
+            isUser: true,
+            userEmail: user.traits.email,
+            userName: `${user.traits.name?.first || ''} ${user.traits.name?.last || ''}`.trim(),
+            isAdmin: isAdmin
+        });
+
+        if (isAdmin) {
+            window.location.href = `https://admin.sposlearning.cz/`;
+        } else {
+            window.location.href = 'https://sposlearning.cz/';
+        }
+    } catch (error) {
+        console.error("Error handling session:", error);
+        window.location.href = 'https://sposlearning.cz/';
+    }
+}
+
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = emailInput.value;
-    const password = passwordInput.value;
     errorMessage.textContent = '';
 
-    try {
-        await setPersistence(auth, browserLocalPersistence);
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        const user = result.user;
+    const body = {
+        method: 'password',
+        identifier: emailInput.value,
+        password: passwordInput.value,
+    };
 
-        await checkAdminAndRedirect(user);
+    try {
+        const response = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify(body),
+            credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            await handleKratosSession(data.session);
+        } else {
+            errorMessage.textContent = data.ui?.messages?.[0]?.text || 'Špatný email nebo heslo';
+
+            if (data.error?.id === 'session_refresh_required' || data.error?.id === 'self_service_flow_expired') {
+                window.location.href = `${KRATOS_URL}/self-service/login/browser`;
+            }
+        }
     } catch (error) {
         console.error('Chyba přihlášení:', error);
-        errorMessage.textContent = 'Špatný email nebo heslo';
+        errorMessage.textContent = 'Server neodpovídá. Zkontrolujte připojení k domácímu serveru.';
     }
 });
 
-if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        const provider = new GoogleAuthProvider();
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Příhlášení přes Google selhalo.';
-        }
-    });
-}
+const startSocialLogin = (provider) => {
+    window.location.href = `${KRATOS_URL}/self-service/methods/oidc/auth/${flowId}?provider=${provider}`;
+};
 
-const microsoftProvider = new OAuthProvider('microsoft.com');
-
-microsoftProvider.setCustomParameters({
-    tenant: 'common',
-    prompt: 'select_account'
-});
-
-if (microsoftBtn) {
-    microsoftBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, microsoftProvider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Příhlášení přes Microsoft selhalo.';
-        }
-    });
-}
-
-if (githubBtn) {
-    githubBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        const provider = new GithubAuthProvider();
-        provider.addScope('user:email');
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Přihlášení přes GitHub selhalo.';
-        }
-    });
-}
+if (googleBtn) googleBtn.addEventListener('click', () => startSocialLogin('google'));
+if (githubBtn) githubBtn.addEventListener('click', () => startSocialLogin('github'));
+if (microsoftBtn) microsoftBtn.addEventListener('click', () => startSocialLogin('microsoft'));
