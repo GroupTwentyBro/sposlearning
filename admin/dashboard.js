@@ -36,21 +36,26 @@ async function verifyKratosAdmin() {
     }
 }
 
-async function loadDashboardContent() {
-    const docRef = doc(db, "admin-pages", "dashboard");
-    const docSnap = await getDoc(docRef);
+async function loadSecureDashboard() {
+    try {
+        const response = await fetch('https://admin.sposlearning.cz/get_content.php', {
+            credentials: 'include'
+        });
 
-    if (docSnap.exists()) {
-        container.innerHTML = docSnap.data().html;
+        if (!response.ok) throw new Error("Unauthorized or not found");
+
+        const data = await response.json();
+
+        container.innerHTML = data.html;
 
         document.querySelector('.dot-container')?.classList.add('hidden');
+        container.classList.add('visible');
 
         initializeGeneralScripts();
-        initThemeListeners();
-        container.classList.add('visible');
-    } else {
-        container.innerHTML = "<h3>Error: Dashboard content not found.</h3>";
-        document.querySelector('.dot-container')?.classList.add('hidden');
+
+    } catch (error) {
+        console.error("Access denied:", error);
+        window.location.href = "https://sposlearning.cz/login";
     }
 }
 
@@ -73,3 +78,4 @@ function initializeGeneralScripts() {
 }
 
 verifyKratosAdmin();
+loadSecureDashboard();
