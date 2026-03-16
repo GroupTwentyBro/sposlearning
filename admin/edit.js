@@ -24,7 +24,7 @@ onAuthStateChanged(auth, async (user) => {
 
         initThemeListeners();
     } else {
-        window.location.href = '/login';
+        window.location.href = 'https://www.sposlearning.cz/login';
     }
 });
 
