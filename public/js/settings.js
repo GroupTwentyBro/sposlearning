@@ -100,8 +100,8 @@ onAuthStateChanged(auth, (user) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const themeSelect = document.querySelector('.theme-select');
-    const windowSelect = document.querySelector('.window-select');
+    const themeSelect = document.querySelector('#theme-select');
+    const windowSelect = document.querySelector('#window-select');
     const hueSlider = document.getElementById('hueSlider');
     const hueDisplay = document.getElementById('hue-value-display');
     const hueControls = document.getElementById('hue-controls');
