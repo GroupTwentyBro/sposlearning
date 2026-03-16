@@ -133,6 +133,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (windowSelect) {
+        windowSelect.value = localStorage.getItem('openPreference');
+
         windowSelect.addEventListener('change', (e) => {
             const val = e.target.value;
             localStorage.setItem("openPreference", val);
