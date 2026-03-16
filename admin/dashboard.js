@@ -1,34 +1,54 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { initThemeListeners } from '/js/theming.js';
 
+const firebaseConfig = {
+    apiKey: "AIzaSyBJ34YLsYNL9gDsBVxWGD4sOeUidUgHCVM",
+    authDomain: "sposlearning-group20.firebaseapp.com",
+    projectId: "sposlearning-group20",
+    storageBucket: "sposlearning-group20.firebasestorage.app",
+    messagingSenderId: "739083982229",
+    appId: "1:739083982229:web:3bf576d1b93a31d5e5529c"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 const container = document.getElementById('secure-container');
 const loader = document.querySelector('.dot-container');
 
-async function loadDashboardContent() {
+async function loadDashboard() {
     try {
+        const docRef = doc(db, "admin-pages", "dashboard");
+        const docSnap = await getDoc(docRef);
 
-        const response = await fetch('https://admin.sposlearning.cz/get_content.php');
-        if (!response.ok) throw new Error("Status: " + response.status);
-        const data = await response.json();
-        const htmlContent = data.html;
+        if (docSnap.exists()) {
+            const data = docSnap.data();
 
-        container.innerHTML = htmlContent;
-        if (loader) loader.classList.add('hidden');
-        container.classList.add('visible');
+            container.innerHTML = data.html;
 
-        const logoutBtn = document.getElementById('logout-button');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                window.location.href = 'https://sposlearning.cz/login';
-            });
+            if (loader) loader.classList.add('hidden');
+            container.classList.add('visible');
+
+            initThemeListeners();
+            setupLogout();
+
+        } else {
+            throw new Error("Document 'admin-pages/dashboard' not found in Firestore.");
         }
-        initThemeListeners();
-
     } catch (error) {
-        console.error("Failed to load:", error);
+        console.error("Firestore Error:", error);
         if (loader) loader.classList.add('hidden');
-        container.innerHTML = `<p class="text-center m-5">Error loading content. Check Console.</p>`;
-        container.classList.add('visible');
+        container.innerHTML = `<div class="text-center m-5">Error: ${error.message}</div>`;
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadDashboardContent);
+function setupLogout() {
+    const logoutBtn = document.getElementById('logout-button');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            window.location.href = 'https://sposlearning.cz';
+        });
+    }
+}
+
+loadDashboard();
