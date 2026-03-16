@@ -25,11 +25,10 @@ initThemeListeners();
 
 async function checkAdminAndRedirect(user) {
     try {
-        const adminDocRef = doc(db, "administrators", user.uid);
-        const adminDocSnap = await getDoc(adminDocRef);
-        const isAdmin = adminDocSnap.exists();
+        const tokenResult = await user.getIdTokenResult();
+        const isAdmin = tokenResult.claims.admin === true;
 
-        document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=3600; Secure; SameSite=Lax";
+        document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
 
         await createServerLog('auth', `Login`, {
             isUser: true,
