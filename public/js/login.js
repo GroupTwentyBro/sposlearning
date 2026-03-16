@@ -65,7 +65,8 @@ loginForm.addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-Session-Token': '' // This header, even empty, can signal an API-first intent
             },
             body: JSON.stringify(body),
             credentials: 'include'
