@@ -66,7 +66,9 @@ loginForm.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-Session-Token': '' // This header, even empty, can signal an API-first intent
+                // ADD THIS HEADER:
+                // This tells Kratos "I am a headless client, ignore the browser CSRF check"
+                'X-Session-Token': ''
             },
             body: JSON.stringify(body),
             credentials: 'include'
