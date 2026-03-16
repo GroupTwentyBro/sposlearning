@@ -105,6 +105,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const hueSlider = document.getElementById('hueSlider');
     const hueDisplay = document.getElementById('hue-value-display');
     const hueControls = document.getElementById('hue-controls');
+    const fsSlider = document.getElementById('fsSlider');
+    const fsDisplay = document.getElementById('fsDisplay');
+    const fsControl = document.getElementById('fsControl');
 
     const updateHueVisibility = (themeValue) => {
         if (hueControls) {
@@ -147,6 +150,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
         hueSlider.addEventListener('input', (e) => {
             if (hueDisplay) hueDisplay.textContent = `${e.target.value}°`;
+        });
+    }
+
+
+    if (fsSlider) {
+        const savedFS = getGlobalItem("hue-val") || 0;
+        fsSlider.value = savedHue;
+        if (fsDisplay) fsDisplay.textContent = `${savedHue}°`;
+        fsSlider.addEventListener('input', (e) => {
+            if (fsDisplay) fsDisplay.textContent = `${e.target.value}°`;
         });
     }
 
