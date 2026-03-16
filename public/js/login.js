@@ -70,7 +70,12 @@ loginForm.addEventListener('submit', async (e) => {
             errorMessage.textContent = data.ui?.messages?.[0]?.text || 'Špatný email nebo heslo';
 
             if (data.error?.id === 'session_refresh_required' || data.error?.id === 'self_service_flow_expired') {
-                window.location.href = `${KRATOS_URL}/self-service/login/browser`;
+                const response = await fetch(`${KRATOS_URL}/self-service/login/api`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                const flowData = await response.json();
+                flowId = flowData.id;
             }
         }
     } catch (error) {
