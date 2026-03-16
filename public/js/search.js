@@ -187,6 +187,9 @@ function createTreeDOM(node) {
         contentElement.href = `/${node.pageData.path}`;
         contentElement.className = 'search-result-link';
         contentElement.textContent = node.pageData.title;
+        if (localStorage.getItem('openPreference') === 'new') {
+            contentElement.target = '_blank';
+        }
 
         if(node.pageData.accessLevel === 'admin') {
             contentElement.innerHTML += ' <span style="font-size:0.8em; color:red;"> (Admin)</span>';

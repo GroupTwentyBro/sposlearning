@@ -1,4 +1,4 @@
-import { auth, app } from './firebaseConfig.js';
+import {app, auth} from './firebaseConfig.js';
 import {
     onAuthStateChanged,
     sendEmailVerification,
@@ -6,12 +6,10 @@ import {
     updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-import {
-    getFirestore
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { applyTheme, getGlobalItem, initThemeListeners } from './theming.js';
-import { createServerLog } from './logging.js';
+import {applyTheme, getGlobalItem, initThemeListeners} from './theming.js';
+import {createServerLog} from './logging.js';
 
 const db = getFirestore(app);
 
@@ -102,7 +100,8 @@ onAuthStateChanged(auth, (user) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const themeSelect = document.querySelector('.form-select');
+    const themeSelect = document.querySelector('.theme-select');
+    const windowSelect = document.querySelector('.window-select');
     const hueSlider = document.getElementById('hueSlider');
     const hueDisplay = document.getElementById('hue-value-display');
     const hueControls = document.getElementById('hue-controls');
@@ -130,6 +129,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const themeToApply = (val === "color") ? "hueshift" : val;
             applyTheme(themeToApply);
             updateHueVisibility(val);
+        });
+    }
+
+    if (windowSelect) {
+        windowSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            localStorage.setItem("openPreference", val);
         });
     }
 

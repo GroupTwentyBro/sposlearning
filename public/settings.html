@@ -66,7 +66,7 @@
                         <p class="small">Vyber si svůj preferovaný theme.</p>
                     </div>
                     <div class="col-md-6">
-                        <select class="form-select" aria-label="Theme picker">
+                        <select class="theme-select" aria-label="Theme picker">
                             <option value="dark" selected>Dark Theme</option>
                             <option value="light">Light Theme</option>
                             <option value="color">Color Theme</option>
@@ -78,6 +78,18 @@
                             <input type="range" id="hueSlider" min="0" max="360" value="0">
                             <span id="hue-value-display" class="ms-2 badge bg-dark shadow-sm">0°</span>
                         </div>
+                    </div>
+                </div>
+                <div class="row align-items-center box">
+                    <div class="col-md-6">
+                        <label class="h5">Otevírání stránek</label>
+                        <p class="small">Toto nastavení určí zda se nově otevřená stránka otevře v novém okně nebo stejném.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="window-select" aria-label="Form Select">
+                            <option value="same" selected>Ve stávájícím okně</option>
+                            <option value="new">V novém okně</option>
+                        </select>
                     </div>
                 </div>
             </div>
