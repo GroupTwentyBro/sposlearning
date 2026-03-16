@@ -11,6 +11,9 @@ const firebaseConfig = {
     measurementId: "G-985HT1GDW4"
 };
 
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+
 const KRATOS_URL = "https://auth.sposlearning.cz";
 const LOGIN_URL = "https://sposlearning.cz/login";
 
@@ -50,11 +53,4 @@ const adminUser = await checkAdminSession();
 
 if (adminUser) {
     document.getElementById('admin-email').textContent = adminUser.traits.email;
-}
-if (token) {
-    handleTokenExchange().then(() => {
-        setupAuthObserver();
-    });
-} else {
-    setupAuthObserver();
 }
