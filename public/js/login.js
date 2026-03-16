@@ -53,10 +53,13 @@ loginForm.addEventListener('submit', async (e) => {
 
     if (!flowId) flowId = await initializeFlow();
 
+    const csrfToken = flowData.ui.nodes.find(node => node.attributes.name === 'csrf_token').attributes.value;
+
     const body = {
         method: 'password',
         identifier: emailInput.value,
         password: passwordInput.value,
+        csrf_token: csrfToken
     };
 
     try {
@@ -64,8 +67,7 @@ loginForm.addEventListener('submit', async (e) => {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-Session-Token': ''
+                'Accept': 'application/json'
             },
             body: JSON.stringify(body),
             credentials: 'include'
