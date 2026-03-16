@@ -1,9 +1,10 @@
-import {applyTheme, initThemeListeners} from '/js/theming.js';
-import {createServerLog} from "/js/logging.js";
-
-initThemeListeners();
+import { applyTheme, initThemeListeners } from '/js/theming.js';
+import { createServerLog } from "/js/logging.js";
 
 const KRATOS_URL = "https://auth.sposlearning.cz";
+const REDIRECT_MAIN = "https://sposlearning.cz/";
+const REDIRECT_ADMIN = "https://admin.sposlearning.cz/";
+
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
@@ -12,41 +13,46 @@ const googleBtn = document.getElementById('google-login-btn');
 const microsoftBtn = document.getElementById('microsoft-login-btn');
 const githubBtn = document.getElementById('github-login-btn');
 
-const urlParams = new URLSearchParams(window.location.search);
-let flowId = urlParams.get('flow');
+initThemeListeners();
 
-if (!flowId) {
-    window.location.href = `${KRATOS_URL}/self-service/login/browser`;
+async function initializeFlow() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/self-service/login/api`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        const data = await response.json();
+        return data.id;
+    } catch (err) {
+        console.error("Failed to initialize Kratos flow:", err);
+        errorMessage.textContent = "Nelze navázat spojení s autentikačním serverem.";
+    }
 }
 
-async function handleKratosSession(session) {
-    try {
-        const user = session.identity;
-        const isAdmin = user.metadata_public?.admin === true;
+let flowId = await initializeFlow();
 
-        document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
+async function handlePostLogin(session) {
+    const user = session.identity;
+    const isAdmin = user.metadata_public?.admin === true;
 
-        await createServerLog('auth', `Login`, {
-            isUser: true,
-            userEmail: user.traits.email,
-            userName: `${user.traits.name?.first || ''} ${user.traits.name?.last || ''}`.trim(),
-            isAdmin: isAdmin
-        });
+    document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
 
-        if (isAdmin) {
-            window.location.href = `https://admin.sposlearning.cz/`;
-        } else {
-            window.location.href = 'https://sposlearning.cz/';
-        }
-    } catch (error) {
-        console.error("Error handling session:", error);
-        window.location.href = 'https://sposlearning.cz/';
-    }
+    await createServerLog('auth', `Login`, {
+        isUser: true,
+        userEmail: user.traits.email,
+        userName: `${user.traits.name?.first || ''} ${user.traits.name?.last || ''}`.trim(),
+        isAdmin: isAdmin
+    });
+
+    window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
 }
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorMessage.textContent = '';
+
+    if (!flowId) flowId = await initializeFlow();
 
     const body = {
         method: 'password',
@@ -57,7 +63,10 @@ loginForm.addEventListener('submit', async (e) => {
     try {
         const response = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             body: JSON.stringify(body),
             credentials: 'include'
         });
@@ -65,22 +74,18 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            await handleKratosSession(data.session);
+            await handlePostLogin(data.session);
         } else {
-            errorMessage.textContent = data.ui?.messages?.[0]?.text || 'Špatný email nebo heslo';
+            const msg = data.ui?.messages?.[0]?.text || 'Špatný email nebo heslo';
+            errorMessage.textContent = msg;
 
-            if (data.error?.id === 'session_refresh_required' || data.error?.id === 'self_service_flow_expired') {
-                const response = await fetch(`${KRATOS_URL}/self-service/login/api`, {
-                    method: 'GET',
-                    credentials: 'include'
-                });
-                const flowData = await response.json();
-                flowId = flowData.id;
+            if (data.error?.id === 'self_service_flow_expired') {
+                flowId = await initializeFlow();
             }
         }
     } catch (error) {
         console.error('Chyba přihlášení:', error);
-        errorMessage.textContent = 'Server neodpovídá. Zkontrolujte připojení k domácímu serveru.';
+        errorMessage.textContent = 'Server neodpovídá. Zkuste to prosím později.';
     }
 });
 
