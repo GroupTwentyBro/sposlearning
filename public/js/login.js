@@ -17,7 +17,7 @@ initThemeListeners();
 
 async function initializeFlow() {
     try {
-        const response = await fetch(`${KRATOS_URL}/self-service/login/api`, {
+        const response = await fetch(`${KRATOS_URL}/self-service/login/browser`, {
             method: 'GET',
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
@@ -25,8 +25,7 @@ async function initializeFlow() {
         const data = await response.json();
         return data.id;
     } catch (err) {
-        console.error("Failed to initialize Kratos flow:", err);
-        errorMessage.textContent = "Nelze navázat spojení s autentikačním serverem.";
+        console.error("Initialization failed:", err);
     }
 }
 
