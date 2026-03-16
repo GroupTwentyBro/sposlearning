@@ -9,11 +9,10 @@ const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
-const googleBtn = document.getElementById('google-login-btn');
-const microsoftBtn = document.getElementById('microsoft-login-btn');
-const githubBtn = document.getElementById('github-login-btn');
 
 initThemeListeners();
+
+let currentFlowData = null;
 
 async function initializeFlow() {
     try {
@@ -22,38 +21,28 @@ async function initializeFlow() {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
-        const data = await response.json();
-        return data.id;
+        currentFlowData = await response.json();
+        return currentFlowData.id;
     } catch (err) {
         console.error("Initialization failed:", err);
+        errorMessage.textContent = "Nelze inicializovat autentizaci.";
     }
 }
 
 let flowId = await initializeFlow();
 
-async function handlePostLogin(session) {
-    const user = session.identity;
-    const isAdmin = user.metadata_public?.admin === true;
-
-    document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
-
-    await createServerLog('auth', `Login`, {
-        isUser: true,
-        userEmail: user.traits.email,
-        userName: `${user.traits.name?.first || ''} ${user.traits.name?.last || ''}`.trim(),
-        isAdmin: isAdmin
-    });
-
-    window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
-}
-
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorMessage.textContent = '';
 
-    if (!flowId) flowId = await initializeFlow();
+    if (!currentFlowData) {
+        errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
+        return;
+    }
 
-    const csrfToken = flowData.ui.nodes.find(node => node.attributes.name === 'csrf_token').attributes.value;
+    const csrfToken = currentFlowData.ui.nodes.find(
+        node => node.attributes.name === 'csrf_token'
+    )?.attributes.value;
 
     const body = {
         method: 'password',
@@ -76,25 +65,21 @@ loginForm.addEventListener('submit', async (e) => {
         const data = await response.json();
 
         if (response.ok) {
-            await handlePostLogin(data.session);
-        } else {
-            const msg = data.ui?.messages?.[0]?.text || 'Špatný email nebo heslo';
-            errorMessage.textContent = msg;
+            const user = data.session.identity;
+            const isAdmin = user.metadata_public?.admin === true;
 
-            if (data.error?.id === 'self_service_flow_expired') {
+            document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
+
+            window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
+        } else {
+            errorMessage.textContent = data.ui?.messages?.[0]?.text || "Špatný email nebo heslo.";
+
+            if (data.error?.id === 'self_service_flow_expired' || response.status === 410) {
                 flowId = await initializeFlow();
             }
         }
     } catch (error) {
-        console.error('Chyba přihlášení:', error);
-        errorMessage.textContent = 'Server neodpovídá. Zkuste to prosím později.';
+        console.error('Chyba:', error);
+        errorMessage.textContent = 'Server neodpovídá.';
     }
 });
-
-const startSocialLogin = (provider) => {
-    window.location.href = `${KRATOS_URL}/self-service/methods/oidc/auth/${flowId}?provider=${provider}`;
-};
-
-if (googleBtn) googleBtn.addEventListener('click', () => startSocialLogin('google'));
-if (githubBtn) githubBtn.addEventListener('click', () => startSocialLogin('github'));
-if (microsoftBtn) microsoftBtn.addEventListener('click', () => startSocialLogin('microsoft'));
