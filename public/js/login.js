@@ -10,6 +10,8 @@ const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
 
+checkExistingSession();
+
 initThemeListeners();
 
 let currentFlowData = null;
@@ -83,3 +85,21 @@ loginForm.addEventListener('submit', async (e) => {
         errorMessage.textContent = 'Server neodpovídá.';
     }
 });
+
+async function checkExistingSession() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            credentials: 'include',
+            headers: {'Accept': 'application/json'}
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // User is already logged in! Redirect them.
+            const isAdmin = data.identity.metadata_public?.admin === true;
+            window.location.href = isAdmin ? 'https://admin.sposlearning.cz' : 'https://sposlearning.cz';
+        }
+    } catch (e) {
+        // No session, stay on login page
+    }
+}
