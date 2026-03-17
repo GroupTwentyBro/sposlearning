@@ -31,7 +31,7 @@ async function loadDashboard() {
 
             initThemeListeners();
             setupLogout();
-ě
+
         } else {
             throw new Error("Document 'admin-pages/dashboard' not found in Firestore.");
         }
