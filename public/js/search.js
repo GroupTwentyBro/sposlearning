@@ -29,8 +29,6 @@ function getAccessLevel(data) {
 }
 
 async function isUserAdmin() {
-    if (!currentUser) { return false; }
-
     try {
         const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
             method: 'GET',
