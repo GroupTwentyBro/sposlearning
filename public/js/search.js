@@ -16,6 +16,8 @@ let currentPage = null;
 let currentUser = null;
 let isAdminUser = false;
 
+const KRATOS_URL = "https://auth.sposlearning.cz";
+
 const searchInput = document.getElementById('search-input');
 const welcomeMessage = document.getElementById('welcome-message');
 const disclamerInfo = document.getElementById('disclamer-info');
@@ -30,14 +32,31 @@ async function isUserAdmin() {
     if (!currentUser) { return false; }
 
     try {
-        // Fetch the token result which contains the custom claims
-        const idTokenResult = await currentUser.getIdTokenResult();
+        const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
 
-        // Check if the 'admin' claim exists and is true
-        return !!idTokenResult.claims.admin;
+        if (!response.ok) {
+            throw new Error('No active session');
+        }
+
+        const session = await response.json();
+        const user = session.identity;
+
+        const isAdmin = user.metadata_public?.admin === true;
+
+        if (!isAdmin) {
+            console.warn("User is not an administrator.");
+            return false;
+        }
+
+        console.log("Admin session verified:", user.traits.email);
+        return true;
+
     } catch (error) {
-        console.error("Error fetching custom claims:", error);
-        return false;
+        console.error("Auth check failed:", error);
     }
 }
 
