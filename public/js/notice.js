@@ -7,21 +7,25 @@ async function checkGlobalVerification() {
             headers: { 'Accept': 'application/json' }
         });
 
-        if (!res.ok) return; // Not logged in, no need for a warning
+        if (!res.ok) return;
 
         const session = await res.json();
-        const address = session.identity.verifiable_addresses?.[0];
 
-        if (address && !address.verified) {
-            showVerificationWarning(address.value);
+        const isSocialLogin = session.authentication_methods?.some(method => method.method === 'oidc');
+
+        if (!isSocialLogin) {
+            const address = session.identity.verifiable_addresses?.[0];
+            if (address && !address.verified) {
+                showVerificationWarning(address.value);
+            }
         }
+
     } catch (e) {
         console.error("Verification check failed", e);
     }
 }
 
 function showVerificationWarning(email) {
-    // Create the overlay elements
     const banner = document.createElement('div');
     banner.id = 'verification-warning-banner';
     banner.innerHTML = `
@@ -52,15 +56,12 @@ async function resendVerification() {
     btn.textContent = "Odesílání...";
 
     try {
-        // 1. Initialize a verification flow
         const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
         const flow = await flowRes.json();
 
-        // 2. Submit the flow with the user's email
-        // Kratos automatically knows the email from the session, but we can pass it if needed
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
         const email = flow.ui.nodes.find(n => n.attributes.name === 'email')?.attributes.value;
 
@@ -89,5 +90,4 @@ async function resendVerification() {
     }
 }
 
-// Start the check
 checkGlobalVerification();
