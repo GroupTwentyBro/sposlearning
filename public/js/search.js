@@ -1,10 +1,7 @@
-import { app } from './firebaseConfig.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { collection, getDocs, getFirestore } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { initThemeListeners } from './theming.js';
 
 const KRATOS_URL = "https://auth.sposlearning.cz";
-const db = getFirestore(app);
+const API_URL = "https://api.sposlearning.cz";
 
 let allPages = [];
 let isAdminUser = false;
@@ -15,7 +12,7 @@ const welcomeMessage = document.getElementById('welcome-message');
 const disclamerInfo = document.getElementById('disclamer-info');
 const searchResultsContainer = document.getElementById('search-results');
 
-async function checkKratosAdmin() {
+async function fetchSession() {
     try {
         const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
             method: 'GET',
@@ -23,36 +20,54 @@ async function checkKratosAdmin() {
             headers: { 'Accept': 'application/json' }
         });
 
-        if (!response.ok) return false;
-
-        const session = await response.json();
-        return session.identity?.metadata_public?.admin === true;
+        if (response.ok) {
+            const session = await response.json();
+            currentUser = session.identity;
+            isAdminUser = currentUser.metadata_public?.admin === true;
+        } else {
+            currentUser = null;
+            isAdminUser = false;
+        }
     } catch (error) {
-        console.error("Kratos check failed:", error);
-        return false;
+        console.error("Auth check failed:", error);
+        currentUser = null;
+        isAdminUser = false;
     }
 }
 
 async function fetchAllPages() {
     try {
-        const querySnapshot = await getDocs(collection(db, 'pages'));
-        allPages = [];
+        const response = await fetch(`${API_URL}/pages`);
+        if (!response.ok) throw new Error("Failed to load pages API");
 
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            if (data.type !== 'redirection') {
-                allPages.push({
-                    title: data.title,
-                    path: data.fullPath,
-                    accessLevel: (data.accessLevel || 'public').toLowerCase().trim(),
-                    content: data.content ? data.content.toLowerCase() : ''
-                });
-            }
-        });
+        const data = await response.json();
+        allPages = data.map(page => ({
+            title: page.title || '',
+            path: page.path || '',
+            accessLevel: (page.accessLevel || 'public').toLowerCase().trim(),
+            content: page.content ? page.content.toLowerCase() : ''
+        }));
 
         console.log(`Loaded ${allPages.length} pages.`);
     } catch (err) {
         console.error("Failed to fetch pages:", err);
+    }
+}
+
+async function handleLogout() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            window.location.href = data.logout_url;
+        }
+    } catch (err) {
+        console.error("Logout failed", err);
     }
 }
 
@@ -174,19 +189,18 @@ function createTreeDOM(node) {
     return li;
 }
 
-function renderAdminBar(user, isAdmin) {
+function renderAdminBar() {
     const adminBar = document.getElementById('admin-bar');
     if (!adminBar) return;
 
-    const auth = getAuth(app);
     adminBar.innerHTML = '';
 
-    const dashboardLink = isAdmin ? `
+    const dashboardLink = isAdminUser ? `
         <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
         <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile"><span class="icon">team_dashboard</span></a>
     ` : '';
 
-    if (user) {
+    if (currentUser) {
         adminBar.innerHTML = `
             <div class="admin-controls">
                 <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
@@ -198,9 +212,8 @@ function renderAdminBar(user, isAdmin) {
                 </div>
             </div>`;
 
-        const logout = () => signOut(auth).catch(console.error);
-        document.getElementById('logout-button-pc')?.addEventListener('click', logout);
-        document.getElementById('logout-button-mob')?.addEventListener('click', logout);
+        document.getElementById('logout-button-pc')?.addEventListener('click', handleLogout);
+        document.getElementById('logout-button-mob')?.addEventListener('click', handleLogout);
     } else {
         adminBar.innerHTML = `
             <div class="admin-controls">
@@ -218,18 +231,12 @@ async function bootApp() {
     initThemeListeners();
     document.body.style.setProperty("transition", "none");
 
-    const auth = getAuth(app);
+    await Promise.all([
+        fetchSession(),
+        fetchAllPages()
+    ]);
 
-    await new Promise((resolve) => {
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            isAdminUser = await checkKratosAdmin();
-            renderAdminBar(user, isAdminUser);
-            resolve();
-        });
-    });
-
-    await fetchAllPages();
+    renderAdminBar();
 
     searchInput.disabled = false;
     searchInput.placeholder = "Hledej v zápisech...";

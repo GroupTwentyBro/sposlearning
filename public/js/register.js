@@ -1,28 +1,58 @@
-import { auth } from './firebaseConfig.js';
-import {
-    createUserWithEmailAndPassword,
-    sendEmailVerification,
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-// 1. Import your global logger function
 import { createServerLog } from '/js/logging.js';
 
+const KRATOS_URL = "https://auth.sposlearning.cz";
+
 const regForm = document.getElementById('register-form');
+const emailInput = document.getElementById('reg-email');
+const passInput = document.getElementById('reg-password');
+const confirmPassInput = document.getElementById('reg-password-confirm');
 const statusMsg = document.getElementById('status-message');
 const regBtn = document.getElementById('reg-btn');
 
+let currentFlowData = null;
+let flowId = null;
+
+async function initializeFlow() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/self-service/registration/browser`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        currentFlowData = await response.json();
+        flowId = currentFlowData.id;
+    } catch (err) {
+        console.error("Initialization failed:", err);
+        statusMsg.textContent = "Nelze inicializovat registraci.";
+    }
+}
+
+function getCsrfToken() {
+    if (!currentFlowData) return null;
+    return currentFlowData.ui.nodes.find(
+        node => node.attributes.name === 'csrf_token'
+    )?.attributes.value;
+}
+
+initializeFlow();
+
 regForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    statusMsg.className = "text-danger";
+    statusMsg.textContent = "";
 
-    const email = document.getElementById('reg-email').value;
-    const pass = document.getElementById('reg-password').value;
-    const confirmPass = document.getElementById('reg-password-confirm').value;
+    const email = emailInput.value;
+    const pass = passInput.value;
+    const confirmPass = confirmPassInput.value;
 
-    // 1. Basic Password Match Check
     if (pass !== confirmPass) {
-        statusMsg.className = "text-danger";
         statusMsg.textContent = "Hesla se neshodují.";
+        return;
+    }
+
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        statusMsg.textContent = "Chyba relace. Zkuste obnovit stránku.";
         return;
     }
 
@@ -34,54 +64,77 @@ regForm.addEventListener('submit', async (e) => {
         const debounceData = await debounceResponse.json();
 
         if (debounceData.disposable === "true") {
-            statusMsg.className = "text-danger";
             statusMsg.textContent = "Dočasné e-mailové adresy nejsou povoleny.";
             regBtn.disabled = false;
             regBtn.textContent = "Vytvořit účet";
 
-            // 2. Log blocked disposable email attempts
             await createServerLog('auth', `Zablokována registrace z dočasného emailu`, {
                 isUser: false,
                 userEmail: email
             });
-
             return;
         }
 
         regBtn.textContent = "Vytváření...";
 
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const user = userCredential.user;
+        const body = {
+            method: 'password',
+            csrf_token: csrfToken,
+            password: pass,
+            traits: {
+                email: email
+            }
+        };
 
-        await sendEmailVerification(user);
-
-        // 3. Log successful registration BEFORE signing the user out
-        await createServerLog('auth', `New Registration`, {
-            isUser: true,
-            userEmail: user.email,
-            userEmailVerified: user.emailVerified, // Will be false at this point
-            userName: user.displayName || 'none'
+        const response = await fetch(`${KRATOS_URL}/self-service/registration?flow=${flowId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(body),
+            credentials: 'include'
         });
 
-        await signOut(auth);
+        const data = await response.json();
 
-        statusMsg.className = "text-success";
-        statusMsg.innerHTML = `Účet vytvořen! <br> Zkontrolujte <b>${email}</b> pro ověřovací odkaz (často padá do spamu).`;
-        regForm.reset();
+        if (response.ok) {
+            await createServerLog('auth', `New Registration`, {
+                isUser: true,
+                userEmail: email,
+                userEmailVerified: false,
+                userName: 'none'
+            });
+
+            statusMsg.className = "text-success";
+            statusMsg.innerHTML = `Účet vytvořen! <br> Zkontrolujte <b>${email}</b> pro ověřovací odkaz (často padá do spamu).`;
+            regForm.reset();
+            regBtn.disabled = false;
+            regBtn.textContent = "Vytvořit účet";
+
+            await initializeFlow();
+
+        } else {
+            regBtn.disabled = false;
+            regBtn.textContent = "Vytvořit účet";
+
+            const errorText = data.ui?.messages?.[0]?.text
+                || data.ui?.nodes?.find(n => n.messages?.length > 0)?.messages[0]?.text
+                || "Nastala chyba při registraci.";
+
+            statusMsg.textContent = errorText;
+
+            if (data.error?.id === 'self_service_flow_expired' || response.status === 410) {
+                await initializeFlow();
+            } else {
+                currentFlowData = data;
+            }
+        }
 
     } catch (error) {
         console.error(error);
         statusMsg.className = "text-danger";
-
-        if (error.code === 'auth/email-already-in-use') {
-            statusMsg.textContent = "Tento e-mail se již používá.";
-        } else if (error.message === "Failed to fetch") {
-            // Fallback in case the DeBounce API is down
-            statusMsg.textContent = "Chyba při ověřování e-mailu. Zkuste to prosím později.";
-        } else {
-            statusMsg.textContent = "Nastala chyba při registraci.";
-        }
-
+        statusMsg.textContent = "Server neodpovídá. Zkuste to prosím později.";
         regBtn.disabled = false;
         regBtn.textContent = "Vytvořit účet";
     }
