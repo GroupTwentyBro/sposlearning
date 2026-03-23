@@ -2,6 +2,7 @@
   "dependencies": {
     "cheerio": "^1.2.0",
     "firebase": "^12.9.0",
-    "firebase-admin": "^13.6.1"
+    "firebase-admin": "^13.7.0",
+    "mysql2": "^3.20.0"
   }
 }

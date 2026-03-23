@@ -38,3 +38,8 @@ firebase_users.json
 convert.js
 kratos_users.json
 kratos_users_complete.json
+import_mariadb.sql
+admin/export_firestore.js
+admin/convert_to_sql.js
+admin/firestore_export.json
+firestore/movescript.js

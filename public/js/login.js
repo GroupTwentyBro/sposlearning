@@ -11,7 +11,6 @@ const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
 
 checkExistingSession();
-
 initThemeListeners();
 
 let currentFlowData = null;
@@ -33,18 +32,22 @@ async function initializeFlow() {
 
 let flowId = await initializeFlow();
 
+function getCsrfToken() {
+    if (!currentFlowData) return null;
+    return currentFlowData.ui.nodes.find(
+        node => node.attributes.name === 'csrf_token'
+    )?.attributes.value;
+}
+
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorMessage.textContent = '';
 
-    if (!currentFlowData) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
         errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
         return;
     }
-
-    const csrfToken = currentFlowData.ui.nodes.find(
-        node => node.attributes.name === 'csrf_token'
-    )?.attributes.value;
 
     const body = {
         method: 'password',
@@ -71,11 +74,9 @@ loginForm.addEventListener('submit', async (e) => {
             const isAdmin = user.metadata_public?.admin === true;
 
             document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
-
             window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
         } else {
             errorMessage.textContent = data.ui?.messages?.[0]?.text || "Špatný email nebo heslo.";
-
             if (data.error?.id === 'self_service_flow_expired' || response.status === 410) {
                 flowId = await initializeFlow();
             }
@@ -86,6 +87,44 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
+function handleOAuthLogin(provider) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${KRATOS_URL}/self-service/login?flow=${flowId}`;
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrf_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const providerInput = document.createElement('input');
+    providerInput.type = 'hidden';
+    providerInput.name = 'provider';
+    providerInput.value = provider;
+    form.appendChild(providerInput);
+
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = 'method';
+    methodInput.value = 'oidc';
+    form.appendChild(methodInput);
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+document.getElementById('google-login-btn').addEventListener('click', () => handleOAuthLogin('google'));
+document.getElementById('microsoft-login-btn').addEventListener('click', () => handleOAuthLogin('microsoft'));
+document.getElementById('github-login-btn').addEventListener('click', () => handleOAuthLogin('github'));
+
+
 async function checkExistingSession() {
     try {
         const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -95,11 +134,9 @@ async function checkExistingSession() {
 
         if (response.ok) {
             const data = await response.json();
-            // User is already logged in! Redirect them.
             const isAdmin = data.identity.metadata_public?.admin === true;
-            window.location.href = isAdmin ? 'https://admin.sposlearning.cz' : 'https://sposlearning.cz';
+            window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
         }
     } catch (e) {
-        // No session, stay on login page
     }
 }
