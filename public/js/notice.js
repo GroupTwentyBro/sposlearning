@@ -1,84 +1,93 @@
-(function() {
-    if (!sessionStorage.getItem('migration_notice_seen')) {
+const KRATOS_URL = "https://auth.sposlearning.cz";
 
-        // Create backdrop to dim the background
-        const backdrop = document.createElement('div');
-        backdrop.id = 'migration-backdrop';
-        Object.assign(backdrop.style, {
-            position: 'fixed',
-            top: '0',
-            left: '0',
-            width: '100vw',
-            height: '100vh',
-            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: '10000',
-            fontFamily: '"Raleway", sans-serif'
+async function checkGlobalVerification() {
+    try {
+        const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
         });
 
-        // Create the MessageBox
-        const modal = document.createElement('div');
-        modal.id = 'migration-modal';
-        Object.assign(modal.style, {
-            backgroundColor: 'var(--root-box-bg-clr)',
-            border: '2px solid var(--discl-warning-fg-clr)',
-            borderRadius: 'var(--box-border-radius, 12px)',
-            padding: '40px',
-            maxWidth: '500px',
-            width: '90%',
-            textAlign: 'center',
-            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-            color: 'var(--root-fg-clr)'
-        });
+        if (!res.ok) return; // Not logged in, no need for a warning
 
-        modal.innerHTML = `
-            <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
-            <h2 style="color: var(--quaternary-hl-clr); margin-bottom: 20px; font-weight: 800;">
-                Důležité upozornění
-            </h2>
-            <p style="color: var(--root-txt-clr); font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
-                SPOŠLearning momentálně testuje <strong>nový autentikační systém</strong> a může být velice nestabilní. 
-                Doporučujeme se momentálně <strong>neodhlašovat</strong>, dokud vám vše funguje správně.
-            </p>
-            <button id="close-migration-modal" style="
-                background: var(--primary-bg-clr); 
-                border: 1px solid var(--primary-fg-clr); 
-                color: var(--root-fg-clr); 
-                cursor: pointer; 
-                padding: 12px 30px; 
-                border-radius: 6px;
-                font-weight: 700;
-                font-size: 1rem;
-                transition: all 0.2s ease;
-                width: 100%;
-            ">Rozumím, pokračovat</button>
-        `;
+        const session = await res.json();
+        const address = session.identity.verifiable_addresses?.[0];
 
-        backdrop.appendChild(modal);
-        document.body.appendChild(backdrop);
-
-        const closeBtn = document.getElementById('close-migration-modal');
-
-        // Button hover effect
-        closeBtn.onmouseover = () => {
-            closeBtn.style.background = 'var(--primary-fg-clr)';
-            closeBtn.style.transform = 'translateY(-2px)';
-        };
-        closeBtn.onmouseout = () => {
-            closeBtn.style.background = 'var(--primary-bg-clr)';
-            closeBtn.style.transform = 'translateY(0)';
-        };
-
-        closeBtn.addEventListener('click', () => {
-            backdrop.style.opacity = '0';
-            backdrop.style.transition = 'opacity 0.4s ease';
-            setTimeout(() => {
-                backdrop.remove();
-                sessionStorage.setItem('migration_notice_seen', 'true');
-            }, 400);
-        });
+        if (address && !address.verified) {
+            showVerificationWarning(address.value);
+        }
+    } catch (e) {
+        console.error("Verification check failed", e);
     }
-})();
+}
+
+function showVerificationWarning(email) {
+    // Create the overlay elements
+    const banner = document.createElement('div');
+    banner.id = 'verification-warning-banner';
+    banner.innerHTML = `
+        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 99999; 
+                    background: var(--root-box-bg-clr); border: 1px solid var(--discl-important-fg-clr); 
+                    padding: 20px; border-radius: var(--box-border-radius); max-width: 350px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-left: 5px solid #ff4757;">
+            <h5 style="color: #ff4757; margin-top: 0; display: flex; align-items: center; gap: 8px;">
+                <span class="material-symbols-outlined">warning</span> Email není ověřen
+            </h5>
+            <p style="font-size: 0.9rem; margin: 10px 0;">
+                Při migraci systému bylo resetováno ověření. Pro plnou funkčnost (např. feedback) si prosím znovu ověřte svůj email: <b>${email}</b>
+            </p>
+            <button id="resend-verification-btn" class="btn btn-sm btn-primary w-100">Odeslat ověřovací email</button>
+            <p id="resend-status" style="font-size: 0.8rem; margin-top: 8px; text-align: center;"></p>
+        </div>
+    `;
+    document.body.appendChild(banner);
+
+    document.getElementById('resend-verification-btn').addEventListener('click', resendVerification);
+}
+
+async function resendVerification() {
+    const btn = document.getElementById('resend-verification-btn');
+    const status = document.getElementById('resend-status');
+
+    btn.disabled = true;
+    btn.textContent = "Odesílání...";
+
+    try {
+        // 1. Initialize a verification flow
+        const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        const flow = await flowRes.json();
+
+        // 2. Submit the flow with the user's email
+        // Kratos automatically knows the email from the session, but we can pass it if needed
+        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
+        const email = flow.ui.nodes.find(n => n.attributes.name === 'email')?.attributes.value;
+
+        const submitRes = await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                method: 'link',
+                csrf_token: csrfToken,
+                email: email
+            }),
+            credentials: 'include'
+        });
+
+        if (submitRes.ok) {
+            status.style.color = "var(--primary-hl-clr)";
+            status.textContent = "Odkaz byl odeslán! Zkontrolujte spam.";
+        } else {
+            throw new Error();
+        }
+    } catch (err) {
+        status.style.color = "#ff4757";
+        status.textContent = "Chyba při odesílání. Zkuste to později.";
+        btn.disabled = false;
+        btn.textContent = "Odeslat ověřovací email";
+    }
+}
+
+// Start the check
+checkGlobalVerification();
