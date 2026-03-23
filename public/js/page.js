@@ -1,281 +1,126 @@
-import { app, auth } from './firebaseConfig.js';
-import {
-    getAuth,
-    onAuthStateChanged,
-    signOut,
-    EmailAuthProvider,
-    reauthenticateWithCredential,
-    GoogleAuthProvider,
-    GithubAuthProvider,
-    reauthenticateWithPopup
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {
-    getFirestore,
-    collection,
-    query,
-    where,
-    getDoc,
-    getDocs,
-    doc,
-    deleteDoc
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-
-import { initThemeListeners, applyTheme } from './theming.js';
-
-// 1. Import your global logger function
+import { initThemeListeners } from './theming.js';
 import { createServerLog } from '/js/logging.js';
 
-function getGlobalItem(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-    return null;
-}
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const API_URL = "https://api.sposlearning.cz";
 
-const db = getFirestore(app);
 const contentContainer = document.getElementById('wiki-content-container');
-
 let currentPage = null;
+let currentUser = null;
+let isAdminUser = false;
 
 const mathExtension = {
     name: 'math',
     level: 'inline',
     start(src) { return src.indexOf('$'); },
     tokenizer(src) {
-        const blockRule = /^\$\$\s*([\s\S]*?)\s*\$\$/;
-        const blockMatch = blockRule.exec(src);
+        const blockMatch = /^\$\$\s*([\s\S]*?)\s*\$\$/.exec(src);
         if (blockMatch) return { type: 'text', raw: blockMatch[0], text: blockMatch[0] };
-
-        const inlineRule = /^\$((?:[^\$\\]|\\.)*)\$/;
-        const inlineMatch = inlineRule.exec(src);
+        const inlineMatch = /^\$((?:[^\$\\]|\\.)*)\$/.exec(src);
         if (inlineMatch) return { type: 'text', raw: inlineMatch[0], text: inlineMatch[0] };
     },
     renderer(token) { return token.text; }
 };
-
 marked.use({ extensions: [mathExtension] });
 
-async function loadContent() {
-    let fullPath = window.location.pathname.substring(1);
-    fullPath = fullPath.replace(/\/+$/, '');
+async function fetchSession() {
+    try {
+        const res = await fetch(`${KRATOS_URL}/sessions/whoami`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+            const session = await res.json();
+            currentUser = session.identity;
+            isAdminUser = currentUser.metadata_public?.admin === true;
+        }
+    } catch (e) { console.error("Auth check failed"); }
+}
 
-    if (fullPath === '') {
-        window.location.href = '/';
-        return;
-    }
+async function loadContent() {
+    let fullPath = window.location.pathname.substring(1).replace(/\/+$/, '');
+    if (fullPath === '') { window.location.href = '/'; return; }
 
     try {
-        const newDocId = fullPath.replace(/\//g, '|');
-        const docRef = doc(db, 'pages', newDocId);
-        let docSnap = await getDoc(docRef);
-        let pageDoc = docSnap;
+        const res = await fetch(`${API_URL}/page-content?path=${encodeURIComponent(fullPath)}`);
+        if (!res.ok) { renderError(fullPath); return; }
 
-        if (!docSnap.exists()) {
-            const q = query(collection(db, 'pages'), where("fullPath", "==", fullPath));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                pageDoc = querySnapshot.docs[0];
-            }
-        }
+        const pageData = await res.json();
+        currentPage = pageData;
+        const accessLevel = (pageData.accessLevel || 'public').toLowerCase();
 
-        if (!pageDoc.exists()) {
-            renderError(fullPath);
+        if (accessLevel === "admin" && !isAdminUser) {
+            window.location.href = '/login';
             return;
         }
 
-        const pageData = pageDoc.data();
-        currentPage = { id: pageDoc.id, data: pageData };
+        document.title = pageData.title;
+        let htmlToRender = "";
 
-        const accessLevel = (pageData['accessLevel'] || pageData['access-level'] || 'public').toLowerCase();
+        if (pageData.type === 'markdown') {
+            htmlToRender = marked.parse(pageData.content, { breaks: true });
+            contentContainer.classList.add('tex2jax_process');
+        } else if (pageData.type === 'html') {
+            htmlToRender = pageData.content;
+        } else if (pageData.type === 'files') {
+            htmlToRender = getFileExplorerHtml(pageData.title, JSON.parse(pageData.content));
+        }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (accessLevel === "admin" && !user) {
-                window.location.href = '/';
-                return;
-            }
+        contentContainer.innerHTML = htmlToRender;
+        contentContainer.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
+        if (window.MathJax?.typesetPromise) await window.MathJax.typesetPromise([contentContainer]);
 
-            document.title = pageData.title;
-
-            let htmlToRender = "";
-            if (pageData.type === 'markdown') {
-                htmlToRender = marked.parse(pageData.content, {breaks: true});
-                contentContainer.classList.add('tex2jax_process');
-            } else if (pageData.type === 'html') {
-                htmlToRender = pageData.content;
-            } else if (pageData.type === 'files') {
-                htmlToRender = getFileExplorerHtml(pageData.title, pageData.content);
-            }
-
-            contentContainer.innerHTML = htmlToRender;
-
-            contentContainer.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
-            if (window.MathJax && window.MathJax.typesetPromise) {
-                await window.MathJax.typesetPromise([contentContainer]);
-            }
-
-            const loader = document.querySelector('.dot-container');
-            if (loader) {
-                loader.classList.add('hidden');
-            }
-            contentContainer.classList.add('visible');
-        });
+        document.querySelector('.dot-container')?.classList.add('hidden');
+        contentContainer.classList.add('visible');
 
     } catch (error) {
-        console.error("Critical Load Error:", error);
+        console.error("Load Error:", error);
         renderError(fullPath);
     }
 }
 
-function renderFileExplorer(title, files) {
-    const fileListHtml = files.map(file => {
-        const size = (file.bytes / 1048576 > 1)
-            ? `${(file.bytes / 1048576).toFixed(2)} MB`
-            : `${(file.bytes / 1024).toFixed(0)} KB`;
-
-        return `
-            <a href="${file.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
-               style="background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
-                ${file.name}
-                <span class="badge" style="background: var(--primary-fg-clr); color: white; border-radius: var(--box-border-radius);">${size}</span>
-            </a>`;
-    }).join('');
-
-    contentContainer.innerHTML = `
-        <h1 style="color: var(--primary-hl-clr)">${title}</h1>
-        <p style="color: var(--root-fgd-clr)">Dostupné soubory:</p>
-        <div class="list-group" style="max-width: 600px;">${fileListHtml}</div>`;
-}
-
-function renderError(slug) {
-    contentContainer.innerHTML = `
-        <h1>404 - Nenalezeno</h1>
-        <hr>
-        <p>Stránka <code>${slug}</code> v databázi neexistuje.</p>
-        <a href="/" class="btn btn-primary">Zpět domů</a>`;
-
-    const loader = document.querySelector('.dot-container');
-    if (loader) {
-        loader.classList.add('hidden');
-    }
-    contentContainer.classList.add('visible');
-}
-
-function setupAdminTools() {
-    const adminBar = document.getElementById('admin-bar');
-    if(!adminBar) return;
-
-    onAuthStateChanged(auth, async (user) => {
-        adminBar.innerHTML = '';
-
-        if (user) {
-            let isAdmin = false;
-            try {
-                const idTokenResult = await user.getIdTokenResult();
-                isAdmin = !!idTokenResult.claims.admin;
-            } catch (err) {
-                console.error("Failed to fetch admin claims:", err);
-            }
-
-            if (!isAdmin) {
-                adminBar.innerHTML = `
-                    <div class="admin-controls">
-                        <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
-                        <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
-                            <span class="icon">settings</span>
-                        </a>
-                        <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
-                        <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
-                            <span class="icon">logout</span>
-                        </button>
-                    </div>`;
-            } else {
-                let editBtn = (currentPage && (currentPage.data.type === 'markdown' || currentPage.data.type === 'html'))
-                    ? `<a href="https://admin.sposlearning.cz/edit.html?path=${currentPage.data.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
-
-                let deleteBtn = currentPage ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
-
-                adminBar.innerHTML = `
-                    <div class="admin-controls">
-                        <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
-                            ${editBtn} 
-                            ${deleteBtn}
-                            <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
-                            <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
-                                <span class="icon">settings</span>
-                            </a>
-                            <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
-                            <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
-                            
-                            <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile">
-                                <span class="icon">team_dashboard</span>
-                            </a>
-                            <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
-                                <span class="icon">logout</span>
-                            </button>
-                        </div>
-                    </div>`;
-
-                document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
-            }
-
-            const performLogout = () => signOut(auth).then(() => window.location.reload());
-            document.getElementById('logout-button-pc')?.addEventListener('click', performLogout);
-            document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
-
-        } else {
-            adminBar.innerHTML = `
-                <div class="admin-controls">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
-                        <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Nastavení">
-                            <span class="icon">settings</span>
-                        </a>
-                        <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
-                        <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
-                            <span class="icon">login</span>
-                        </a>
-                    </div>
-                </div>`;
-        }
-    });
-}
-
 async function handleDeletePage() {
     if (!currentPage) return;
-    const user = auth.currentUser;
-    const providerId = user.providerData[0]?.providerId;
+
+    const password = await requestPassword();
+    if (!password) return;
 
     try {
-        if (providerId === 'google.com') {
-            await reauthenticateWithPopup(user, new GoogleAuthProvider());
-        } else if (providerId === 'github.com') {
-            await reauthenticateWithPopup(user, new GithubAuthProvider());
-        } else {
-            const password = await requestPassword();
-            if (!password) return;
-            const credential = EmailAuthProvider.credential(user.email, password);
-            await reauthenticateWithCredential(user, credential);
-        }
+        const loginRes = await fetch(`${KRATOS_URL}/self-service/login/browser`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
+        const flow = await loginRes.json();
 
-        await deleteDoc(doc(db, 'pages', currentPage.id));
+        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
-        // 2. Call the logger with detailed parameters BEFORE the redirect
-        await createServerLog('page', `Deleted Page: ${currentPage.data.title}`, {
-            isUser: !!user,
-            userEmail: user.email,
-            userEmailVerified: user.emailVerified,
-            userName: user.displayName || 'none',
-            pageAccessLevel: currentPage.data.accessLevel || 'public',
-            pageFullPath: currentPage.data.fullPath,
-            pageDeletedBy: user.email,
-            pageTitle: currentPage.data.title
+        const authCheck = await fetch(`${KRATOS_URL}/self-service/login?flow=${flow.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                method: 'password',
+                identifier: currentUser.traits.email,
+                password: password,
+                csrf_token: csrfToken
+            }),
+            credentials: 'include'
         });
 
-        alert('Smazáno.');
-        window.location.href = '/';
+        if (!authCheck.ok) throw new Error("Nesprávné heslo.");
+
+        const deleteRes = await fetch(`${API_URL}/page?path=${encodeURIComponent(currentPage.fullPath)}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (deleteRes.ok) {
+            await createServerLog('page', `Deleted Page: ${currentPage.title}`, {
+                isUser: true,
+                userEmail: currentUser.traits.email,
+                pageTitle: currentPage.title
+            });
+            alert('Smazáno.');
+            window.location.href = '/';
+        } else {
+            throw new Error("Chyba při mazání na serveru.");
+        }
+
     } catch (error) {
-        console.error(error);
-        alert('Chyba při ověřování: ' + error.message);
+        alert('Chyba: ' + error.message);
     }
 }
 
@@ -284,12 +129,10 @@ function requestPassword() {
         const overlay = document.getElementById('password-modal-overlay');
         const input = document.getElementById('modal-password-input');
         overlay.style.display = 'flex';
+        input.value = '';
         input.focus();
 
-        const clean = (val) => {
-            overlay.style.display = 'none';
-            resolve(val);
-        };
+        const clean = (val) => { overlay.style.display = 'none'; resolve(val); };
 
         document.getElementById('modal-confirm-btn').onclick = () => clean(input.value);
         document.getElementById('modal-cancel-btn').onclick = () => clean(null);
@@ -297,20 +140,59 @@ function requestPassword() {
     });
 }
 
-function setupFeedbackLink() {
-    const feedbackLink = document.getElementById("feedback-button");
-    if (feedbackLink) feedbackLink.href += window.location.pathname;
+function getFileExplorerHtml(title, files) {
+    const fileListHtml = files.map(file => {
+        const size = (file.bytes / 1048576 > 1) ? `${(file.bytes / 1048576).toFixed(2)} MB` : `${(file.bytes / 1024).toFixed(0)} KB`;
+        return `<a href="${file.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
+                style="background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
+                ${file.name} <span class="badge" style="background: var(--primary-fg-clr);">${size}</span></a>`;
+    }).join('');
+    return `<h1 style="color: var(--primary-hl-clr)">${title}</h1><div class="list-group" style="max-width: 600px;">${fileListHtml}</div>`;
 }
 
-function initHomeTheming() {
-    initThemeListeners();
+function renderError(slug) {
+    contentContainer.innerHTML = `<h1>404 - Nenalezeno</h1><hr><p>Stránka <code>${slug}</code> neexistuje.</p><a href="/" class="btn btn-primary">Zpět domů</a>`;
+    document.querySelector('.dot-container')?.classList.add('hidden');
+    contentContainer.classList.add('visible');
+}
+
+async function handleLogout() {
+    const res = await fetch(`${KRATOS_URL}/self-service/logout/browser`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
+    if (res.ok) { window.location.href = (await res.json()).logout_url; }
+}
+
+function setupAdminTools() {
+    const adminBar = document.getElementById('admin-bar');
+    if (!adminBar) return;
+    adminBar.innerHTML = '';
+
+    if (currentUser) {
+        let editBtn = (isAdminUser && (currentPage.type === 'markdown' || currentPage.type === 'html'))
+            ? `<a href="https://admin.sposlearning.cz/edit.html?path=${currentPage.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
+        let deleteBtn = isAdminUser ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
+
+        adminBar.innerHTML = `
+            <div class="admin-controls">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    ${editBtn} ${deleteBtn}
+                    <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                    <button class="btn btn-sm btn-danger pc" id="logout-btn">Logout</button>
+                </div>
+            </div>`;
+        document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+        document.getElementById('delete-button')?.addEventListener('click', handleDeletePage);
+    } else {
+        adminBar.innerHTML = `<div class="admin-controls"><a href="/login" class="btn btn-sm btn-primary">Přihlásit se</a></div>`;
+    }
 }
 
 async function initializePage() {
+    initThemeListeners();
+    await fetchSession();
     await loadContent();
     setupAdminTools();
-    setupFeedbackLink();
-    initHomeTheming();
+    const fb = document.getElementById("feedback-button");
+    if (fb) fb.href += window.location.pathname;
 }
 
 initializePage();
