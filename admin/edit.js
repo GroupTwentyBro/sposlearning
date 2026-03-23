@@ -83,7 +83,6 @@ async function handleSave(e) {
             originalPath: originalPath,
             accessLevel: document.getElementById('page-is-admin').checked ? 'admin' : 'public',
             content: newContent,
-            type: pageType,
             lastEditedBy: currentUser.traits.email
         };
 
