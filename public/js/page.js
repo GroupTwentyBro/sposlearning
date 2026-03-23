@@ -83,8 +83,16 @@ async function handleDeletePage() {
     if (!password) return;
 
     try {
-        const loginRes = await fetch(`${KRATOS_URL}/self-service/login/browser`, { credentials: 'include', headers: { 'Accept': 'application/json' } });
+        const loginRes = await fetch(`${KRATOS_URL}/self-service/login/browser?refresh=true`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+
         const flow = await loginRes.json();
+
+        if (!loginRes.ok) {
+            throw new Error(flow.error?.message || "Nelze inicializovat ověření.");
+        }
 
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
@@ -100,7 +108,11 @@ async function handleDeletePage() {
             credentials: 'include'
         });
 
-        if (!authCheck.ok) throw new Error("Nesprávné heslo.");
+        const authResult = await authCheck.json();
+        if (!authCheck.ok) {
+            const errorMsg = authResult.ui?.messages?.[0]?.text || "Nesprávné heslo.";
+            throw new Error(errorMsg);
+        }
 
         const deleteRes = await fetch(`${API_URL}/page?path=${encodeURIComponent(currentPage.fullPath)}`, {
             method: 'DELETE',
@@ -109,17 +121,18 @@ async function handleDeletePage() {
 
         if (deleteRes.ok) {
             await createServerLog('page', `Deleted Page: ${currentPage.title}`, {
-                isUser: true,
                 userEmail: currentUser.traits.email,
                 pageTitle: currentPage.title
             });
             alert('Smazáno.');
             window.location.href = '/';
         } else {
-            throw new Error("Chyba při mazání na serveru.");
+            const errData = await deleteRes.json();
+            throw new Error(errData.error || "Chyba při mazání na serveru.");
         }
 
     } catch (error) {
+        console.error("Delete Flow Error:", error);
         alert('Chyba: ' + error.message);
     }
 }
