@@ -79,7 +79,7 @@ async function handlePageSubmit(e) {
         });
 
         statusSuccess.textContent = `Success! Created /${fullPath}`;
-        window.location.href = `/${fullPath}`;
+        window.location.href = `https://sposlearning.cz/${fullPath}`;
 
     } catch (err) {
         statusError.textContent = `Error: ${err.message}`;
