@@ -1,13 +1,8 @@
-import { app } from './firebaseConfig.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { initThemeListeners, applyTheme } from './theming.js';
-
-// 1. Import your global logger function
+import { initThemeListeners } from './theming.js';
 import { createServerLog } from '/js/logging.js';
 
-const db = getFirestore(app);
-const auth = getAuth(app);
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const API_URL = "https://api.sposlearning.cz";
 
 const form = document.getElementById('feedback-form');
 const submitBtn = document.getElementById('submit-btn');
@@ -15,63 +10,63 @@ const statusMsg = document.getElementById('status-message');
 const pageInput = document.getElementById('feedback-page');
 const formWrapper = document.getElementById('feedback-form-wrapper');
 
-initThemeListeners();
+let currentUser = null;
+
+async function checkAuth() {
+    try {
+        const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!res.ok) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const session = await res.json();
+        currentUser = session.identity;
+
+        const isVerified = currentUser.verifiable_addresses?.some(addr => addr.verified === true);
+
+        if (!isVerified) {
+            formWrapper.innerHTML = `
+                <div class="box">
+                    <div class="col-md-12">
+                        <h2>Nemáte ověřený email.</h2>
+                        <p>Pro použití feedbacku musíte mít z bezpečnostních důvodů ověřený email. Zkontrolujte prosím svoji schránku.</p>
+                    </div>
+                </div>`;
+            formWrapper.style.display = 'block';
+            return;
+        }
+
+        formWrapper.style.display = 'block';
+    } catch (err) {
+        console.error("Auth check failed", err);
+    }
+}
 
 const urlParams = new URLSearchParams(window.location.search);
 const relatedPage = urlParams.get("page");
-if (relatedPage) pageInput.value = relatedPage;
-
-onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        window.location.href = '/login';
-        return;
-    }
-
-    if (!user.emailVerified) {
-        formWrapper.innerHTML = '' +
-            '<div class="box">' +
-            '<div class="col-md-6">' +
-            '<h2>Nemáte ověřený email.</h2>' +
-            '<p>Pro použití feedbacku musíte mít z bezpečnostních důvodů ověřený email. Odkaz najdete v mailu, nebo pokud tam není tak si můžete nechat poslat nový v nastavení.</p>' +
-            '</div>' +
-            '</div>';
-        formWrapper.style.display = 'block';
-        return;
-    }
-
-    if (formWrapper) formWrapper.style.display = 'block';
-});
-
-const isJunk = (name, message) => {
-    const hp = document.getElementById('hp_field')?.value;
-    if (hp) return "Bot detected.";
-
-    const nameLow = name.toLowerCase().trim();
-    if (/(.)\1{4,}/.test(nameLow)) return "Neplatné znaky ve jménu.";
-    if (message.length < 10) return "Zpráva je příliš krátká.";
-
-    return null;
-};
+if (relatedPage && pageInput) pageInput.value = relatedPage;
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!currentUser) return;
 
     const title = document.getElementById('feedback-title').value;
     const page = document.getElementById('feedback-page').value;
     const message = document.getElementById('feedback-message').value;
 
-    const validationError = isJunk(name, message);
-    if (validationError) {
+    if (message.length < 10) {
         statusMsg.className = 'text-danger';
-        statusMsg.textContent = validationError;
+        statusMsg.textContent = "Zpráva je příliš krátká.";
         return;
     }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Odesílání...';
-    statusMsg.textContent = '';
 
     try {
         let ipAddress = 'Unknown';
@@ -82,52 +77,30 @@ form.addEventListener('submit', async (e) => {
         } catch (err) { console.warn("IP fetch failed"); }
 
         const feedbackData = {
-            title: title.trim(),
-            page: page.trim(),
-            name: user.displayName,
-            contact: user.email,
-            message: message.trim(),
-            relatedPage: pageInput.value || 'General',
-            ip: ipAddress,
-            userAgent: navigator.userAgent,
-            timestamp: serverTimestamp(),
-            uid: user.uid,
-            resolved: false
+            title: title,
+            page: page || 'General',
+            message: message,
+            ip: ipAddress
         };
 
-        const docRef = await addDoc(collection(db, 'feedback'), feedbackData);
-        const postId = docRef.id;
-
-        // 2. Call the logger with detailed parameters for the feedback
-        await createServerLog('feedback', `Feedback Sent: ${feedbackData.title}`, {
-            isUser: !!user,
-            userEmail: user.email,
-            userEmailVerified: user.emailVerified,
-            userName: name,
-            feedbackID: postId,
-            feedbackCreatorEmail: user.email,
-            feedbackCreatorUserName: name,
-            feedbackCreatorUID: user.uid,
-            feedbackTitle: feedbackData.title,
-            feedbackMessage: feedbackData.message,
-            feedbackRelatedPage: feedbackData.relatedPage,
-            feedbackResolved: false
-        });
-
-        fetch('/api/send-mail.php', {
+        const res = await fetch(`${API_URL}/feedback`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: postId,
-                title: feedbackData.title,
-                name: feedbackData.name,
-                message: feedbackData.message,
-                page: feedbackData.relatedPage,
-                contact: feedbackData.contact
-            })
-        }).then(response => {
-            if (!response.ok) console.error("Email bridge error status:", response.status);
-        }).catch(err => console.error("Email bridge fetch failed:", err));
+            body: JSON.stringify(feedbackData),
+            credentials: 'include'
+        });
+
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || "Chyba při odesílání.");
+        }
+
+        const result = await res.json();
+
+        await createServerLog('feedback', `Feedback Sent: ${title}`, {
+            userEmail: currentUser.traits.email,
+            feedbackID: result.id
+        });
 
         statusMsg.className = 'text-success font-weight-bold';
         statusMsg.textContent = 'Děkujeme! Vaše zpětná vazba byla odeslána.';
@@ -136,10 +109,12 @@ form.addEventListener('submit', async (e) => {
         setTimeout(() => { window.location.href = '/'; }, 2000);
 
     } catch (error) {
-        console.error('Error:', error);
         statusMsg.className = 'text-danger';
-        statusMsg.textContent = 'Chyba při odesílání do databáze.';
+        statusMsg.textContent = error.message;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Odeslat zpětnou vazbu';
     }
 });
+
+initThemeListeners();
+checkAuth();
