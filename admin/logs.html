@@ -22,8 +22,25 @@
 </div>
 
 <div id="secure-container">
-  <div style="text-align: center; margin-top: 20%; color: gray;">
-
+  <div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="text-white">Systémové logy</h2>
+      <a href="/" class="btn btn-outline-light">Dashboard</a>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Timestamp & IP</th>
+          <th>Type</th>
+          <th>User</th>
+          <th>Action & Details</th>
+        </tr>
+        </thead>
+        <tbody id="logs-tbody">
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
