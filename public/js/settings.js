@@ -70,51 +70,51 @@ window.saveNameChange = async function() {
     const nameInput = document.getElementById('name-edit-input');
     if (!nameInput) return;
 
-    const newName = nameInput.value;
+    const newName = nameInput.value.trim();
     const saveBtn = document.querySelector('button.btn-success');
     if (saveBtn) saveBtn.disabled = true;
 
     try {
+        // 1. Get a fresh flow
         const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
         const flow = await flowRes.json();
 
+        // 2. Extract CSRF
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
-        const payload = {
-            method: 'profile',
-            csrf_token: csrfToken,
-            traits: {
-                ...currentUser.traits,
-                name: newName
-            }
-        };
-
+        // 3. Submit Update
         const submitRes = await fetch(`${KRATOS_URL}/self-service/settings?flow=${flow.id}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                method: 'profile',
+                csrf_token: csrfToken,
+                traits: {
+                    ...currentUser.traits,
+                    name: newName
+                }
+            }),
             credentials: 'include'
         });
 
         const result = await submitRes.json();
+
+        // 4. HANDLE SUDO MODE (403 Forbidden)
+        if (submitRes.status === 403 && result.error?.id === 'session_refresh_required') {
+            // Redirect user to re-authenticate as requested by Kratos
+            window.location.href = result.redirect_browser_to || `${KRATOS_URL}/self-service/login/browser?refresh=true`;
+            return;
+        }
 
         if (!submitRes.ok) {
             const errorMsg = result.ui?.messages?.[0]?.text || "Validation failed";
             throw new Error(errorMsg);
         }
 
-        if (typeof createServerLog === 'function') {
-            await createServerLog('auth', `Změna jména na: ${newName}`, {
-                userEmail: currentUser.traits.email
-            });
-        }
-
+        // 5. Success
         location.reload();
 
     } catch (err) {
