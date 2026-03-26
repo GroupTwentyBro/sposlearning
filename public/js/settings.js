@@ -67,7 +67,10 @@ window.toggleNameEdit = function() {
 };
 
 window.saveNameChange = async function() {
-    const newName = document.getElementById('name-edit-input').value;
+    const nameInput = document.getElementById('name-edit-input');
+    if (!nameInput) return;
+
+    const newName = nameInput.value;
     const saveBtn = document.querySelector('button.btn-success');
     if (saveBtn) saveBtn.disabled = true;
 
@@ -80,27 +83,43 @@ window.saveNameChange = async function() {
 
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
+        const payload = {
+            method: 'profile',
+            csrf_token: csrfToken,
+            traits: {
+                ...currentUser.traits,
+                name: newName
+            }
+        };
+
         const submitRes = await fetch(`${KRATOS_URL}/self-service/settings?flow=${flow.id}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-                method: 'profile',
-                csrf_token: csrfToken,
-                traits: {
-                    ...currentUser.traits,
-                    name: newName
-                }
-            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload),
             credentials: 'include'
         });
 
-        if (!submitRes.ok) throw new Error("Update failed in Kratos");
+        const result = await submitRes.json();
 
-        await createServerLog('auth', `Změna jména na: ${newName}`, { userEmail: currentUser.traits.email });
+        if (!submitRes.ok) {
+            const errorMsg = result.ui?.messages?.[0]?.text || "Validation failed";
+            throw new Error(errorMsg);
+        }
+
+        if (typeof createServerLog === 'function') {
+            await createServerLog('auth', `Změna jména na: ${newName}`, {
+                userEmail: currentUser.traits.email
+            });
+        }
+
         location.reload();
 
     } catch (err) {
-        alert("Chyba při ukládání jména: " + err.message);
+        console.error("Kratos Settings Error:", err);
+        alert("Chyba: " + err.message);
         if (saveBtn) saveBtn.disabled = false;
     }
 };
