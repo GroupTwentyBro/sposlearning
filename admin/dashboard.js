@@ -42,13 +42,30 @@ async function loadDashboard() {
     }
 }
 
-function setupLogout() {
+async function setupLogout() {
     const logoutBtn = document.getElementById('logout-button');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
+    if (!logoutBtn) return;
+
+    logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        try {
+            const res = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+
+            if (res.ok) {
+                const logoutFlow = await res.json();
+                window.location.href = logoutFlow.logout_url;
+            } else {
+                window.location.href = 'https://sposlearning.cz/login';
+            }
+        } catch (err) {
+            console.error("Logout failed:", err);
             window.location.href = 'https://sposlearning.cz';
-        });
-    }
+        }
+    });
 }
 
 loadDashboard();
