@@ -1,5 +1,7 @@
 const KRATOS_URL = "https://auth.sposlearning.cz";
 
+let userEmailForVerification = "";
+
 async function checkGlobalVerification() {
     try {
         const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -10,16 +12,15 @@ async function checkGlobalVerification() {
         if (!res.ok) return;
 
         const session = await res.json();
-
         const isSocialLogin = session.authentication_methods?.some(method => method.method === 'oidc');
 
         if (!isSocialLogin) {
             const address = session.identity.verifiable_addresses?.[0];
             if (address && !address.verified) {
-                showVerificationWarning(address.value);
+                userEmailForVerification = address.value; // Store the email here
+                showVerificationWarning(userEmailForVerification);
             }
         }
-
     } catch (e) {
         console.error("Verification check failed", e);
     }
@@ -56,22 +57,24 @@ async function resendVerification() {
     btn.textContent = "Odesílání...";
 
     try {
+        // 1. Get the flow
         const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
         const flow = await flowRes.json();
 
+        // 2. Extract CSRF token
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-        const email = flow.ui.nodes.find(n => n.attributes.name === 'email')?.attributes.value;
 
+        // 3. Submit using the email we captured from the session
         const submitRes = await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
                 method: 'link',
                 csrf_token: csrfToken,
-                email: email
+                email: userEmailForVerification // Use the stored email
             }),
             credentials: 'include'
         });
@@ -79,14 +82,16 @@ async function resendVerification() {
         if (submitRes.ok) {
             status.style.color = "var(--primary-hl-clr)";
             status.textContent = "Odkaz byl odeslán! Zkontrolujte spam.";
+            btn.textContent = "Odesláno";
         } else {
-            throw new Error();
+            const errData = await submitRes.json();
+            throw new Error(errData.ui?.messages?.[0]?.text || "Chyba");
         }
     } catch (err) {
         status.style.color = "#ff4757";
-        status.textContent = "Chyba při odesílání. Zkuste to později.";
+        status.textContent = "Chyba: " + err.message;
         btn.disabled = false;
-        btn.textContent = "Odeslat ověřovací email";
+        btn.textContent = "Zkusit znovu";
     }
 }
 
