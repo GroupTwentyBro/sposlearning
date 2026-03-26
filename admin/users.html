@@ -25,7 +25,30 @@
 </div>
 
 <div id="secure-container">
-    <div style="text-align: center; margin-top: 20%; color: gray;">
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>User Management</h2>
+            <div class="d-flex gap-2 align-items-center">
+                <input type="text" id="user-search" class="form-control form-control-sm" style="background-color: var(--root-box-bg-clr); color: var(--root-fg-clr); border-color: var(--box-border-clr); border-radius: var(--box-border-radius); padding: 0 8px;" placeholder="Search email or name...">
+                <a href="/" class="btn btn-secondary btn-sm">Dashboard</a>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Status</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody id="user-list-tbody">
+                <tr><td colspan="4" class="text-center" style="color: var(--root-fgd-clr);">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
