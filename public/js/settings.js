@@ -1,17 +1,42 @@
-import {app, auth} from './firebaseConfig.js';
-import {
-    onAuthStateChanged,
-    sendEmailVerification,
-    sendPasswordResetEmail,
-    updateProfile
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { applyTheme, getGlobalItem, initThemeListeners } from './theming.js';
+import { createServerLog } from './logging.js';
 
-import {getFirestore} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const API_URL = "https://api.sposlearning.cz";
 
-import {applyTheme, getGlobalItem, initThemeListeners} from './theming.js';
-import {createServerLog} from './logging.js';
+let currentUser = null;
 
-const db = getFirestore(app);
+async function initSettings() {
+    try {
+        const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error();
+        const session = await res.json();
+        currentUser = session.identity;
+
+        document.getElementById('display-name-text').textContent = currentUser.traits.name || "Not set";
+        document.getElementById('account-email').value = currentUser.traits.email;
+
+        const statusDiv = document.getElementById('email-verification-status');
+        const resendContainer = document.getElementById('resend-container');
+        const isVerified = currentUser.verifiable_addresses?.some(a => a.verified);
+
+        if (isVerified) {
+            statusDiv.innerHTML = `<span class="text-success small">✓ Email je ověřený</span>`;
+        } else {
+            statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
+            resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
+            document.getElementById('btn-resend').onclick = triggerVerification;
+        }
+
+        renderProviders(session.authentication_methods);
+
+    } catch (err) {
+        window.location.href = '/login';
+    }
+}
 
 window.toggleNameEdit = function() {
     const textSpan = document.getElementById('display-name-text');
@@ -20,8 +45,7 @@ window.toggleNameEdit = function() {
 
     container.innerHTML = `
         <div class="d-flex align-items-center justify-content-end">
-            <input type="text" id="name-edit-input" class="form-control form-control-sm me-2" 
-                   value="${currentName}" style="max-width: 200px;">
+            <input type="text" id="name-edit-input" class="form-control form-control-sm me-2" value="${currentName}" style="max-width: 200px;">
             <button class="btn btn-sm btn-success me-1" onclick="saveNameChange()">
                 <span class="material-symbols-outlined fs-6">check</span>
             </button>
@@ -34,134 +58,84 @@ window.toggleNameEdit = function() {
 
 window.saveNameChange = async function() {
     const newName = document.getElementById('name-edit-input').value;
-    if (auth.currentUser) {
-        try {
-            await updateProfile(auth.currentUser, { displayName: newName });
-            await createServerLog('auth', `Změna jména na: ${newName}`, {
-                isUser: true,
-                userEmail: auth.currentUser.email,
-                userName: newName
-            });
-            location.reload();
-        } catch (error) {
-            console.error("Name update error:", error);
-            alert("Chyba při ukládání jména.");
-        }
+    try {
+        const res = await fetch(`${API_URL}/update-profile`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName }),
+            credentials: 'include'
+        });
+        if (!res.ok) throw new Error();
+
+        await createServerLog('auth', `Změna jména na: ${newName}`, { userEmail: currentUser.traits.email });
+        location.reload();
+    } catch (err) {
+        alert("Chyba při ukládání.");
     }
 };
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('display-name-text').textContent = user.displayName || "Not set";
-        document.getElementById('account-email').value = user.email;
+async function triggerPasswordReset() {
+    try {
+        const flowRes = await fetch(`${KRATOS_URL}/self-service/recovery/browser`, { credentials: 'include' });
+        const flow = await flowRes.json();
 
-        const statusDiv = document.getElementById('email-verification-status');
-        const resendContainer = document.getElementById('resend-container');
+        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token').attributes.value;
 
-        if (user.emailVerified) {
-            statusDiv.innerHTML = `<span class="text-success small">✓ Email je ověřený</span>`;
-            resendContainer.innerHTML = '';
-        } else {
-            statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
-            resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
-            document.getElementById('btn-resend').onclick = async () => {
-                try {
-                    await sendEmailVerification(user);
-                    await createServerLog('auth', `Vyžádán ověřovací email`, { userEmail: user.email });
-                    alert("Ověřovací email odeslán!");
-                } catch (err) { alert("Chyba při odesílání."); }
-            };
-        }
+        await fetch(`${KRATOS_URL}/self-service/recovery?flow=${flow.id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                method: 'link',
+                csrf_token: csrfToken,
+                email: currentUser.traits.email
+            }),
+            credentials: 'include'
+        });
 
-        const providers = user.providerData.map(p => p.providerId);
-        const providerList = document.getElementById('provider-list');
-        const renderProvider = (id, iconUrl, label) => {
-            const isLinked = providers.includes(id);
-            return `<div class="text-center ${isLinked ? '' : 'opacity-25'}" title="${label}">
-                        <img src="${iconUrl}" width="24" height="24" style="${isLinked ? '' : 'filter: grayscale(1);'}">
-                    </div>`;
-        };
-
-        providerList.innerHTML =
-            renderProvider('google.com', 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg', 'Google') +
-            renderProvider('microsoft.com', 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Microsoft_icon.svg/1280px-Microsoft_icon.svg.png', 'Microsoft') +
-            renderProvider('github.com', 'https://github.githubassets.com/favicons/favicon-dark.png', 'GitHub');
-
-        document.getElementById('btn-reset-pw').onclick = async () => {
-            try {
-                await sendPasswordResetEmail(auth, user.email);
-                await createServerLog('auth', `Vyžádán reset hesla`, { userEmail: user.email });
-                alert("Email pro změnu hesla byl odeslán.");
-            } catch (e) { alert("Chyba při odesílání."); }
-        };
-    } else {
-        window.location.href = '/login';
+        alert("Email pro obnovu hesla byl odeslán.");
+    } catch (err) {
+        alert("Chyba při odesílání.");
     }
-});
+}
+
+function renderProviders(methods) {
+    const providerList = document.getElementById('provider-list');
+    const activeMethods = methods.map(m => m.method);
+
+    const hasOidc = activeMethods.includes('oidc');
+
+    const renderIcon = (url, label, active) => `
+        <div class="text-center ${active ? '' : 'opacity-25'}" title="${label}">
+            <img src="${url}" width="24" height="24" style="${active ? '' : 'filter: grayscale(1);'}">
+        </div>`;
+
+    providerList.innerHTML =
+        renderIcon('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg', 'Google', hasOidc) +
+        renderIcon('https://github.githubassets.com/favicons/favicon-dark.png', 'GitHub', hasOidc);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const themeSelect = document.querySelector('#theme-select');
     const windowSelect = document.querySelector('#window-select');
     const hueSlider = document.getElementById('hueSlider');
-    const hueDisplay = document.getElementById('hue-value-display');
-    const hueControls = document.getElementById('hue-controls');
-    const fsSlider = document.getElementById('fsSlider');
-    const fsDisplay = document.getElementById('fsDisplay');
-    const fsControl = document.getElementById('fsControl');
-
-    const updateHueVisibility = (themeValue) => {
-        if (hueControls) {
-            if (themeValue === "color") {
-                hueControls.classList.remove('d-none');
-                hueControls.classList.add('d-flex');
-            } else {
-                hueControls.classList.remove('d-flex');
-                hueControls.classList.add('d-none');
-            }
-        }
-    };
 
     if (themeSelect) {
         const savedTheme = getGlobalItem("theme") || "dark";
         themeSelect.value = (savedTheme === "hueshift") ? "color" : savedTheme;
 
-        updateHueVisibility(themeSelect.value);
-
         themeSelect.addEventListener('change', (e) => {
             const val = e.target.value;
-            const themeToApply = (val === "color") ? "hueshift" : val;
-            applyTheme(themeToApply);
-            updateHueVisibility(val);
+            applyTheme(val === "color" ? "hueshift" : val);
         });
     }
 
     if (windowSelect) {
-        windowSelect.value = localStorage.getItem('openPreference');
-
-        windowSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            localStorage.setItem("openPreference", val);
-        });
+        windowSelect.value = localStorage.getItem('openPreference') || "same";
+        windowSelect.addEventListener('change', (e) => localStorage.setItem("openPreference", e.target.value));
     }
 
-    if (hueSlider) {
-        const savedHue = getGlobalItem("hue-val") || 0;
-        hueSlider.value = savedHue;
-        if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
-        hueSlider.addEventListener('input', (e) => {
-            if (hueDisplay) hueDisplay.textContent = `${e.target.value}°`;
-        });
-    }
+    document.getElementById('btn-reset-pw').onclick = triggerPasswordReset;
 
-
-    if (fsSlider) {
-        const savedFS = getGlobalItem("hue-val") || 0;
-        fsSlider.value = savedHue;
-        if (fsDisplay) fsDisplay.textContent = `${savedHue}°`;
-        fsSlider.addEventListener('input', (e) => {
-            if (fsDisplay) fsDisplay.textContent = `${e.target.value}°`;
-        });
-    }
-
+    initSettings();
     initThemeListeners();
 });
