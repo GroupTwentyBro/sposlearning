@@ -42,6 +42,8 @@ async function loadDashboard() {
     }
 }
 
+const KRATOS_URL = "https://auth.sposlearning.cz";
+
 async function setupLogout() {
     const logoutBtn = document.getElementById('logout-button');
     if (!logoutBtn) return;
