@@ -1,6 +1,17 @@
 RewriteEngine On
 RewriteBase /
 
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+# 2. Don't redirect if we are already on maintenance.html
+RewriteCond %{REQUEST_URI} !/maintenance\.html$
+# 3. Don't redirect images, scripts, or stylesheets so the page looks correct
+RewriteCond %{REQUEST_URI} !\.(jpe?g?|png|gif|css|js|svg|webp|woff2?)$ [NC]
+# 4. Redirect everything else to maintenance.html with a 503 status
+RewriteRule ^(.*)$ /maintenance.html [R=503,L]
+
+# Optional: Tell search engines this is temporary
+ErrorDocument 503 /maintenance.html
+
 RewriteCond %{HTTP_HOST} !^www\. [NC]
 RewriteCond %{HTTP_HOST} !^dev\. [NC]  <-- Add this line
 RewriteRule ^(.*)$ https://www.sposlearning.cz/$1 [L,R=301]
