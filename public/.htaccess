@@ -1,11 +1,11 @@
 RewriteEngine On
 RewriteBase /
 
-# RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
-# RewriteCond %{REQUEST_URI} !/maintenance\.html$
-# RewriteCond %{REQUEST_URI} !\.(jpe?g?|png|gif|css|js|svg|webp|woff2?)$ [NC]
-# RewriteRule ^(.*)$ /maintenance.html [R=503,L]
-# ErrorDocument 503 /maintenance.html
+RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+RewriteCond %{REQUEST_URI} !/maintenance\.html$
+RewriteCond %{REQUEST_URI} !\.(jpe?g?|png|gif|css|js|svg|webp|woff2?)$ [NC]
+RewriteRule ^(.*)$ /maintenance.html [R=503,L]
+ErrorDocument 503 /maintenance.html
 
 RewriteCond %{HTTP_HOST} !^www\. [NC]
 RewriteCond %{HTTP_HOST} !^dev\. [NC]  <-- Add this line
