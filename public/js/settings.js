@@ -1,5 +1,5 @@
-import { applyTheme, getGlobalItem, setGlobalItem, initThemeListeners } from './theming.js';
-import { createServerLog } from './logging.js';
+import { applyTheme, getGlobalItem, setGlobalItem, initThemeListeners } from '/js/theming.js';
+import { createServerLog } from '/js/logging.js';
 
 const KRATOS_URL = "https://auth.sposlearning.cz";
 let currentUser = null;
