@@ -1,5 +1,5 @@
-import { applyTheme, getGlobalItem, setGlobalItem, initThemeListeners } from '/js/theming.js';
-import { createServerLog } from '/js/logging.js';
+import { applyTheme, getGlobalItem, setGlobalItem, initThemeListeners } from './theming.js';
+import { createServerLog } from './logging.js';
 
 const KRATOS_URL = "https://auth.sposlearning.cz";
 let currentUser = null;
@@ -24,7 +24,6 @@ async function initSettings() {
         if (emailInput) emailInput.value = currentUser.traits.email;
 
         updateVerificationUI();
-
         renderProviders(session.authentication_methods);
 
         document.querySelector('.dot-container')?.classList.add('hidden');
@@ -35,20 +34,44 @@ async function initSettings() {
     }
 }
 
-function updateVerificationUI() {
-    const statusDiv = document.getElementById('email-verification-status');
-    const resendContainer = document.getElementById('resend-container');
-    const isVerified = currentUser.verifiable_addresses?.some(a => a.verified);
+function initThemeControls() {
+    const themeSelect = document.querySelector('#theme-select');
+    const hueSlider = document.getElementById('hueSlider');
+    const hueDisplay = document.getElementById('hue-value-display');
+    const hueControls = document.getElementById('hue-controls');
 
-    if (isVerified) {
-        if (statusDiv) statusDiv.innerHTML = `<span class="text-success small">✓ Email je ověřený</span>`;
-        if (resendContainer) resendContainer.innerHTML = '';
-    } else {
-        if (statusDiv) statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
-        if (resendContainer) {
-            resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
-            document.getElementById('btn-resend').onclick = triggerVerification;
+    if (!themeSelect || !hueControls) return;
+
+    const toggleHueVisibility = (val) => {
+        if (val === "color") {
+            hueControls.style.setProperty('display', 'flex', 'important');
+        } else {
+            hueControls.style.setProperty('display', 'none', 'important');
         }
+    };
+
+    const savedTheme = getGlobalItem("theme") || "dark";
+    themeSelect.value = (savedTheme === "hueshift") ? "color" : savedTheme;
+    toggleHueVisibility(themeSelect.value);
+
+    themeSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const themeToApply = (val === "color") ? "hueshift" : val;
+        applyTheme(themeToApply);
+        toggleHueVisibility(val);
+    });
+
+    if (hueSlider) {
+        const savedHue = getGlobalItem("hue-val") || 0;
+        hueSlider.value = savedHue;
+        if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
+
+        hueSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (hueDisplay) hueDisplay.textContent = `${val}°`;
+            setGlobalItem("hue-val", val);
+            applyTheme("hueshift");
+        });
     }
 }
 
@@ -80,10 +103,7 @@ window.saveNameChange = async function() {
     if (saveBtn) saveBtn.disabled = true;
 
     try {
-        const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' }
-        });
+        const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, { credentials: 'include' });
         const flow = await flowRes.json();
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
@@ -105,48 +125,27 @@ window.saveNameChange = async function() {
             return;
         }
 
-        if (!submitRes.ok) throw new Error(result.ui?.messages?.[0]?.text || "Chyba");
-
-        await createServerLog('auth', `Změna jména na: ${newName}`, { userEmail: currentUser.traits.email });
+        if (!submitRes.ok) throw new Error("Chyba při ukládání.");
         location.reload();
-
     } catch (err) {
-        alert("Chyba: " + err.message);
+        alert(err.message);
         if (saveBtn) saveBtn.disabled = false;
     }
 };
 
-function initThemeControls() {
-    const themeSelect = document.querySelector('#theme-select');
-    const hueSlider = document.getElementById('hueSlider');
-    const hueDisplay = document.getElementById('hue-value-display');
-    const hueControls = document.getElementById('hue-controls');
+function updateVerificationUI() {
+    const statusDiv = document.getElementById('email-verification-status');
+    const resendContainer = document.getElementById('resend-container');
+    const isVerified = currentUser.verifiable_addresses?.some(a => a.verified);
 
-    if (themeSelect) {
-        const savedTheme = getGlobalItem("theme") || "dark";
-        themeSelect.value = (savedTheme === "hueshift") ? "color" : savedTheme;
-
-        if (themeSelect.value === "color") hueControls.style.display = 'flex';
-
-        themeSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            const themeToApply = (val === "color") ? "hueshift" : val;
-            applyTheme(themeToApply);
-            hueControls.style.display = (val === "color") ? 'flex' : 'none';
-        });
-    }
-
-    if (hueSlider) {
-        const savedHue = getGlobalItem("hue-val") || 0;
-        hueSlider.value = savedHue;
-        if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
-
-        hueSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            if (hueDisplay) hueDisplay.textContent = `${val}°`;
-            setGlobalItem("hue-val", val);
-            applyTheme("hueshift");
-        });
+    if (isVerified) {
+        if (statusDiv) statusDiv.innerHTML = `<span class="text-success small">✓ Email je ověřený</span>`;
+    } else {
+        if (statusDiv) statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
+        if (resendContainer) {
+            resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
+            document.getElementById('btn-resend').onclick = triggerVerification;
+        }
     }
 }
 
@@ -155,14 +154,13 @@ async function triggerVerification() {
         const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, { credentials: 'include' });
         const flow = await flowRes.json();
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-
         await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
             credentials: 'include'
         });
-        alert("Ověřovací email byl odeslán!");
+        alert("Ověřovací email odeslán!");
     } catch (err) { alert("Chyba při odesílání."); }
 }
 
@@ -171,14 +169,13 @@ async function triggerPasswordReset() {
         const flowRes = await fetch(`${KRATOS_URL}/self-service/recovery/browser`, { credentials: 'include' });
         const flow = await flowRes.json();
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-
         await fetch(`${KRATOS_URL}/self-service/recovery?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
             credentials: 'include'
         });
-        alert("Email pro obnovu hesla byl odeslán.");
+        alert("Resetovací email odeslán.");
     } catch (err) { alert("Chyba při odesílání."); }
 }
 
@@ -186,7 +183,6 @@ function renderProviders(methods) {
     const providerList = document.getElementById('provider-list');
     const hasOidc = methods.some(m => m.method === 'oidc');
     const renderIcon = (url, active) => `<div class="${active ? '' : 'opacity-25'}"><img src="${url}" width="24"></div>`;
-
     providerList.innerHTML =
         renderIcon('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg', hasOidc) +
         renderIcon('https://github.githubassets.com/favicons/favicon-dark.png', hasOidc);
