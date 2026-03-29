@@ -1,4 +1,4 @@
-function setGlobalItem(name, value) {
+export function setGlobalItem(name, value) {
   const domain = ".sposlearning.cz";
   const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
   document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
