@@ -1,8 +1,7 @@
-import { applyTheme, getGlobalItem, initThemeListeners } from './theming.js';
+import { applyTheme, getGlobalItem, setGlobalItem, initThemeListeners } from './theming.js';
 import { createServerLog } from './logging.js';
 
 const KRATOS_URL = "https://auth.sposlearning.cz";
-
 let currentUser = null;
 
 async function initSettings() {
@@ -17,25 +16,14 @@ async function initSettings() {
         currentUser = session.identity;
 
         const nameText = document.getElementById('display-name-text');
-        const emailInput = document.getElementById('account-email');
+        const n = currentUser.traits.name;
+        const formattedName = (n && typeof n === 'object') ? `${n.first} ${n.last}`.trim() : (n || "Not set");
+        if (nameText) nameText.textContent = formattedName;
 
-        if (nameText) nameText.textContent = currentUser.traits.name || "Not set";
+        const emailInput = document.getElementById('account-email');
         if (emailInput) emailInput.value = currentUser.traits.email;
 
-        const statusDiv = document.getElementById('email-verification-status');
-        const resendContainer = document.getElementById('resend-container');
-        const isVerified = currentUser.verifiable_addresses?.some(a => a.verified);
-
-        if (isVerified) {
-            if (statusDiv) statusDiv.innerHTML = `<span class="text-success small">✓ Email je ověřený</span>`;
-            if (resendContainer) resendContainer.innerHTML = '';
-        } else {
-            if (statusDiv) statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
-            if (resendContainer) {
-                resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
-                document.getElementById('btn-resend').onclick = triggerVerification;
-            }
-        }
+        updateVerificationUI();
 
         renderProviders(session.authentication_methods);
 
@@ -44,6 +32,23 @@ async function initSettings() {
     } catch (err) {
         console.error("Auth check failed:", err);
         window.location.href = '/login';
+    }
+}
+
+function updateVerificationUI() {
+    const statusDiv = document.getElementById('email-verification-status');
+    const resendContainer = document.getElementById('resend-container');
+    const isVerified = currentUser.verifiable_addresses?.some(a => a.verified);
+
+    if (isVerified) {
+        if (statusDiv) statusDiv.innerHTML = `<span class="text-success small">✓ Email je ověřený</span>`;
+        if (resendContainer) resendContainer.innerHTML = '';
+    } else {
+        if (statusDiv) statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
+        if (resendContainer) {
+            resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
+            document.getElementById('btn-resend').onclick = triggerVerification;
+        }
     }
 }
 
@@ -75,60 +80,77 @@ window.saveNameChange = async function() {
     if (saveBtn) saveBtn.disabled = true;
 
     try {
-        // 1. Get a fresh flow
         const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
         const flow = await flowRes.json();
-
-        // 2. Extract CSRF
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
-        // 3. Submit Update
         const submitRes = await fetch(`${KRATOS_URL}/self-service/settings?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
                 method: 'profile',
                 csrf_token: csrfToken,
-                traits: {
-                    ...currentUser.traits,
-                    name: newName
-                }
+                traits: { ...currentUser.traits, name: newName }
             }),
             credentials: 'include'
         });
 
         const result = await submitRes.json();
 
-        // 4. HANDLE SUDO MODE (403 Forbidden)
         if (submitRes.status === 403 && result.error?.id === 'session_refresh_required') {
-            // Redirect user to re-authenticate as requested by Kratos
             window.location.href = result.redirect_browser_to || `${KRATOS_URL}/self-service/login/browser?refresh=true`;
             return;
         }
 
-        if (!submitRes.ok) {
-            const errorMsg = result.ui?.messages?.[0]?.text || "Validation failed";
-            throw new Error(errorMsg);
-        }
+        if (!submitRes.ok) throw new Error(result.ui?.messages?.[0]?.text || "Chyba");
 
-        // 5. Success
+        await createServerLog('auth', `Změna jména na: ${newName}`, { userEmail: currentUser.traits.email });
         location.reload();
 
     } catch (err) {
-        console.error("Kratos Settings Error:", err);
         alert("Chyba: " + err.message);
         if (saveBtn) saveBtn.disabled = false;
     }
 };
 
-async function triggerVerification() {
-    const resendBtn = document.getElementById('btn-resend');
-    resendBtn.disabled = true;
-    resendBtn.textContent = "Odesílám...";
+function initThemeControls() {
+    const themeSelect = document.querySelector('#theme-select');
+    const hueSlider = document.getElementById('hueSlider');
+    const hueDisplay = document.getElementById('hue-value-display');
+    const hueControls = document.getElementById('hue-controls');
 
+    if (themeSelect) {
+        const savedTheme = getGlobalItem("theme") || "dark";
+        themeSelect.value = (savedTheme === "hueshift") ? "color" : savedTheme;
+
+        if (themeSelect.value === "color") hueControls.style.display = 'flex';
+
+        themeSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            const themeToApply = (val === "color") ? "hueshift" : val;
+            applyTheme(themeToApply);
+            hueControls.style.display = (val === "color") ? 'flex' : 'none';
+        });
+    }
+
+    if (hueSlider) {
+        const savedHue = getGlobalItem("hue-val") || 0;
+        hueSlider.value = savedHue;
+        if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
+
+        hueSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (hueDisplay) hueDisplay.textContent = `${val}°`;
+            setGlobalItem("hue-val", val);
+            applyTheme("hueshift");
+        });
+    }
+}
+
+async function triggerVerification() {
     try {
         const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, { credentials: 'include' });
         const flow = await flowRes.json();
@@ -137,26 +159,14 @@ async function triggerVerification() {
         await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                method: 'link',
-                csrf_token: csrfToken,
-                email: currentUser.traits.email
-            }),
+            body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
             credentials: 'include'
         });
         alert("Ověřovací email byl odeslán!");
-    } catch (err) {
-        alert("Chyba při odesílání.");
-    } finally {
-        resendBtn.disabled = false;
-        resendBtn.textContent = "Poslat ověřovací email";
-    }
+    } catch (err) { alert("Chyba při odesílání."); }
 }
 
 async function triggerPasswordReset() {
-    const resetBtn = document.getElementById('btn-reset-pw');
-    resetBtn.disabled = true;
-
     try {
         const flowRes = await fetch(`${KRATOS_URL}/self-service/recovery/browser`, { credentials: 'include' });
         const flow = await flowRes.json();
@@ -165,52 +175,26 @@ async function triggerPasswordReset() {
         await fetch(`${KRATOS_URL}/self-service/recovery?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                method: 'link',
-                csrf_token: csrfToken,
-                email: currentUser.traits.email
-            }),
+            body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
             credentials: 'include'
         });
         alert("Email pro obnovu hesla byl odeslán.");
-    } catch (err) {
-        alert("Chyba při odesílání požadavku.");
-    } finally {
-        resetBtn.disabled = false;
-    }
+    } catch (err) { alert("Chyba při odesílání."); }
 }
 
 function renderProviders(methods) {
     const providerList = document.getElementById('provider-list');
-    if (!providerList) return;
-
-    const activeMethods = methods.map(m => m.method);
-    const hasOidc = activeMethods.includes('oidc');
-
-    const renderIcon = (url, label, active) => `
-        <div class="text-center ${active ? '' : 'opacity-25'}" title="${label}">
-            <img src="${url}" width="24" height="24" style="${active ? '' : 'filter: grayscale(1);'}">
-        </div>`;
+    const hasOidc = methods.some(m => m.method === 'oidc');
+    const renderIcon = (url, active) => `<div class="${active ? '' : 'opacity-25'}"><img src="${url}" width="24"></div>`;
 
     providerList.innerHTML =
-        renderIcon('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg', 'Google', hasOidc) +
-        renderIcon('https://github.githubassets.com/favicons/favicon-dark.png', 'GitHub', hasOidc);
+        renderIcon('https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg', hasOidc) +
+        renderIcon('https://github.githubassets.com/favicons/favicon-dark.png', hasOidc);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const themeSelect = document.querySelector('#theme-select');
     const windowSelect = document.querySelector('#window-select');
     const resetPwBtn = document.getElementById('btn-reset-pw');
-
-    if (themeSelect) {
-        const savedTheme = getGlobalItem("theme") || "dark";
-        themeSelect.value = (savedTheme === "hueshift") ? "color" : savedTheme;
-
-        themeSelect.addEventListener('change', (e) => {
-            const val = e.target.value;
-            applyTheme(val === "color" ? "hueshift" : val);
-        });
-    }
 
     if (windowSelect) {
         windowSelect.value = localStorage.getItem('openPreference') || "same";
@@ -220,5 +204,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resetPwBtn) resetPwBtn.onclick = triggerPasswordReset;
 
     initSettings();
+    initThemeControls();
     initThemeListeners();
 });
