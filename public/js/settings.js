@@ -4,6 +4,12 @@ import { createServerLog } from './logging.js';
 const KRATOS_URL = "https://auth.sposlearning.cz";
 let currentUser = null;
 
+/**
+ * HELPER: Forces Kratos URLs to use HTTPS
+ * Prevents "Mixed Content" errors when Kratos returns internal HTTP links
+ */
+const fixUrl = (url) => url ? url.replace("http://", "https://") : url;
+
 async function initSettings() {
     try {
         const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -27,13 +33,15 @@ async function initSettings() {
         renderProviders(session.authentication_methods);
 
         document.querySelector('.dot-container')?.classList.add('hidden');
-
     } catch (err) {
         console.error("Auth check failed:", err);
         window.location.href = '/login';
     }
 }
 
+/**
+ * THEME CONTROLS
+ */
 function initThemeControls() {
     const themeSelect = document.querySelector('#theme-select');
     const hueSlider = document.getElementById('hueSlider');
@@ -43,11 +51,7 @@ function initThemeControls() {
     if (!themeSelect || !hueControls) return;
 
     const toggleHueVisibility = (val) => {
-        if (val === "color") {
-            hueControls.style.setProperty('display', 'flex', 'important');
-        } else {
-            hueControls.style.setProperty('display', 'none', 'important');
-        }
+        hueControls.style.setProperty('display', val === "color" ? 'flex' : 'none', 'important');
     };
 
     const savedTheme = getGlobalItem("theme") || "dark";
@@ -56,8 +60,7 @@ function initThemeControls() {
 
     themeSelect.addEventListener('change', (e) => {
         const val = e.target.value;
-        const themeToApply = (val === "color") ? "hueshift" : val;
-        applyTheme(themeToApply);
+        applyTheme(val === "color" ? "hueshift" : val);
         toggleHueVisibility(val);
     });
 
@@ -65,7 +68,6 @@ function initThemeControls() {
         const savedHue = getGlobalItem("hue-val") || 0;
         hueSlider.value = savedHue;
         if (hueDisplay) hueDisplay.textContent = `${savedHue}°`;
-
         hueSlider.addEventListener('input', (e) => {
             const val = e.target.value;
             if (hueDisplay) hueDisplay.textContent = `${val}°`;
@@ -75,6 +77,9 @@ function initThemeControls() {
     }
 }
 
+/**
+ * NAME CHANGE (With HTTPS Force Fix)
+ */
 window.toggleNameEdit = function() {
     const textSpan = document.getElementById('display-name-text');
     const container = textSpan.parentElement;
@@ -90,8 +95,7 @@ window.toggleNameEdit = function() {
             <button class="btn btn-sm btn-outline-secondary" onclick="location.reload()">
                 <span class="material-symbols-outlined fs-6">close</span>
             </button>
-        </div>
-    `;
+        </div>`;
 };
 
 window.saveNameChange = async function() {
@@ -103,11 +107,21 @@ window.saveNameChange = async function() {
     if (saveBtn) saveBtn.disabled = true;
 
     try {
-        const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, { credentials: 'include' });
+        // 1. Initialize settings flow
+        const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        // Handle potential 303 Redirect manually if browser blocks it
+        if (flowRes.type === 'opaqueredirect') throw new Error("Kratos redirected to insecure URL. Check HTTPS config.");
+
         const flow = await flowRes.json();
+        const actionUrl = fixUrl(flow.ui.action);
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
-        const submitRes = await fetch(`${KRATOS_URL}/self-service/settings?flow=${flow.id}`, {
+        // 2. Submit to the forced HTTPS URL
+        const submitRes = await fetch(actionUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
@@ -121,18 +135,65 @@ window.saveNameChange = async function() {
         const result = await submitRes.json();
 
         if (submitRes.status === 403 && result.error?.id === 'session_refresh_required') {
-            window.location.href = result.redirect_browser_to || `${KRATOS_URL}/self-service/login/browser?refresh=true`;
+            window.location.href = fixUrl(result.redirect_browser_to) || `${KRATOS_URL}/self-service/login/browser?refresh=true`;
             return;
         }
 
         if (!submitRes.ok) throw new Error("Chyba při ukládání.");
         location.reload();
     } catch (err) {
-        alert(err.message);
+        console.error("Settings error:", err);
+        alert("Chyba: " + err.message);
         if (saveBtn) saveBtn.disabled = false;
     }
 };
 
+/**
+ * VERIFICATION & RECOVERY (With HTTPS Force Fix)
+ */
+async function triggerVerification() {
+    try {
+        const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        const flow = await flowRes.json();
+        const actionUrl = fixUrl(flow.ui.action);
+        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
+
+        await fetch(actionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
+            credentials: 'include'
+        });
+        alert("Ověřovací email odeslán!");
+    } catch (err) { alert("Chyba při odesílání."); }
+}
+
+async function triggerPasswordReset() {
+    try {
+        const flowRes = await fetch(`${KRATOS_URL}/self-service/recovery/browser`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        const flow = await flowRes.json();
+        const actionUrl = fixUrl(flow.ui.action);
+        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
+
+        await fetch(actionUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
+            credentials: 'include'
+        });
+        alert("Resetovací email odeslán.");
+    } catch (err) { alert("Chyba při odesílání."); }
+}
+
+/**
+ * UI HELPERS
+ */
 function updateVerificationUI() {
     const statusDiv = document.getElementById('email-verification-status');
     const resendContainer = document.getElementById('resend-container');
@@ -149,36 +210,6 @@ function updateVerificationUI() {
     }
 }
 
-async function triggerVerification() {
-    try {
-        const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, { credentials: 'include' });
-        const flow = await flowRes.json();
-        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-        await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
-            credentials: 'include'
-        });
-        alert("Ověřovací email odeslán!");
-    } catch (err) { alert("Chyba při odesílání."); }
-}
-
-async function triggerPasswordReset() {
-    try {
-        const flowRes = await fetch(`${KRATOS_URL}/self-service/recovery/browser`, { credentials: 'include' });
-        const flow = await flowRes.json();
-        const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-        await fetch(`${KRATOS_URL}/self-service/recovery?flow=${flow.id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ method: 'link', csrf_token: csrfToken, email: currentUser.traits.email }),
-            credentials: 'include'
-        });
-        alert("Resetovací email odeslán.");
-    } catch (err) { alert("Chyba při odesílání."); }
-}
-
 function renderProviders(methods) {
     const providerList = document.getElementById('provider-list');
     const hasOidc = methods.some(m => m.method === 'oidc');
@@ -191,12 +222,10 @@ function renderProviders(methods) {
 document.addEventListener("DOMContentLoaded", () => {
     const windowSelect = document.querySelector('#window-select');
     const resetPwBtn = document.getElementById('btn-reset-pw');
-
     if (windowSelect) {
         windowSelect.value = localStorage.getItem('openPreference') || "same";
         windowSelect.addEventListener('change', (e) => localStorage.setItem("openPreference", e.target.value));
     }
-
     if (resetPwBtn) resetPwBtn.onclick = triggerPasswordReset;
 
     initSettings();
