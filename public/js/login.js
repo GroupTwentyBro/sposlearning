@@ -88,36 +88,14 @@ loginForm.addEventListener('submit', async (e) => {
 });
 
 function handleOAuthLogin(provider) {
-    const csrfToken = getCsrfToken();
-    if (!csrfToken) {
+    if (!flowId) {
         errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
         return;
     }
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `${KRATOS_URL}/self-service/login?flow=${flowId}`;
+    const authUrl = `${KRATOS_URL}/self-service/login/browser?flow=${flowId}&provider=${provider}`;
 
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'csrf_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-
-    const providerInput = document.createElement('input');
-    providerInput.type = 'hidden';
-    providerInput.name = 'provider';
-    providerInput.value = provider;
-    form.appendChild(providerInput);
-
-    const methodInput = document.createElement('input');
-    methodInput.type = 'hidden';
-    methodInput.name = 'method';
-    methodInput.value = 'oidc';
-    form.appendChild(methodInput);
-
-    document.body.appendChild(form);
-    form.submit();
+    window.location.href = authUrl;
 }
 
 document.getElementById('google-login-btn').addEventListener('click', () => handleOAuthLogin('google'));
