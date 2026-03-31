@@ -6,17 +6,11 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-RewriteCond %{REQUEST_URI} ^/exchange-token
-
-RewriteCond %{HTTP_HOST} !^www\. [NC]
-RewriteCond %{HTTP_HOST} !^dev\. [NC]
-RewriteCond %{HTTP_HOST} !^admin\. [NC]
-
-RewriteRule ^login/?$ https://www.sposlearning.cz/login [L]
+RewriteRule ^login/?$ login.html [L]
+RewriteRule ^dashboard/?$ dashboard.html [L]
 RewriteRule ^logs/?$ logs.html [L]
 RewriteRule ^users/?$ users.html [L]
 RewriteRule ^feedback/?$ feedback.html [L]
-RewriteRule ^feedback/post/?$ feedback/post.html [L]
 RewriteRule ^add-page/?$ add-page.html [L]
 
 <FilesMatch "\.(js|css)$">
