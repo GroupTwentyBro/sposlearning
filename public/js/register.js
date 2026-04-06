@@ -1,6 +1,7 @@
 import { createServerLog } from '/js/logging.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
 
 const regForm = document.getElementById('register-form');
 const emailInput = document.getElementById('reg-email');

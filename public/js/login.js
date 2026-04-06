@@ -1,9 +1,10 @@
 import { applyTheme, initThemeListeners } from '/js/theming.js';
 import { createServerLog } from "/js/logging.js";
+import { CONFIG } from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const REDIRECT_MAIN = "https://sposlearning.cz/";
-const REDIRECT_ADMIN = "https://admin.sposlearning.cz/";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const REDIRECT_MAIN = CONFIG.BASE_URL;
+const REDIRECT_ADMIN = CONFIG.ADMIN_URL;
 
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');

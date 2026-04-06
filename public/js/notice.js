@@ -1,4 +1,6 @@
-const KRATOS_URL = "https://auth.sposlearning.cz";
+import {CONFIG} from "/js/config.js";
+
+const KRATOS_URL = CONFIG.AUTH_URL;
 
 let userEmailForVerification = "";
 

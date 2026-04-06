@@ -1,8 +1,9 @@
 import { initThemeListeners } from './theming.js';
 import { createServerLog } from '/js/logging.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://api.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = CONFIG.API_URL;
 
 const contentContainer = document.getElementById('wiki-content-container');
 let currentPage = null;
@@ -157,7 +158,7 @@ function getFileExplorerHtml(title, files) {
     const fileListHtml = files.map(file => {
         const size = (file.bytes / 1048576 > 1) ? `${(file.bytes / 1048576).toFixed(2)} MB` : `${(file.bytes / 1024).toFixed(0)} KB`;
         return `<a href="${file.url}" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center" 
-                style="background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
+                style=""https://api.sposlearning.cz"background: var(--root-box-bg-clr); color: var(--root-txt-clr); border: 1px solid var(--box-overlay-border-clr); margin-bottom: 5px; border-radius: 8px;">
                 ${file.name} <span class="badge" style="background: var(--primary-fg-clr);">${size}</span></a>`;
     }).join('');
     return `<h1 style="color: var(--primary-hl-clr)">${title}</h1><div class="list-group" style="max-width: 600px;">${fileListHtml}</div>`;
@@ -181,7 +182,7 @@ function setupAdminTools() {
 
     if (currentUser) {
         let editBtn = (isAdminUser && (currentPage.type === 'markdown' || currentPage.type === 'html'))
-            ? `<a href="https://admin.sposlearning.cz/edit.html?path=${currentPage.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
+            ? `<a href="${CONFIG.ADMIN_URL}/edit.html?path=${currentPage.fullPath}" class="btn btn-sm btn-primary pc">Upravit</a>` : '';
         let deleteBtn = isAdminUser ? `<button id="delete-button" class="btn btn-sm btn-danger pc">Smazat</button>` : '';
 
         adminBar.innerHTML = `
