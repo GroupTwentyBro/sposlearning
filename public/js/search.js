@@ -1,7 +1,8 @@
 import { initThemeListeners } from './theming.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://api.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = CONFIG.API_URL;
 
 let allPages = [];
 let isAdminUser = false;
@@ -196,8 +197,8 @@ function renderAdminBar() {
     adminBar.innerHTML = '';
 
     const dashboardLink = isAdminUser ? `
-        <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
-        <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile"><span class="icon">team_dashboard</span></a>
+        <a href="${CONFIG.ADMIN_URL}/" class="btn btn-sm btn-white pc">Dashboard</a>
+        <a href="${CONFIG.ADMIN_URL}/" class="btn btn-sm btn-white ctrl-btn mobile"><span class="icon">team_dashboard</span></a>
     ` : '';
 
     if (currentUser) {

@@ -1,7 +1,8 @@
 import { applyTheme, getGlobalItem, setGlobalItem, initThemeListeners } from './theming.js';
 import { createServerLog } from './logging.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
 let currentUser = null;
 
 /**

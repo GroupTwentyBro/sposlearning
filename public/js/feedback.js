@@ -1,8 +1,9 @@
 import { initThemeListeners } from './theming.js';
 import { createServerLog } from '/js/logging.js';
+import { CONFIG } from '/js/config.js';
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://api.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = CONFIG.API_URL;
 
 const form = document.getElementById('feedback-form');
 const submitBtn = document.getElementById('submit-btn');

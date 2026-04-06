@@ -1,8 +1,9 @@
 import { initThemeListeners } from '/js/theming.js';
 import { createServerLog } from '/js/logging.js';
+import { CONFIG } from '/js/config.js';
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://api.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = CONFIG.API_URL;
 
 let currentUser = null;
 let originalPath = "";
@@ -16,7 +17,7 @@ async function checkAuth() {
         currentUser = session.identity;
 
         if (currentUser.metadata_public?.admin !== true) {
-            window.location.href = 'https://www.sposlearning.cz/';
+            window.location.href = CONFIG.BASE_URL;
             return;
         }
 
@@ -24,7 +25,7 @@ async function checkAuth() {
         initThemeListeners();
         document.querySelector('.dot-container')?.classList.add('hidden');
     } catch (err) {
-        window.location.href = 'https://www.sposlearning.cz/login';
+        window.location.href = `${CONFIG.BASE_URL}/login`;
     }
 }
 
@@ -104,7 +105,7 @@ async function handleSave(e) {
             newPath: newPath
         });
 
-        window.location.href = `https://www.sposlearning.cz/${newPath}`;
+        window.location.href = `${CONFIG.BASE_URL}/${newPath}`;
     } catch (error) {
         status.innerHTML = `<span class="text-danger">⚠️ ${error.message}</span>`;
         saveButton.disabled = false;
