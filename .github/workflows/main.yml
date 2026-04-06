@@ -1,4 +1,4 @@
-name: Deploy to Forpsi and Sync Firestore
+name: Deploy to Forpsi
 
 on:
   push:
@@ -37,25 +37,3 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: /subdoms/admin/
         local-dir: ./admin/
-
-  firestore-sync:
-    name: Firestore Sync
-    runs-on: ubuntu-latest
-    # This ensures it only runs if HTML files in the admin-pages folder are changed
-    if: github.event_name == 'push'
-    steps:
-    - name: Get latest code
-      uses: actions/checkout@v4
-
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-
-    - name: Install dependencies
-      run: npm install firebase-admin cheerio
-
-    - name: Run Upload Script
-      run: node ./firestore/admin-pages/upload.js
-      env:
-        FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
