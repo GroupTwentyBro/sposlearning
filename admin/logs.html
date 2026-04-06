@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logs - SPOŠLearning</title>
+  <link rel="icon" type="image/x-icon" href="/media/logo.svg">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
+  <script src="/js/theming.js" type="module"></script>
+  <link href="/style/variables-global.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style/base.css">
+  <link rel="stylesheet" href="/style/components.css">
+  <link rel="stylesheet" href="/style/custom-el.css">
+  <link rel="stylesheet" href="/style/mobile.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+</head>
+<body>
+
+<div class="dot-container">
+  <div class="dot"></div>
+</div>
+
+<div id="secure-container">
+  <div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="text-white">Systémové logy</h2>
+      <a href="/" class="btn btn-outline-light">Dashboard</a>
+    </div>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Timestamp & IP</th>
+          <th>Type</th>
+          <th>User</th>
+          <th>Action & Details</th>
+        </tr>
+        </thead>
+        <tbody id="logs-tbody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/logs.js" type="module"></script>
+<script src="/js/notice.js"></script>
+</body>
+</html>

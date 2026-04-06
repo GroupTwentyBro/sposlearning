@@ -1,0 +1,26 @@
+Options -MultiViews
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+RewriteRule ^feedback/?$ feedback.html [L]
+
+RewriteRule ^feedback/post/?$ feedback/post.html [L]
+
+RewriteRule ^login/?$ login.html [L]
+RewriteRule ^dashboard/?$ dashboard.html [L]
+RewriteRule ^logs/?$ logs.html [L]
+RewriteRule ^users/?$ users.html [L]
+RewriteRule ^add-page/?$ add-page.html [L]
+
+<FilesMatch "\.(js|css)$">
+  FileETag None
+  <IfModule mod_headers.c>
+    Header unset ETag
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+  </IfModule>
+</FilesMatch>

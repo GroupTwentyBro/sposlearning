@@ -57,17 +57,13 @@
         margin: 0;
     }
 
-    /* Buttons */
     .ctrl-btn {
-        /* 1. Hide the original text "Domů" */
         font-size: 0 !important;
 
-        /* 2. Set up the container to center the new icon */
         display: inline-flex;
         align-items: center;
         justify-content: center;
 
-        /* 3. Optional: Adjust sizing if you want a square button */
         padding: 0.5rem;
         min-width: 32px;
         min-height: 32px;
@@ -78,33 +74,103 @@
         font-size: var(--icon-tiny);
     }
 
-    .ctrl-btn.theme-btn .icon {
-        line-height: 1;
-    }
-
-    .ctrl-btn .icon-stack {
-        width: var(--icon-tiny);
-        height: var(--icon-tiny);
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .ctrl-btn .icon-stack .icon {
-        font-size: var(--icon-tiny);
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-    }
-
     .pc {
         display: none !important;
     }
 
     .mobile {
         display: block !important;
+    }
+
+    .mobile-admin-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .admin-menu-vertical {
+        visibility: hidden;
+        opacity: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: absolute;
+        bottom: 50px;
+        right: 0;
+        background: var(--root-box-bg-clr);
+        padding: 10px;
+        border-radius: 15px;
+        border: 1px solid var(--box-border-clr);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform: translateY(15px) scale(0.9);
+        z-index: 1000;
+    }
+
+    .admin-menu-vertical.show {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    #mobile-admin-toggle.active .icon {
+        transform: rotate(90deg);
+        color: var(--primary-hl-clr);
+    }
+
+    .admin-menu-vertical .btn {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+}
+
+@media (min-width: 768px) {
+    .d-flex.flex-md-row {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+
+    #v-pills-tab {
+        flex: 0 0 250px !important;
+        width: 250px !important;
+    }
+
+    #v-pills-tabContent {
+        flex: 1 1 auto !important;
+        max-width: calc(100% - 300px);
+    }
+
+    .nav-pills .nav-link {
+        width: 100% !important;
+        margin-right: 0 !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .d-flex.flex-column {
+        align-items: center !important;
+    }
+
+    .nav-pills {
+        justify-content: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--box-border-clr);
+    }
+
+    .box {
+        padding: 20px !important;
+        margin: 10px 0 !important;
+    }
+
+    .col-md-6 {
+        width: 100%;
+        text-align: center !important;
+        justify-content: center !important;
     }
 }

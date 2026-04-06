@@ -24,7 +24,7 @@
         <div class="d-flex justify-content-between align-items-center mb-5">
             <h1>Dashboard</h1>
             <div class="d-flex" style="gap: 20px">
-                <a href="/"
+                <a href="https://sposlearning.cz/"
                 ><button
                         class="btn btn-primary"
                         id="home-button"
@@ -62,7 +62,7 @@
                     <div class="text boxed">
                         Tady se přidávají články. No comment.
                     </div>
-                    <a href="/admin/add-page"
+                    <a href="/add-page"
                     ><button class="btn btn-primary mt-3">Otevřít</button></a
                     >
                 </div>
@@ -75,73 +75,35 @@
                         Zde se můžeš podívat na zpětnou vazbu. Na to přijdeš není to
                         těžký.
                     </div>
-                    <a href="/admin/feedback"
+                    <a href="/feedback"
                     ><button class="btn btn-warning mt-3">Otevřít</button></a
                     >
                 </div>
             </div>
         </div>
         <div class="box-row">
-            <div class="box" style="grid-column: span 2">
+            <div class="box">
                 <div class="col">
-                    <icon class="boxed clr2">colors</icon>
-                    <h2 class="boxed">Theming</h2>
-                    <div class="row">
-                        <div class="col">
-                            <button
-                                    id="darktheme-btn"
-                                    class="btn btn-dark"
-                                    style="margin: 10px">
-                                Dark Theme
-                            </button>
-                            <button
-                                    id="lighttheme-btn"
-                                    class="btn btn-white"
-                                    style="margin: 10px">
-                                Light Theme
-                            </button>
-                            <button
-                                    id="teddytheme-btn"
-                                    class="btn btn-dark"
-                                    style="
-                      margin: 10px;
-                      background-color: var(--primary-bg-clr);
-                      border-color: var(--primary-bg-clr);
-                    ">
-                                Teddy Theme
-                            </button>
-                        </div>
-                        <div class="col">
-                            <button
-                                    id="miketheme-btn"
-                                    class="btn btn-secondary"
-                                    style="margin: 10px">
-                                Mike Theme
-                            </button>
-                            <button
-                                    id="mikutheme-btn"
-                                    class="btn btn-dark"
-                                    style="
-                      margin: 10px;
-                      background: linear-gradient(
-                        90deg,
-                        hsl(177, 70%, 50%),
-                        hsl(328, 85%, 53%)
-                      );
-                      border-color: hsl(177, 70%, 50%);
-                    ">
-                                Miku Theme
-                            </button>
-                            <input
-                                    type="range"
-                                    id="hueSlider"
-                                    min="0"
-                                    max="360"
-                                    value="0"
-                                    style="margin: 10px" />
-                        </div>
+                    <icon class="boxed clr2">history</icon>
+                    <h2 class="boxed">Systémové logy</h2>
+                    <div class="text boxed">
+                        Přehled událostí a záznamů v systému.
                     </div>
-                    <div class="text boxed">Vyber si theme.</div>
+                    <a href="/logs/"
+                    ><button class="btn btn-secondary mt-3">Otevřít</button></a
+                    >
+                </div>
+            </div>
+            <div class="box">
+                <div class="col">
+                    <icon class="boxed clr4">person</icon>
+                    <h2 class="boxed">Uživatelé</h2>
+                    <div class="text boxed">
+                        Přehled a správa uživatelů.
+                    </div>
+                    <a href="/users/"
+                    ><button class="btn btn-info mt-3">Otevřít</button></a
+                    >
                 </div>
             </div>
         </div>

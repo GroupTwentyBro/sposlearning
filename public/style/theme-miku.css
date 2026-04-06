@@ -1,63 +1,57 @@
 :root {
-  /* ROOT COLORS - Based on Hatsune Miku (Teal/Cyan + Hot Pink) */
-  --root-bg-clr: hsl(177, 100%, 8%); /* Deep teal-black base */
+  --root-bg-clr: hsl(177, 100%, 8%);
   --root-fg-clr: #ffffff;
-  --root-txt-clr: hsla(0, 0%, 100%, 0.95); /* Lighter for better readability */
+  --root-txt-clr: hsla(0, 0%, 100%, 0.95);
   --root-box-bg-clr: hsl(177, 60%, 10%);
   --root-box-fg-clr: hsl(177, 50%, 15%);
-  --root-fgd-clr: hsl(177, 30%, 75%); /* Lighter muted teal */
+  --root-fgd-clr: hsl(177, 30%, 75%);
   --root-ul-sd-clr: hsl(177, 70%, 50%);
   --code-bg-clr: hsl(177, 40%, 12%);
 
-  /* BOX STYLES */
   --box-overlay-clr: hsla(177, 70%, 50%, 8%);
-  --box-clr: hsl(177, 60%, 14%); /* Darker but visible background */
-  --box-border-clr: hsl(177, 70%, 35%); /* Miku teal border */
+  --box-clr: hsl(177, 60%, 14%);
+  --box-border-clr: hsl(177, 70%, 35%);
   --box-overlay-fg-clr: hsla(0, 0%, 100%, 50%);
   --box-overlay-border-clr: hsla(177, 70%, 50%, 15%);
-  --box-txt-clr: hsla(0, 0%, 100%, 0.95); /* Much lighter text in boxes */
+  --box-txt-clr: hsla(0, 0%, 100%, 0.95);
 
-  /* PRIMARY COLORS - Miku Teal/Cyan */
   --primary-boxbg-clr: hsl(177, 100%, 15%);
   --primary-boxfg-clr: hsl(177, 100%, 20%);
   --primary-sd-clr: hsl(177, 85%, 28%);
-  --primary-bg-clr: hsl(177, 85%, 38%); /* Vibrant Miku teal */
-  --primary-fg-clr: hsl(177, 70%, 50%); /* #00B2A9 equivalent */
-  --primary-hl-clr: hsl(177, 60%, 65%); /* Light teal highlight */
+  --primary-bg-clr: hsl(177, 85%, 38%);
+  --primary-fg-clr: hsl(177, 70%, 50%);
+  --primary-hl-clr: hsl(177, 60%, 65%);
 
-  /* SECONDARY COLORS - Miku Hot Pink */
   --secondary-sd-clr: hsl(328, 85%, 30%);
   --secondary-bg-clr: hsl(328, 85%, 40%);
-  --secondary-fg-clr: hsl(328, 85%, 53%); /* #E12885 Hot pink */
-  --secondary-hl-clr: hsl(328, 85%, 68%); /* Light pink pop */
+  --secondary-fg-clr: hsl(328, 85%, 53%);
+  --secondary-hl-clr: hsl(328, 85%, 68%);
 
-  /* TERTIARY COLORS - Light Cyan Accent */
   --trietary-sd-clr: hsl(186, 50%, 35%);
   --trietary-bg-clr: hsl(186, 50%, 50%);
-  --trietary-fg-clr: hsl(186, 52%, 68%); /* #86CECB Light cyan */
+  --trietary-fg-clr: hsl(186, 52%, 68%);
   --trietary-hl-clr: hsl(186, 52%, 85%);
 
-  /* DISCLOSURE COLORS - Semantic mappings */
+  --quaternary-sd-clr: hsl(328, 85%, 30%);
+  --quaternary-bg-clr: hsl(328, 85%, 40%);
+  --quaternary-fg-clr: hsl(328, 85%, 53%);
+  --quaternary-hl-clr: hsl(328, 85%, 68%);
+
   --discl-def-bg-clr: hsla(177, 85%, 38%, 0.2);
   --discl-def-fg-clr: hsl(177, 85%, 45%);
 
-  /* Error/Important - Hot Pink */
   --discl-important-bg-clr: hsla(328, 85%, 53%, 0.15);
   --discl-important-fg-clr: hsl(328, 85%, 60%);
 
-  /* Success - Vibrant Teal */
   --discl-importantgreen-bg-clr: hsla(177, 70%, 50%, 0.15);
   --discl-importantgreen-fg-clr: hsl(177, 70%, 55%);
 
-  /* Warning - Light Cyan */
   --discl-warning-bg-clr: hsla(186, 52%, 68%, 0.15);
   --discl-warning-fg-clr: hsl(186, 52%, 68%);
 
-  /* Info - Muted Teal */
   --discl-info-bg-clr: hsla(177, 60%, 65%, 0.15);
   --discl-info-fg-clr: hsl(177, 60%, 65%);
 
-  /* UNDERLINE STYLES */
   --ul-dotted: linear-gradient(
     to right,
     var(--root-ul-sd-clr) 1px,
@@ -65,8 +59,6 @@
   );
 }
 
-/* GLOBAL TEXT COLOR ENFORCEMENT - LIGHT TEXT FOR READABILITY */
-/* This ensures ALL text is properly colored, including markdown-generated content */
 body,
 body *:not(button):not(.btn):not(.btn *),
 .container,
@@ -124,7 +116,6 @@ figcaption,
   color: var(--root-txt-clr) !important;
 }
 
-/* Ensure paragraphs in markdown are visible */
 p,
 p > *,
 .content p,
@@ -136,7 +127,6 @@ main p > * {
   color: var(--root-txt-clr) !important;
 }
 
-/* Markdown list items */
 li,
 li > *,
 ul li,
@@ -146,7 +136,6 @@ ol li > * {
   color: var(--root-txt-clr) !important;
 }
 
-/* Markdown emphasis */
 em,
 i,
 strong,
@@ -154,7 +143,6 @@ b {
   color: var(--root-txt-clr) !important;
 }
 
-/* Markdown blockquotes */
 blockquote,
 blockquote *,
 blockquote p {
@@ -162,7 +150,6 @@ blockquote p {
   border-left: 3px solid var(--primary-fg-clr) !important;
 }
 
-/* Links should be visible with gradient on hover */
 a {
   color: var(--primary-hl-clr) !important;
   text-decoration: none;
@@ -180,7 +167,6 @@ a:hover {
   text-decoration: underline;
 }
 
-/* Headings with Miku gradient colors */
 h1,
 h2,
 h3,
@@ -198,9 +184,6 @@ h6 {
   font-weight: bold !important;
 }
 
-/* BUTTON OVERRIDES - Using CSS Variables */
-
-/* Primary & Dark: The main Miku Teal with gradient */
 .btn-primary,
 .btn-dark {
   background: linear-gradient(
@@ -212,7 +195,6 @@ h6 {
   color: var(--root-fg-clr) !important;
 }
 
-/* Secondary: The Hot Pink with gradient */
 .btn-secondary {
   background: linear-gradient(
     135deg,
@@ -223,28 +205,24 @@ h6 {
   color: var(--root-fg-clr) !important;
 }
 
-/* Danger: The Hot Pink (emphasis) */
 .btn-danger {
   background: var(--discl-important-fg-clr) !important;
   border-color: var(--discl-important-fg-clr) !important;
   color: var(--root-fg-clr) !important;
 }
 
-/* Warning: The Light Cyan */
 .btn-warning {
   background: var(--trietary-fg-clr) !important;
   border-color: var(--trietary-fg-clr) !important;
   color: var(--root-box-bg-clr) !important;
 }
 
-/* Success: The Vibrant Teal */
 .btn-success {
   background: var(--discl-importantgreen-fg-clr) !important;
   border-color: var(--discl-importantgreen-fg-clr) !important;
   color: var(--root-fg-clr) !important;
 }
 
-/* White: High contrast with Miku gradient */
 .btn-white {
   background: linear-gradient(
     135deg,
@@ -255,7 +233,6 @@ h6 {
   color: var(--root-fg-clr) !important;
 }
 
-/* Interactive States */
 .btn-primary:hover,
 .btn-secondary:hover,
 .btn-danger:hover,
@@ -277,10 +254,9 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
-  background: hsl(177, 100%, 8%) !important; /* Fallback color */
+  background: hsl(177, 100%, 8%) !important;
 }
 
-/* Video background - specific to Miku theme */
 body::before {
   content: "";
   position: fixed;
@@ -310,7 +286,6 @@ body::before {
   object-fit: cover;
 }
 
-/* Overlay for better readability - LIGHTER FOR BETTER CONTRAST */
 .video-background::after {
   content: "";
   position: absolute;
@@ -322,11 +297,10 @@ body::before {
     135deg,
     rgba(0, 178, 169, 0.3),
     rgba(225, 40, 133, 0.2)
-  ); /* Teal to pink gradient overlay */
-  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.5); /* Additional dark overlay for better text contrast */
+  );
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.5);
 }
 
-/* Sound toggle button - floating in bottom right */
 .miku-sound-toggle.pc {
   position: fixed;
   bottom: 60px;
@@ -359,7 +333,6 @@ body::before {
   font-size: 32px;
 }
 
-/* Boxes and cards - DARKER BACKGROUND FOR CONTRAST */
 .box,
 .card,
 .panel,
@@ -369,8 +342,8 @@ body::before {
     30,
     35,
     0.85
-  ) !important; /* Semi-transparent dark background */
-  backdrop-filter: blur(10px); /* Background blur effect */
+  ) !important;
+  backdrop-filter: blur(10px);
   border: 3px solid var(--box-border-clr) !important;
   color: var(--box-txt-clr) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
@@ -383,7 +356,6 @@ body::before {
   color: var(--box-txt-clr) !important;
 }
 
-/* Content wrappers - common in DB-generated pages */
 .page-content,
 .page-content *:not(.btn):not(.btn *),
 .article-content,
@@ -395,7 +367,6 @@ body::before {
   color: var(--root-txt-clr) !important;
 }
 
-/* Tables */
 table {
   background: rgba(10, 30, 35, 0.85) !important;
   color: var(--root-txt-clr) !important;
@@ -417,7 +388,6 @@ table td {
   color: var(--root-txt-clr) !important;
 }
 
-/* Forms */
 input,
 textarea,
 select {
@@ -431,7 +401,6 @@ textarea::placeholder {
   color: var(--root-fgd-clr) !important;
 }
 
-/* Code blocks */
 code,
 pre {
   background: rgba(10, 30, 35, 0.9) !important;
@@ -439,7 +408,6 @@ pre {
   border: 2px solid var(--box-border-clr) !important;
 }
 
-/* Icon gradient colors */
 icon.clr1 {
   background: linear-gradient(
     135deg,
@@ -473,6 +441,6 @@ icon.clr3 {
   background-clip: text !important;
 }
 
-#secret-miku-btn {
-  display: none !important;
+body {
+  text-shadow: 0 0 5px black;
 }

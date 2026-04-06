@@ -1,4 +1,4 @@
-/* Disclamers */
+
 discl {
     display: flex;
     align-items: center;
@@ -117,9 +117,7 @@ discl[type="info"]::before {
 .info-message > icon {
     background-color: hsl(from var(--trietary-fg-clr) h s l / 40%) !important;
 }
-/* ------------------------------------------------------ */
 
-/* Ordered lists */
 ol {
     list-style: none;
     counter-reset: my-list-counter;
@@ -164,9 +162,7 @@ ol > li > p:first-child,
 ol > li > h4:first-child {
     margin-top: 0;
 }
-/* --------------------------------------------- */
 
-/* Custom boxes */
 .box-row {
     display: flex;
     width: 100%;
@@ -220,10 +216,10 @@ ol > li > h4:first-child {
 
 .box-inline {
     display: flex;
-    align-items: center; /* Center text vertically */
+    align-items: center;
     padding: 15px 20px;
     flex: 1;
-    background: transparent; /* Essential: let parent color show through */
+    background: transparent;
     border-right: 1px solid rgba(0,0,0,0.1);
 }
 
@@ -263,6 +259,11 @@ icon.boxed.clr3 {
     background-color: var(--trietary-sd-clr);
 }
 
+icon.boxed.clr4 {
+    color: var(--quaternary-hl-clr);
+    background-color: var(--quaternary-sd-clr);
+}
+
 h2.boxed {
     font-size: 1.5rem;
     margin-top: 1.5rem;
@@ -271,14 +272,12 @@ h2.boxed {
 .text.boxed {
     color: var(--box-txt-clr);
 }
-/* ----------------------------------------------- */
 
 .data-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
 
-    /* Your variables */
     background-color: var(--box-overlay-clr);
     border: 1px solid var(--box-overlay-border-clr);
     border-radius: var(--box-border-radius);
@@ -292,7 +291,7 @@ h2.boxed {
 .data-table td {
     padding: 16px 20px;
     border-bottom: 1px solid var(--box-overlay-border-clr);
-    vertical-align: middle; /* Aligns content to the middle */
+    vertical-align: middle;
 }
 
 .data-table th {
@@ -300,73 +299,55 @@ h2.boxed {
     background-color: rgba(128, 128, 128, 0.1);
 }
 
-/* Remove bottom border from last row */
 .data-table tr:last-child td {
     border-bottom: none;
 }
 
-/* Styling for inline code (first and second column) */
 .data-table code {
     font-family: monospace;
     background-color: rgba(0, 0, 0, 0.05);
     padding: 2px 4px;
     border-radius: var(--box-border-radius);
-    color: #d63384; /* Optional: generic syntax highlight color */
+    color: #d63384;
 }
 
-/* Styling for code blocks in the examples column */
 .data-table pre {
-    margin: 0; /* Resets default browser margins for pre tags */
+    margin: 0;
 }
 
-input[type="range"] {
-    width: auto !important;
-    cursor: pointer !important;
-    background: linear-gradient(to right,
-        hsl(0, 100%, 50%),
-        hsl(60, 100%, 50%),
-        hsl(120, 100%, 50%),
-        hsl(180, 100%, 50%),
-        hsl(240, 100%, 50%),
-        hsl(300, 100%, 50%),
-        hsl(360, 100%, 50%)
-    ) !important;
-    appearance: none !important; /* Removes default OS styling */
-    height: 40px !important;
-    border-radius: var(--box-border-radius) !important;
-}
-
-/* 2. Style the Thumb (Chrome, Safari, Edge, Opera) */
-input[type="range"]::-webkit-slider-thumb {
+input[type="range"]#hueSlider {
     -webkit-appearance: none;
     appearance: none;
-
-    /* The "White Vertical Bar" look */
-    height: 50px;   /* Taller than the track */
-    width: 6px;     /* Narrow width */
-    background-color: white;
-    border-radius: var(--box-border-radius); /* Slightly rounded corners */
-    border: 1px solid #ccc; /* Subtle border to see it against white backgrounds */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2); /* Shadow for depth */
-    cursor: pointer;
-
-    /* Centering the thumb vertically on the track */
-    /* Formula: (track-height / 2) - (thumb-height / 2) */
-    /* (12px / 2) - (24px / 2) = 6 - 12 = -6px */
-    margin-top: -2px;
+    width: 200px !important;
+    height: 30px !important;
+    background: linear-gradient(to right,
+    hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%),
+    hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%),
+    hsl(360, 100%, 50%)
+    ) !important;
+    border-radius: var(--box-border-radius) !important;
+    outline: none;
+    margin: 10px 0;
 }
 
-/* 3. Style the Thumb (Firefox) */
-input[type="range"]::-moz-range-thumb {
-    /* The "White Vertical Bar" look */
-    height: 50px;
-    width: 6px;
+input[type="range"]#hueSlider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 40px;
+    width: 8px;
     background-color: white;
-    border-radius: var(--box-border-radius);
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.3);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
     cursor: pointer;
+}
 
-    /* Firefox centers automatically, no margin-top needed */
-    border: none; /* Reset Firefox default border */
+input[type="range"]#hueSlider::-moz-range-thumb {
+    height: 40px;
+    width: 8px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.3);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    cursor: pointer;
 }

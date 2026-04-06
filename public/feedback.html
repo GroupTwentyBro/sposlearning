@@ -9,15 +9,17 @@
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' data: https://*.googleusercontent.com https://res.cloudinary.com;
-    connect-src 'self' https://*.googleapis.com https://api.ipify.org https://api.cloudinary.com https://sposlearning.cz;
+    connect-src 'self' https://*.googleapis.com https://api.ipify.org https://api.cloudinary.com https://*.sposlearning.cz;
     ">
     <title>Send Feedback - SPOŠLearning</title>
 
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
     <link href="/style/variables-global.css" rel="stylesheet">
     <link rel="stylesheet" href="/style/base.css">
     <link rel="stylesheet" href="/style/forms.css">
+    <link rel="stylesheet" href="/style/custom-el.css">
     <link rel="stylesheet" href="/style/mobile.css">
 
     <script src="/js/theming.js" type="module"></script>
@@ -45,12 +47,6 @@
             </div>
 
             <div class="form-group">
-                <label for="feedback-name">Jméno</label>
-                <input type="text" class="form-control" id="feedback-name" placeholder="Vaše jméno">
-                <input type="text" id="hp_field" style="display:none !important" tabindex="-1" autocomplete="off">
-            </div>
-
-            <div class="form-group">
                 <label for="feedback-message">Zpráva</label>
                 <textarea class="form-control" id="feedback-message" rows="5" required placeholder="Popište vaši zpětnou vazbu..."></textarea>
             </div>
@@ -62,13 +58,7 @@
     <div id="status-message" class="mt-3"></div>
 </div>
 
-<button id="theme-toggle" class="btn btn-icon pc">
-    <div class="icon-stack">
-        <icon class="icon-moon">dark_mode</icon>
-        <icon class="icon-sun">light_mode</icon>
-    </div>
-</button>
-
 <script type="module" src="/js/feedback.js"></script>
+<script src="/js/notice.js"></script>
 </body>
 </html>

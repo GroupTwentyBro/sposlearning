@@ -1,135 +1,142 @@
-import {auth} from './firebaseConfig.js';
-import {
-    browserLocalPersistence,
-    GithubAuthProvider,
-    GoogleAuthProvider,
-    OAuthProvider,
-    setPersistence,
-    signInWithEmailAndPassword,
-    signInWithPopup,
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { applyTheme, initThemeListeners } from '/js/theming.js';
+import { createServerLog } from "/js/logging.js";
 
-// Modular Theme Import
-import {applyTheme, initThemeListeners} from './theming.js';
-
-// Initialize UI
-initThemeListeners();
-
-async function checkAdminAndRedirect(user) {
-    try {
-        const adminDocRef = doc(db, "administrators", user.uid);
-        const adminDocSnap = await getDoc(adminDocRef);
-
-        if (adminDocSnap.exists()) {
-            console.log("Admin verified via database.");
-            window.location.href = '/admin/dashboard';
-        } else {
-            console.log("Regular user detected.");
-            window.location.href = '/';
-        }
-    } catch (error) {
-        console.error("Error checking admin status:", error);
-        // Fallback to home if database check fails (e.g. permission denied)
-        window.location.href = '/';
-    }
-}
-
-// Handle the toggle specifically for the login page sun/moon button
-const toggleBtn = document.getElementById("theme-toggle");
-
-if (toggleBtn) {
-    const updateToggleUI = () => {
-        const isDark = localStorage.getItem("theme") === "dark";
-        toggleBtn.classList.toggle("is-dark", isDark);
-    };
-    toggleBtn.addEventListener("click", () => {
-        const current = localStorage.getItem("theme");
-        applyTheme(current === "dark" ? "light" : "dark");
-        updateToggleUI();
-    });
-    updateToggleUI();
-}
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const REDIRECT_MAIN = "https://sposlearning.cz/";
+const REDIRECT_ADMIN = "https://admin.sposlearning.cz/";
 
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const errorMessage = document.getElementById('error-message');
-const googleBtn = document.getElementById('google-login-btn');
-const microsoftBtn = document.getElementById('microsoft-login-btn');
-const githubBtn = document.getElementById('github-login-btn');
+
+checkExistingSession();
+initThemeListeners();
+
+let currentFlowData = null;
+
+async function initializeFlow() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/self-service/login/browser`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+        currentFlowData = await response.json();
+        return currentFlowData.id;
+    } catch (err) {
+        console.error("Initialization failed:", err);
+        errorMessage.textContent = "Nelze inicializovat autentizaci.";
+    }
+}
+
+let flowId = await initializeFlow();
+
+function getCsrfToken() {
+    if (!currentFlowData) return null;
+    return currentFlowData.ui.nodes.find(
+        node => node.attributes.name === 'csrf_token'
+    )?.attributes.value;
+}
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = emailInput.value;
-    const password = passwordInput.value;
     errorMessage.textContent = '';
 
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
+        return;
+    }
+
+    const body = {
+        method: 'password',
+        identifier: emailInput.value,
+        password: passwordInput.value,
+        csrf_token: csrfToken
+    };
+
     try {
-        await setPersistence(auth, browserLocalPersistence);
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        const user = result.user;
+        const response = await fetch(`${KRATOS_URL}/self-service/login?flow=${flowId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(body),
+            credentials: 'include'
+        });
 
-        if (!user.emailVerified) {
-            errorMessage.textContent = "Váš e-mail není ověřen. Zkontrolujte prosím svou schránku.";
-            await signOut(auth);
-            return;
+        const data = await response.json();
+
+        if (response.ok) {
+            const user = data.session.identity;
+            const isAdmin = user.metadata_public?.admin === true;
+
+            document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
+            window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
+        } else {
+            errorMessage.textContent = data.ui?.messages?.[0]?.text || "Špatný email nebo heslo.";
+            if (data.error?.id === 'self_service_flow_expired' || response.status === 410) {
+                flowId = await initializeFlow();
+            }
         }
-
-        await checkAdminAndRedirect(user);
     } catch (error) {
-        console.error('Chyba přihlášení:', error);
-        errorMessage.textContent = 'Špatný email nebo heslo';
+        console.error('Chyba:', error);
+        errorMessage.textContent = 'Server neodpovídá.';
     }
 });
 
-if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        const provider = new GoogleAuthProvider();
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Příhlášení přes Google selhalo.';
-        }
-    });
+function handleOAuthLogin(provider) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) {
+        errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
+        return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${KRATOS_URL}/self-service/login?flow=${flowId}`;
+
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrf_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+
+    const providerInput = document.createElement('input');
+    providerInput.type = 'hidden';
+    providerInput.name = 'provider';
+    providerInput.value = provider;
+    form.appendChild(providerInput);
+
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = 'method';
+    methodInput.value = 'oidc';
+    form.appendChild(methodInput);
+
+    document.body.appendChild(form);
+    form.submit();
 }
 
-const microsoftProvider = new OAuthProvider('microsoft.com');
+document.getElementById('google-login-btn').addEventListener('click', () => handleOAuthLogin('google'));
+document.getElementById('microsoft-login-btn').addEventListener('click', () => handleOAuthLogin('microsoft'));
+document.getElementById('github-login-btn').addEventListener('click', () => handleOAuthLogin('github'));
 
-microsoftProvider.setCustomParameters({
-    // Use 'common' for multi-tenant and personal accounts
-    tenant: 'common',
-    // Force the user to select an account even if they are logged in
-    prompt: 'select_account'
-});
 
-if (microsoftBtn) {
-    microsoftBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, microsoftProvider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Příhlášení přes Microsoft selhalo.';
+async function checkExistingSession() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            credentials: 'include',
+            headers: {'Accept': 'application/json'}
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const isAdmin = data.identity.metadata_public?.admin === true;
+            window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
         }
-    });
-}
-
-if (githubBtn) {
-    githubBtn.addEventListener('click', async () => {
-        errorMessage.textContent = '';
-        const provider = new GithubAuthProvider();
-        provider.addScope('user:email');
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const result = await signInWithPopup(auth, provider);
-            await checkAdminAndRedirect(result.user);
-        } catch (error) {
-            errorMessage.textContent = 'Přihlášení přes GitHub selhalo.';
-        }
-    });
+    } catch (e) {
+    }
 }

@@ -1,0 +1,50 @@
+RewriteEngine On
+RewriteBase /
+
+# RewriteCond %{DOCUMENT_ROOT}/maintenance.html -f
+# RewriteCond %{REQUEST_URI} !/maintenance\.html$
+# RewriteCond %{REQUEST_URI} !\.(jpe?g?|png|gif|css|js|svg|webp|woff2?)$ [NC]
+# RewriteRule ^(.*)$ /maintenance.html [R=503,L]
+# ErrorDocument 503 /maintenance.html
+
+RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteCond %{HTTP_HOST} !^dev\. [NC]  <-- Add this line
+RewriteRule ^(.*)$ https://www.sposlearning.cz/$1 [L,R=301]
+
+# 2. Redirect /admin or /admin.html to /login
+RewriteRule ^admin\.html$ /login [R=301,L]
+RewriteRule ^admin/?$ /login [R=301,L]
+
+# 3. PREVENT LOOPS & EXCLUSIONS
+RewriteRule ^page\.html$ - [L]
+RewriteRule ^login\.html$ - [L]
+RewriteRule ^settings\.html$ - [L]
+RewriteRule ^register/?$ register.html [L]
+# Force the server to see the api folder as a real directory and stop all other rules
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^ - [L]
+
+# 4. Handle Login & Admin Pages
+RewriteRule ^settings/?$ settings.html [L]
+RewriteRule ^login/?$ login.html [L]
+RewriteRule ^admin/dashboard/?$ admin/dashboard.html [L]
+RewriteRule ^admin/feedback/?$ admin/feedback.html [L]
+RewriteRule ^admin/feedback/post/?$ admin/feedback/post.html [L]
+RewriteRule ^admin/add-page/?$ admin/add-page.html [L]
+
+# 5. SPA Logic
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ page.html [L,QSA]
+
+# Cache Control for JS/CSS
+<FilesMatch "\.(js|css)$">
+  FileETag None
+  <IfModule mod_headers.c>
+    Header unset ETag
+    Header set Cache-Control "max-age=0, no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "Wed, 11 Jan 1984 05:00:00 GMT"
+    Header set Access-Control-Allow-Origin "https://admin.sposlearning.cz"
+  </IfModule>
+</FilesMatch>

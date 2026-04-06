@@ -1,108 +1,74 @@
-import { app } from './firebaseConfig.js';
-import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { initThemeListeners, applyTheme } from './theming.js';
+import { initThemeListeners } from './theming.js';
+import { createServerLog } from '/js/logging.js';
 
-const db = getFirestore(app);
-const auth = getAuth(app);
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const API_URL = "https://api.sposlearning.cz";
 
-// Elements
 const form = document.getElementById('feedback-form');
 const submitBtn = document.getElementById('submit-btn');
 const statusMsg = document.getElementById('status-message');
 const pageInput = document.getElementById('feedback-page');
-const nameInput = document.getElementById('feedback-name');
 const formWrapper = document.getElementById('feedback-form-wrapper');
 
-// Initialize Modular Theming listeners
-initThemeListeners();
+let currentUser = null;
 
-// Theme toggle logic
-const toggleBtn = document.getElementById("theme-toggle");
-if (toggleBtn) {
-    const updateToggleUI = () => {
-        const isDark = localStorage.getItem("theme") === "dark";
-        toggleBtn.classList.toggle("is-dark", isDark);
-    };
-    toggleBtn.addEventListener("click", () => {
-        const current = localStorage.getItem("theme");
-        applyTheme(current === "dark" ? "light" : "dark");
-        updateToggleUI();
-    });
-    updateToggleUI();
+async function checkAuth() {
+    try {
+        const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!res.ok) {
+            window.location.href = '/login';
+            return;
+        }
+
+        const session = await res.json();
+        currentUser = session.identity;
+
+        const isVerified = currentUser.verifiable_addresses?.some(addr => addr.verified === true);
+
+        if (!isVerified) {
+            formWrapper.innerHTML = `
+                <div class="box">
+                    <div class="col-md-12">
+                        <h2>Nemáte ověřený email.</h2>
+                        <p>Pro použití feedbacku musíte mít z bezpečnostních důvodů ověřený email. Zkontrolujte prosím svoji schránku.</p>
+                    </div>
+                </div>`;
+            formWrapper.style.display = 'block';
+            return;
+        }
+
+        formWrapper.style.display = 'block';
+    } catch (err) {
+        console.error("Auth check failed", err);
+    }
 }
 
-// Pre-fill page context from URL
 const urlParams = new URLSearchParams(window.location.search);
 const relatedPage = urlParams.get("page");
-if (relatedPage) pageInput.value = relatedPage;
+if (relatedPage && pageInput) pageInput.value = relatedPage;
 
-/**
- * 1. AUTH & REDIRECT LOGIC
- */
-onAuthStateChanged(auth, (user) => {
-    if (!user) {
-        // Strict requirement: must be logged in to even see the form
-        window.location.href = '/login';
-        return;
-    }
-
-    // Show form once auth is confirmed
-    if (formWrapper) formWrapper.style.display = 'block';
-
-    // Handle Name field based on Provider
-    const providerId = user.providerData[0]?.providerId;
-    if (providerId === 'google.com') {
-        nameInput.value = user.displayName || '';
-        nameInput.readOnly = true;
-        nameInput.style.opacity = "0.7";
-        nameInput.title = "Jméno je načteno z vašeho účtu.";
-    } else {
-        nameInput.readOnly = false;
-        nameInput.style.opacity = "1";
-    }
-});
-
-/**
- * 2. VALIDATION
- */
-const isJunk = (name, message) => {
-    const hp = document.getElementById('hp_field')?.value;
-    if (hp) return "Bot detected.";
-
-    const nameLow = name.toLowerCase().trim();
-    if (/(.)\1{4,}/.test(nameLow)) return "Neplatné znaky ve jménu.";
-    if (message.length < 10) return "Zpráva je příliš krátká.";
-
-    return null;
-};
-
-/**
- * 3. FORM SUBMISSION & EMAIL BRIDGE
- */
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const user = auth.currentUser;
-    if (!user) return;
+    if (!currentUser) return;
 
     const title = document.getElementById('feedback-title').value;
     const page = document.getElementById('feedback-page').value;
-    const name = nameInput.value || 'Anonymous';
     const message = document.getElementById('feedback-message').value;
 
-    const validationError = isJunk(name, message);
-    if (validationError) {
+    if (message.length < 10) {
         statusMsg.className = 'text-danger';
-        statusMsg.textContent = validationError;
+        statusMsg.textContent = "Zpráva je příliš krátká.";
         return;
     }
 
     submitBtn.disabled = true;
     submitBtn.textContent = 'Odesílání...';
-    statusMsg.textContent = '';
 
     try {
-        // Get IP for logs
         let ipAddress = 'Unknown';
         try {
             const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -111,55 +77,44 @@ form.addEventListener('submit', async (e) => {
         } catch (err) { console.warn("IP fetch failed"); }
 
         const feedbackData = {
-            title: title.trim(),
-            page: page.trim(),
-            name: name.trim(),
-            contact: user.email,
-            message: message.trim(),
-            relatedPage: pageInput.value || 'General',
-            ip: ipAddress,
-            userAgent: navigator.userAgent,
-            timestamp: serverTimestamp(),
-            uid: user.uid,
-            resolved: false
+            title: title,
+            page: page || 'General',
+            message: message,
+            ip: ipAddress
         };
 
-        // Step A: Save to Firestore
-        const docRef = await addDoc(collection(db, 'feedback'), feedbackData);
-        const postId = docRef.id; // This is your unique Post ID
-
-        fetch('/api/send-mail.php', {
+        const res = await fetch(`${API_URL}/feedback`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: postId,
-                title: feedbackData.title,
-                name: feedbackData.name,
-                message: feedbackData.message,
-                page: feedbackData.relatedPage,
-                contact: feedbackData.contact
-            })
-        }).then(response => {
-            if (!response.ok) console.error("Email bridge error status:", response.status);
-        }).catch(err => console.error("Email bridge fetch failed:", err));
+            body: JSON.stringify(feedbackData),
+            credentials: 'include'
+        });
 
-        // Step C: Success UI
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || "Chyba při odesílání.");
+        }
+
+        const result = await res.json();
+
+        await createServerLog('feedback', `Feedback Sent: ${title}`, {
+            userEmail: currentUser.traits.email,
+            feedbackID: result.id
+        });
+
         statusMsg.className = 'text-success font-weight-bold';
         statusMsg.textContent = 'Děkujeme! Vaše zpětná vazba byla odeslána.';
         form.reset();
 
-        // Optional: Autofill name again if they stayed on page
-        if (user.displayName && (user.providerData[0]?.providerId !== 'password')) {
-            nameInput.value = user.displayName;
-        }
-
         setTimeout(() => { window.location.href = '/'; }, 2000);
 
     } catch (error) {
-        console.error('Error:', error);
         statusMsg.className = 'text-danger';
-        statusMsg.textContent = 'Chyba při odesílání do databáze.';
+        statusMsg.textContent = error.message;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Odeslat zpětnou vazbu';
     }
 });
+
+initThemeListeners();
+checkAuth();

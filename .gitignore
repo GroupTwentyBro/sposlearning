@@ -20,3 +20,26 @@ Thumbs.db
 functions/.env.local
 functions/.env.*.local
 firebase.json
+
+# Admin
+admin/vendor
+admin/logs
+admin/.ftp-deploy-sync-state.json
+admin/composer.json
+admin/composer.lock
+admin/composer.phar
+
+# Public
+public/.ftp-deploy-sync-state.json
+public/cEXl2k4azc6bvCgtliRG2uoX5tDBjbLp.php
+public/VcdTl8tzaiXVYFygsCLjX0zKIPvRCTRi.php
+public/api/system_logs.jsonl
+firebase_users.json
+convert.js
+kratos_users.json
+kratos_users_complete.json
+import_mariadb.sql
+admin/export_firestore.js
+admin/convert_to_sql.js
+admin/firestore_export.json
+firestore/movescript.js

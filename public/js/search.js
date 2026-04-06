@@ -1,136 +1,124 @@
-import {app, auth} from './firebaseConfig.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { initThemeListeners, applyTheme } from './theming.js';
+import { initThemeListeners } from './theming.js';
 
-// --- Global cache ---
-const db = getFirestore(app);
+const KRATOS_URL = "https://auth.sposlearning.cz";
+const API_URL = "https://api.sposlearning.cz";
+
 let allPages = [];
-let currentPage = null;
+let isAdminUser = false;
 let currentUser = null;
 
-// --- Elements ---
 const searchInput = document.getElementById('search-input');
 const welcomeMessage = document.getElementById('welcome-message');
 const disclamerInfo = document.getElementById('disclamer-info');
 const searchResultsContainer = document.getElementById('search-results');
 
-/**
- * Helper to safely extract access level from messy data
- */
-function getAccessLevel(data) {
-    const rawValue = data['access-level'] || data['accessLevel'] || data['access_level'] || 'public';
-    return String(rawValue).toLowerCase().trim();
-}
-
-/**
- * 1. Fetch Pages
- */
-async function fetchAllPages() {
+async function fetchSession() {
     try {
-        // Firestore Rules will automatically filter this based on auth status!
-        const querySnapshot = await getDocs(collection(db, 'pages'));
-        allPages = [];
-
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            // We no longer need to check accessLevel here for security,
-            // because if the user wasn't allowed to see it, 'doc' wouldn't exist here.
-
-            if (data.type !== 'redirection') {
-                allPages.push({
-                    title: data.title,
-                    path: data.fullPath,
-                    accessLevel: getAccessLevel(data),
-                    content: (data.type === 'markdown' || data.type === 'html') ? data.content.toLowerCase() : ''
-                });
-            }
+        const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
         });
 
-        searchInput.placeholder = "Hledej v zápisech...";
-        searchInput.disabled = false;
+        if (response.ok) {
+            const session = await response.json();
+            currentUser = session.identity;
+            isAdminUser = currentUser.metadata_public?.admin === true;
+        } else {
+            currentUser = null;
+            isAdminUser = false;
+        }
+    } catch (error) {
+        console.error("Auth check failed:", error);
+        currentUser = null;
+        isAdminUser = false;
+    }
+}
 
+async function fetchAllPages() {
+    try {
+        const response = await fetch(`${API_URL}/pages`);
+        if (!response.ok) throw new Error("Failed to load pages API");
+
+        const data = await response.json();
+        allPages = data.map(page => ({
+            title: page.title || '',
+            path: page.path || '',
+            accessLevel: (page.accessLevel || 'public').toLowerCase().trim(),
+            content: page.content ? page.content.toLowerCase() : ''
+        }));
+
+        console.log(`Loaded ${allPages.length} pages.`);
     } catch (err) {
-        // If the rules are set up correctly, this might trigger if a guest
-        // tries to access a restricted collection, but usually, it just returns
-        // the allowed documents.
         console.error("Failed to fetch pages:", err);
     }
 }
-/**
- * 2. Handle Search
- */
-function handleSearch(e) {
-    const searchTerm = e.target.value.toLowerCase();
 
-    if (searchTerm.length === 0) {
-        welcomeMessage.style.display = 'none';
-        if(disclamerInfo) disclamerInfo.style.display = 'none';
-        searchResultsContainer.style.display = 'block';
-
-        const allVisible = allPages.filter(page => {
-            if (page.accessLevel === 'admin' && !currentUser) return false;
-            return true;
+async function handleLogout() {
+    try {
+        const response = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
         });
 
+        if (response.ok) {
+            const data = await response.json();
+            window.location.href = data.logout_url;
+        }
+    } catch (err) {
+        console.error("Logout failed", err);
+    }
+}
+
+function handleSearch(e) {
+    const searchTerm = e.target.value.toLowerCase().trim();
+
+    if (searchTerm.length === 0) {
+        showResults(true);
+        const allVisible = allPages.filter(p => p.accessLevel !== 'admin' || isAdminUser);
         renderResults(allVisible);
         return;
     }
 
-    // Basic UI Toggle
     if (searchTerm.length < 2) {
-        welcomeMessage.style.display = 'block';
-        if(disclamerInfo) disclamerInfo.style.display = 'block';
-        searchResultsContainer.style.display = 'none';
-        searchResultsContainer.innerHTML = '';
+        showResults(false);
         return;
     }
 
-    // --- KEY FILTERING LOGIC ---
-
-    // A. Pre-calculate paths of pages that match the TITLE
-    // We do this first so we don't have to re-scan for every single page.
     const matchedTitlePaths = allPages
-        .filter(p => {
-            // Security: Don't use a parent path if the user isn't allowed to see that parent
-            if (p.accessLevel === 'admin' && !currentUser) return false;
-            return p.title.toLowerCase().includes(searchTerm);
-        })
+        .filter(p => (p.accessLevel !== 'admin' || isAdminUser) && p.title.toLowerCase().includes(searchTerm))
         .map(p => p.path);
 
-    // B. Filter the actual results
     const results = allPages.filter(page => {
-        // 1. Access Check (Security)
-        if (page.accessLevel === 'admin') {
-            if (!currentUser) return false;
-        }
+        if (page.accessLevel === 'admin' && !isAdminUser) return false;
 
-        // 2. Direct Match Checks
         const matchesPath = page.path.toLowerCase().includes(searchTerm);
         const matchesTitle = page.title.toLowerCase().includes(searchTerm);
+        const isChildOfMatch = matchedTitlePaths.some(parentPath => page.path.startsWith(parentPath + '/'));
 
-        // 3. Parent Logic Check
-        // Does this page's path include any of the paths we found in Step A?
-        const isChildOfTitleMatch = matchedTitlePaths.some(parentPath =>
-            page.path.includes(parentPath)
-        );
-
-        return matchesPath || matchesTitle || isChildOfTitleMatch;
+        return matchesPath || matchesTitle || isChildOfMatch;
     });
 
-    welcomeMessage.style.display = 'none';
-    if(disclamerInfo) disclamerInfo.style.display = 'none';
-    searchResultsContainer.style.display = 'block';
-
+    showResults(true);
     renderResults(results);
 }
 
-/**
- * 3. Render Results (Tree View)
- */
+function showResults(visible) {
+    if (visible) {
+        welcomeMessage.style.display = 'none';
+        if (disclamerInfo) disclamerInfo.style.display = 'none';
+        searchResultsContainer.style.display = 'block';
+    } else {
+        welcomeMessage.style.display = 'block';
+        if (disclamerInfo) disclamerInfo.style.display = 'block';
+        searchResultsContainer.style.display = 'none';
+        searchResultsContainer.innerHTML = '';
+    }
+}
+
 function renderResults(results) {
     searchResultsContainer.innerHTML = '';
-
     if (results.length === 0) {
         searchResultsContainer.innerHTML = '<h3>Nebyly nalezeny žádné výsledky.</h3>';
         return;
@@ -149,7 +137,6 @@ function renderResults(results) {
 
 function buildTree(results) {
     const root = {};
-
     results.forEach(page => {
         const parts = page.path.split('/').filter(p => p);
         let currentLevel = root;
@@ -159,172 +146,111 @@ function buildTree(results) {
             currentPathAccumulator += (index > 0 ? '/' : '') + part;
 
             if (!currentLevel[part]) {
-                currentLevel[part] = {
-                    children: {},
-                    name: part,
-                    pageData: null
-                };
-
-                // Check if this folder is actually a page itself
-                const parentPageExists = allPages.find(p => p.path === currentPathAccumulator);
-
-                // If the parent folder is a page, ensure we respect its privacy too
-                if (parentPageExists) {
-                    const isHidden = (parentPageExists.accessLevel === 'admin' && !currentUser);
-                    if (!isHidden) {
-                        currentLevel[part].pageData = parentPageExists;
-                    }
+                currentLevel[part] = { children: {}, name: part, pageData: null };
+                const parentPage = allPages.find(p => p.path === currentPathAccumulator);
+                if (parentPage && (parentPage.accessLevel !== 'admin' || isAdminUser)) {
+                    currentLevel[part].pageData = parentPage;
                 }
             }
 
-            if (index === parts.length - 1) {
-                currentLevel[part].pageData = page;
-            }
-
+            if (index === parts.length - 1) currentLevel[part].pageData = page;
             currentLevel = currentLevel[part].children;
         });
     });
-
     return root;
 }
 
 function createTreeDOM(node) {
     const li = document.createElement('li');
-    let contentElement;
+    let el;
 
     if (node.pageData) {
-        contentElement = document.createElement('a');
-        contentElement.href = `/${node.pageData.path}`;
-        contentElement.className = 'search-result-link';
-        contentElement.textContent = node.pageData.title;
-
-        if(node.pageData.accessLevel === 'admin') {
-            contentElement.innerHTML += ' <span style="font-size:0.8em; color:red;">(Admin)</span>';
+        el = document.createElement('a');
+        el.href = `/${node.pageData.path}`;
+        el.className = 'search-result-link';
+        el.textContent = node.pageData.title;
+        if (localStorage.getItem('openPreference') === 'new') el.target = '_blank';
+        if (node.pageData.accessLevel === 'admin') {
+            el.innerHTML += ' <span style="font-size:0.8em; color:red;"> (Admin)</span>';
         }
     } else {
-        contentElement = document.createElement('span');
-        contentElement.className = 'search-result-folder';
-        contentElement.textContent = node.name;
+        el = document.createElement('span');
+        el.className = 'search-result-folder';
+        el.textContent = node.name;
     }
 
-    li.appendChild(contentElement);
-
+    li.appendChild(el);
     const childKeys = Object.keys(node.children);
     if (childKeys.length > 0) {
         const ul = document.createElement('ul');
-        childKeys.sort().forEach(key => {
-            ul.appendChild(createTreeDOM(node.children[key]));
-        });
+        childKeys.sort().forEach(key => ul.appendChild(createTreeDOM(node.children[key])));
         li.appendChild(ul);
     }
-
     return li;
 }
 
-async function setupAdminTools() {
+function renderAdminBar() {
     const adminBar = document.getElementById('admin-bar');
-    if(!adminBar) return;
+    if (!adminBar) return;
 
-    const auth = getAuth(app);
+    adminBar.innerHTML = '';
 
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-        adminBar.innerHTML = '';
+    const dashboardLink = isAdminUser ? `
+        <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white pc">Dashboard</a>
+        <a href="https://admin.sposlearning.cz/" class="btn btn-sm btn-white ctrl-btn mobile"><span class="icon">team_dashboard</span></a>
+    ` : '';
 
-        if (user) {
-            // 1. Check admin status
-            const adminDocRef = doc(db, 'administrators', user.uid);
-            const adminSnap = await getDoc(adminDocRef);
-            const isAdmin = adminSnap.exists();
+    if (currentUser) {
+        adminBar.innerHTML = `
+            <div class="admin-controls">
+                <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
+                    <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                    <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile"><span class="icon">settings</span></a>
+                    ${dashboardLink}
+                    <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
+                    <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob"><span class="icon">logout</span></button>
+                </div>
+            </div>`;
 
-            // 2. Render UI
-            adminBar.innerHTML = `
-                <div class="admin-controls">
-                    <div id="logged-in-buttons" style="display: flex; gap: 10px; align-items: center;">
-                        
-                        ${isAdmin ? `
-                            <a href="/admin/dashboard" class="btn btn-sm btn-white pc">Dashboard</a>
-                            <a href="/admin/dashboard" class="btn btn-sm btn-white ctrl-btn mobile">
-                                <span class="icon">team_dashboard</span>
-                            </a>
-                        ` : ''}
-
-                        <button class="btn btn-sm btn-danger pc" id="logout-button-pc">Logout</button>
-                        <button class="btn btn-sm btn-danger ctrl-btn mobile" id="logout-button-mob">
-                            <span class="icon">logout</span>
-                        </button>
-                        
-                    </div>
-                </div>`;
-
-            const performLogout = () => signOut(auth).catch(err => console.error(err));
-            document.getElementById('logout-button-pc')?.addEventListener('click', performLogout);
-            document.getElementById('logout-button-mob')?.addEventListener('click', performLogout);
-
-        } else {
-            // --- GUEST: Show Login ---
-            adminBar.innerHTML = `
-                <div class="admin-controls">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
-                        <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile" aria-label="Přihlášení">
-                            <span class="icon">login</span>
-                        </a>
-                    </div>
-                </div>`;
-        }
-
-        if(searchInput.value.length >= 2) {
-            searchInput.dispatchEvent(new Event('input'));
-        }
-    });
+        document.getElementById('logout-button-pc')?.addEventListener('click', handleLogout);
+        document.getElementById('logout-button-mob')?.addEventListener('click', handleLogout);
+    } else {
+        adminBar.innerHTML = `
+            <div class="admin-controls">
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <a href="/settings" class="btn btn-sm btn-primary pc">Nastavení</a>
+                    <a href="/settings" class="btn btn-sm btn-primary ctrl-btn mobile"><span class="icon">settings</span></a>
+                    <a href="/login" class="btn btn-sm btn-primary pc">Přihlásit se</a>
+                    <a href="/login" class="btn btn-sm btn-primary ctrl-btn mobile"><span class="icon">login</span></a>
+                </div>
+            </div>`;
+    }
 }
 
-function initHomeTheming() {
-    // 1. Core listeners (handles hue slider and standard buttons)
+async function bootApp() {
     initThemeListeners();
+    document.body.style.setProperty("transition", "none");
 
-    // 2. Multi-toggle logic (Desktop, Mobile, Mike)
-    const toggles = [
-        { id: "theme-toggle", type: "toggle" },
-        { id: "theme-toggle-ctrl", type: "toggle" },
-        { id: "mike-toggle", type: "mike" }
-    ];
+    await Promise.all([
+        fetchSession(),
+        fetchAllPages()
+    ]);
 
-    toggles.forEach(t => {
-        const btn = document.getElementById(t.id);
-        if (!btn) return;
+    renderAdminBar();
 
-        btn.addEventListener("click", () => {
-            const current = localStorage.getItem("theme");
-            if (t.type === "mike") {
-                applyTheme("mike");
-            } else {
-                applyTheme(current === "dark" ? "light" : "dark");
-            }
-            syncToggleUI();
-        });
+    searchInput.disabled = false;
+    searchInput.placeholder = "Hledej v zápisech...";
+
+    searchInput.addEventListener('input', handleSearch);
+    searchInput.addEventListener('focus', handleSearch);
+
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !searchResultsContainer.contains(e.target)) {
+            showResults(false);
+        }
     });
 
-    syncToggleUI();
+    if (searchInput.value.length >= 2) handleSearch({ target: searchInput });
 }
 
-function syncToggleUI() {
-    const isDark = localStorage.getItem("theme") === "dark";
-    const pcBtn = document.getElementById("theme-toggle");
-    const mobBtn = document.getElementById("theme-toggle-ctrl");
-
-    if (pcBtn) pcBtn.classList.toggle("is-dark", isDark);
-    if (mobBtn) mobBtn.classList.toggle("is-dark", isDark);
-}
-
-// --- Initialize ---
-async function initializePage() {
-    setupAdminTools();
-    initHomeTheming();
-}
-
-initializePage();
-fetchAllPages();
-searchInput.addEventListener('input', handleSearch);
-searchInput.addEventListener('focus', handleSearch);
+bootApp();

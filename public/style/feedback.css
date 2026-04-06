@@ -1,4 +1,4 @@
-/* Ensuring body respects theme via CSS variables */
+
 body { background-color: var(--root-bg-clr) !important; }
 
 .feedback-item {
