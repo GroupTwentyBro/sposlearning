@@ -1,8 +1,9 @@
 import { initThemeListeners } from '/js/theming.js';
 import { createServerLog } from '/js/logging.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://api.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = CONFIG.API_URL;
 
 let currentUser = null;
 let allPagesCache = [];
@@ -79,7 +80,7 @@ async function handlePageSubmit(e) {
         });
 
         statusSuccess.textContent = `Success! Created /${fullPath}`;
-        window.location.href = `https://sposlearning.cz/${fullPath}`;
+        window.location.href = `${CONFIG.BASE_URL}/${fullPath}`;
 
     } catch (err) {
         statusError.textContent = `Error: ${err.message}`;
