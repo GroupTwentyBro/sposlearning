@@ -40,6 +40,11 @@ function renderUserTable(users) {
     const tbody = document.getElementById('user-list-tbody');
     tbody.innerHTML = users.map(user => {
         const isAdmin = user.customClaims?.admin === true;
+        const isDev = user.customClaims?.developer === true;
+        const adminLink = !isDev ? `
+            <button class="btn btn-sm btn-outline-danger toggle-admin-btn" data-uid="${user.uid}">
+                <span class="material-symbols-outlined fs-6">shield_person</span>
+            </button>` : '';
         return `
             <tr>
                 <td>
@@ -52,15 +57,14 @@ function renderUserTable(users) {
                     </span>
                 </td>
                 <td>
-                    <span class="badge ${isAdmin ? 'bg-danger' : 'bg-secondary'}">
-                        ${isAdmin ? 'Admin' : 'User'}
+                    <span class="badge ${(isAdmin ? (isDev ? 'bg-primary' : 'bg-danger') : 'bg-secondary')}">
+                        ${(isAdmin ? (isDev ? 'Developer' : 'Admin') : 'User')}
                     </span>
                 </td>
                 <td>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-danger toggle-admin-btn" data-uid="${user.uid}">
-                            <span class="material-symbols-outlined fs-6">shield_person</span>
-                        </button>
+                        ${adminLink}
+                        
                         <button class="btn btn-sm btn-outline-danger delete-btn" data-uid="${user.uid}">
                             <span class="material-symbols-outlined fs-6">delete</span>
                         </button>

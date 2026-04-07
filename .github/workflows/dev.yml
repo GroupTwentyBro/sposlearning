@@ -1,4 +1,4 @@
-name: DEVELOPMENT Deploy to Forpsi via FTP
+name: DEV Deploy to Forpsi
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - dev
 
 jobs:
-  web-deploy:
-    name: Deploy
+  web-deploy-public:
+    name: FTP Deploy Public
     runs-on: ubuntu-latest
     steps:
     - name: Get latest code
@@ -21,3 +21,19 @@ jobs:
         password: ${{ secrets.FTP_PASSWORD }}
         server-dir: /subdoms/dev/
         local-dir: ./public/
+
+  web-deploy-admin:
+    name: FTP Deploy Admin
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get latest code
+      uses: actions/checkout@v4
+
+    - name: Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: /subdoms/dev-admin/
+        local-dir: ./admin/
