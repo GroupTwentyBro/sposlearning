@@ -1,4 +1,6 @@
-const API_URL = "https://api.sposlearning.cz";
+import {CONFIG} from "/js/config.js";
+
+const API_URL = CONFIG.API_URL;
 const KRATOS_URL = "https://auth.sposlearning.cz";
 
 async function checkAdmin() {

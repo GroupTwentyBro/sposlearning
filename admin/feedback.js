@@ -1,8 +1,9 @@
 import { initThemeListeners } from '/js/theming.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://api.sposlearning.cz";
-const LOGIN_REDIRECT = "https://sposlearning.cz/login";
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = CONFIG.API_URL;
+const LOGIN_REDIRECT = `${CONFIG.BASE_URL}/login`;
 
 let allFeedback = [];
 let currentSort = 'desc';

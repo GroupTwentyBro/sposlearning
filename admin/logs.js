@@ -1,5 +1,7 @@
-const KRATOS_URL = "https://auth.sposlearning.cz";
-const API_URL = "https://www.sposlearning.cz/api/read-logs.php";
+import {CONFIG} from "/js/config.js";
+
+const KRATOS_URL = CONFIG.AUTH_URL;
+const API_URL = `${CONFIG.BASE_URL}/api/read-logs.php`;
 
 async function checkAuth() {
     try {
@@ -21,7 +23,7 @@ async function checkAuth() {
         document.getElementById('secure-container')?.classList.add('visible');
         fetchLogData();
     } catch (err) {
-        window.location.href = '/login';
+        window.location.href = `${CONFIG.BASE_URL}/login`;
     }
 }
 
