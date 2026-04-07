@@ -1,6 +1,7 @@
 import { initThemeListeners } from '/js/theming.js';
+import {CONFIG} from "/js/config.js";
 
-const KRATOS_URL = "https://auth.sposlearning.cz";
+const KRATOS_URL = CONFIG.AUTH_URL;
 const container = document.getElementById('secure-container');
 const loader = document.querySelector('.dot-container');
 
@@ -21,7 +22,7 @@ async function init() {
 
         if (!res.ok) {
             console.log("No active session found. Redirecting...");
-            window.location.href = 'https://sposlearning.cz/login';
+            window.location.href = `${CONFIG.BASE_URL}/login`;
             return;
         }
 
@@ -32,7 +33,7 @@ async function init() {
 
         if (!isAdmin) {
             console.error("User is not an admin. Redirecting to home.");
-            window.location.href = 'https://sposlearning.cz/';
+            window.location.href = `${CONFIG.BASE_URL}/`;
             return;
         }
 
@@ -71,7 +72,7 @@ async function handleLogout(e) {
         const flow = await res.json();
         window.location.href = flow.logout_url;
     } catch (err) {
-        window.location.href = 'https://sposlearning.cz/login';
+        window.location.href = `${CONFIG.BASE_URL}/login`;
     }
 }
 
