@@ -41,7 +41,7 @@ function renderUserTable(users) {
     tbody.innerHTML = users.map(user => {
         const isAdmin = user.customClaims?.admin === true;
         const isDev = user.customClaims?.developer === true;
-        const adminLink = isDev ? `
+        const adminLink = !isDev ? `
             <button class="btn btn-sm btn-outline-danger toggle-admin-btn" data-uid="${user.uid}">
                 <span class="material-symbols-outlined fs-6">shield_person</span>
             </button>` : '';
