@@ -45,6 +45,12 @@ function renderUserTable(users) {
             <button class="btn btn-sm btn-outline-danger toggle-admin-btn" data-uid="${user.uid}">
                 <span class="material-symbols-outlined fs-6">shield_person</span>
             </button>` : '';
+        const deletionLink = !isDev ? `
+            <button class="btn btn-sm btn-outline-danger delete-btn" data-uid="${user.uid}">
+                <span class="material-symbols-outlined fs-6">delete</span>
+            </button>` : '';
+
+
         return `
             <tr>
                 <td>
@@ -65,9 +71,7 @@ function renderUserTable(users) {
                     <div class="btn-group">
                         ${adminLink}
                         
-                        <button class="btn btn-sm btn-outline-danger delete-btn" data-uid="${user.uid}">
-                            <span class="material-symbols-outlined fs-6">delete</span>
-                        </button>
+                        ${deletionLink}
                     </div>
                 </td>
             </tr>
