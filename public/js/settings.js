@@ -7,8 +7,8 @@ let currentUser = null;
 
 function setCookie(name, value, days = 365) {
     const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
-    const domain = ".sposlearning.cz";
-    document.cookie = `${name}=${value}; domain=*${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
+    const domain = "sposlearning.cz";
+    document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
 }
 
 function getCookie(name) {
