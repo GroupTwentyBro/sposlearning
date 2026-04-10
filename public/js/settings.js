@@ -6,10 +6,9 @@ const KRATOS_URL = CONFIG.AUTH_URL;
 let currentUser = null;
 
 function setCookie(name, value, days = 365) {
-    const d = new Date();
-    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    let expires = "expires=" + d.toUTCString();
-    document.cookie = `${name}=${value};${expires};path=/;SameSite=Strict`;
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    const domain = ".sposlearning.cz";
+    document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
 }
 
 function getCookie(name) {
