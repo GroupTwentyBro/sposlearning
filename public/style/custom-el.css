@@ -352,6 +352,6 @@ input[type="range"]#hueSlider::-moz-range-thumb {
     cursor: pointer;
 }
 
-#fsControl {
+#fsSlider {
     width: 3vw;
 }
