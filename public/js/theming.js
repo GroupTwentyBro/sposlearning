@@ -11,6 +11,15 @@ export function getGlobalItem(name) {
   return null;
 }
 
+const savedFontSize = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('user-font-size='))
+    ?.split('=')[1];
+
+if (savedFontSize) {
+    document.documentElement.style.setProperty('--base-fs', savedFontSize);
+}
+
 const root = document.documentElement;
 const themeLink = document.getElementById("theme-link");
 

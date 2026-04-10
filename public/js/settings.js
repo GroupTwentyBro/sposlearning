@@ -5,6 +5,50 @@ import {CONFIG} from "/js/config.js";
 const KRATOS_URL = CONFIG.AUTH_URL;
 let currentUser = null;
 
+function setCookie(name, value, days = 365) {
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    const domain = ".sposlearning.cz";
+    document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
+}
+
+function getCookie(name) {
+    let nameEQ = name + "=";
+    let ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function initFontSizeControl() {
+    const fsSlider = document.getElementById('fsSlider');
+    const fsDisplay = document.getElementById('fsDisplay');
+    const root = document.documentElement;
+
+    // 1. Load saved size from cookie or default to 1
+    const savedSize = getCookie("user-font-size") || "1";
+
+    // 2. Apply it immediately
+    root.style.setProperty('--base-fs', savedSize);
+    if (fsSlider) fsSlider.value = savedSize;
+    if (fsDisplay) fsDisplay.textContent = `${savedSize}x`;
+
+    // 3. Listen for changes
+    if (fsSlider) {
+        fsSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (fsDisplay) fsDisplay.textContent = `${val}x`;
+
+            // Update CSS variable
+            root.style.setProperty('--base-fs', val);
+
+            // Save to cookie
+            setCookie("user-font-size", val);
+        });
+    }
+}
+
 /**
  * HELPER: Forces Kratos URLs to use HTTPS
  * Prevents "Mixed Content" errors when Kratos returns internal HTTP links
@@ -230,6 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resetPwBtn) resetPwBtn.onclick = triggerPasswordReset;
 
     initSettings();
+    initFontSizeControl();
     initThemeControls();
     initThemeListeners();
 });

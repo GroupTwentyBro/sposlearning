@@ -18,18 +18,17 @@
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    font-size: var(--icon-small);
+    font-size: 1.8rem;
 }
 
 .search input {
     width: 100%;
     border: none;
-    height: 80%;
     background: none;
     color: white;
     padding: 10px;
     margin: 0 5px;
-    font-size: var(--fs-hinput);
+    font-size: 1.3rem;
     vertical-align: middle;
 }
 
