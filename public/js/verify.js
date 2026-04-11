@@ -4,6 +4,9 @@ const KRATOS_URL = CONFIG.AUTH_URL;
 export async function showVerificationOverlay(email) {
     document.getElementById('verification-overlay')?.remove();
 
+    let activeFlowId = null;
+    let activeCsrfToken = null;
+
     const overlay = document.createElement('div');
     overlay.id = 'verification-overlay';
     overlay.style = `
@@ -15,19 +18,14 @@ export async function showVerificationOverlay(email) {
     overlay.innerHTML = `
         <div class="box d-flex flex-column align-items-center p-5 text-center" 
              style="max-width: 500px; width: 95%; background: var(--box-clr); border: 2px solid var(--primary-hl-clr); border-radius: var(--box-border-radius); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-            
             <h2 class="mb-4 text-white fw-bold">Ověření účtu</h2>
-            
             <p class="mb-4">Zadejte 6-místný kód odeslaný na:<br>
                <span class="text-primary fw-bold">${email}</span>
             </p>
-            
             <input type="text" id="verify-otp" class="form-control form-control-lg text-center fw-bold mb-2" 
                    placeholder="000000" maxlength="6" 
                    style="font-size: 2rem; letter-spacing: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--box-border-clr); color: white;">
-
             <div id="verify-status" class="mb-3" style="min-height: 1.5rem; font-size: 0.9rem;"></div>
-
             <div class="d-flex flex-column w-100 gap-3">
                 <button id="btn-confirm-verify" class="btn btn-primary btn-lg py-3">Ověřit kód</button>
                 <div class="d-flex justify-content-between align-items-center mt-2">
@@ -45,13 +43,21 @@ export async function showVerificationOverlay(email) {
     const confirmBtn = document.getElementById('btn-confirm-verify');
     const resendBtn = document.getElementById('btn-resend-otp');
 
-    const getFreshFlow = async () => {
-        const res = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' }
-        });
-        return await res.json();
+    const refreshFlowContext = async () => {
+        try {
+            const res = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            const flow = await res.json();
+            activeFlowId = flow.id;
+            activeCsrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
+        } catch (e) {
+            console.error("Flow init failed", e);
+        }
     };
+
+    await refreshFlowContext();
 
     const submitCode = async () => {
         const code = input.value.trim();
@@ -59,18 +65,14 @@ export async function showVerificationOverlay(email) {
 
         confirmBtn.disabled = true;
         status.textContent = "Ověřování...";
-        status.className = "text-info";
 
         try {
-            const flow = await getFreshFlow();
-            const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-
-            const res = await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
+            const res = await fetch(`${KRATOS_URL}/self-service/verification?flow=${activeFlowId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     method: 'code',
-                    csrf_token: csrfToken,
+                    csrf_token: activeCsrfToken,
                     code: code
                 }),
                 credentials: 'include'
@@ -80,13 +82,12 @@ export async function showVerificationOverlay(email) {
 
             if (res.ok && data.state === 'passed_challenge') {
                 status.className = "text-success";
-                status.textContent = "Email ověřen! Přesměrovávám...";
+                status.textContent = "Email ověřen!";
                 setTimeout(() => location.reload(), 1500);
             } else {
-                const errorMsg = data.ui?.messages?.[0]?.text ||
-                    data.ui?.nodes?.find(n => n.messages?.length > 0)?.messages[0]?.text ||
-                    "Kód je neplatný nebo vypršel.";
-                throw new Error(errorMsg);
+                await refreshFlowContext();
+                const msg = data.ui?.messages?.[0]?.text || "Neplatný kód.";
+                throw new Error(msg);
             }
         } catch (err) {
             status.className = "text-danger";
@@ -98,18 +99,15 @@ export async function showVerificationOverlay(email) {
     const resendCode = async () => {
         resendBtn.disabled = true;
         status.textContent = "Posílám nový kód...";
-        status.className = "text-info";
 
         try {
-            const flow = await getFreshFlow();
-            const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-
-            const res = await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
+            await refreshFlowContext();
+            const res = await fetch(`${KRATOS_URL}/self-service/verification?flow=${activeFlowId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({
                     method: 'code',
-                    csrf_token: csrfToken,
+                    csrf_token: activeCsrfToken,
                     email: email
                 }),
                 credentials: 'include'
@@ -117,10 +115,9 @@ export async function showVerificationOverlay(email) {
 
             if (res.ok) {
                 status.className = "text-success";
-                status.textContent = "Nový kód byl odeslán!";
-                input.value = "";
+                status.textContent = "Nový kód odeslán!";
             } else {
-                throw new Error("Nepodařilo se odeslat kód.");
+                throw new Error("Chyba při odesílání.");
             }
         } catch (err) {
             status.className = "text-danger";
@@ -133,8 +130,5 @@ export async function showVerificationOverlay(email) {
     confirmBtn.onclick = submitCode;
     resendBtn.onclick = resendCode;
     document.getElementById('btn-close-verify').onclick = () => overlay.remove();
-
-    input.addEventListener('input', () => {
-        if (input.value.length === 6) submitCode();
-    });
+    input.addEventListener('input', () => { if (input.value.length === 6) submitCode(); });
 }
