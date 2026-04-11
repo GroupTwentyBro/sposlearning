@@ -11,19 +11,23 @@ export async function showVerificationOverlay(email) {
     `;
 
     overlay.innerHTML = `
-        <div class="box p-4 text-center" style="max-width: 400px; border: 1px solid var(--primary-hl-clr);">
-            <h3 class="mb-3">Ověření účtu</h3>
-            <p class="small">Zadejte 6-místný kód odeslaný na <b>${email}</b></p>
+        <div class="box d-flex flex-column align-items-center p-5 text-center" 
+             style="max-width: 500px; width: 90%; background: var(--box-clr); border: 2px solid var(--primary-hl-clr); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
             
-            <div class="d-flex gap-2 justify-content-center mb-3">
-                <input type="text" id="verify-otp" class="form-control text-center fw-bold fs-4" 
-                       placeholder="000000" maxlength="6" style="letter-spacing: 5px;">
-            </div>
+            <h2 class="mb-4 text-white fw-bold">Ověření účtu</h2>
+            
+            <p class="mb-4">Zadejte 6-místný kód odeslaný na:<br>
+               <span class="text-primary fw-bold">${email}</span>
+            </p>
+            
+            <input type="text" id="verify-otp" class="form-control form-control-lg text-center fw-bold mb-4" 
+                   placeholder="000 000" maxlength="6" 
+                   style="font-size: 2rem; letter-spacing: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--box-border-clr); color: white;">
 
-            <div id="verify-status" class="small mb-3"></div>
+            <div id="verify-status" class="mb-3" style="min-height: 1.5rem;"></div>
 
-            <div class="d-grid gap-2">
-                <button id="btn-confirm-verify" class="btn btn-primary">Ověřit kód</button>
+            <div class="d-flex flex-column w-100 gap-3">
+                <button id="btn-confirm-verify" class="btn btn-primary btn-lg py-3">Ověřit kód</button>
                 <button id="btn-close-verify" class="btn btn-outline-secondary">Zavřít</button>
             </div>
         </div>

@@ -22,26 +22,25 @@ async function initializeFlow() {
             headers: { 'Accept': 'application/json' }
         });
 
-        if (!response.ok) {
-            const errBody = await response.json();
-            console.error("Kratos Error Detail:", errBody); // <--- THIS WILL TELL YOU THE REAL PROBLEM
+        const data = await response.json();
 
-            // If user is already logged in, redirect them
-            if (errBody.error?.id === 'session_already_available') {
+        if (!response.ok) {
+            console.error("Kratos Initialization Error:", data);
+
+            if (data.error?.id === 'session_already_available') {
                 window.location.href = '/';
                 return;
             }
         }
 
-        currentFlowData = await response.json();
-        flowId = currentFlowData.id;
+        currentFlowData = data;
+        flowId = data.id;
     } catch (err) {
-        console.error("Initialization failed:", err);
+        console.error("Failed to initialize registration flow:", err);
     }
 }
 
 function getCsrfToken() {
-    if (!currentFlowData) return null;
     return currentFlowData?.ui?.nodes?.find(
         node => node.attributes.name === 'csrf_token'
     )?.attributes.value;
@@ -65,7 +64,7 @@ regForm.addEventListener('submit', async (e) => {
 
     const csrfToken = getCsrfToken();
     if (!csrfToken) {
-        statusMsg.textContent = "Chyba relace. Zkuste obnovit stránku.";
+        statusMsg.textContent = "Chyba relace (CSRF). Zkuste obnovit stránku.";
         return;
     }
 
@@ -90,22 +89,18 @@ regForm.addEventListener('submit', async (e) => {
 
         regBtn.textContent = "Vytváření...";
 
-        const body = {
-            method: 'password',
-            csrf_token: csrfToken,
-            password: pass,
-            traits: {
-                email: email
-            }
-        };
-
         const response = await fetch(`${KRATOS_URL}/self-service/registration?flow=${flowId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify({
+                method: 'password',
+                csrf_token: csrfToken,
+                password: pass,
+                traits: { email: email }
+            }),
             credentials: 'include'
         });
 
@@ -134,6 +129,12 @@ regForm.addEventListener('submit', async (e) => {
             regBtn.disabled = false;
             regBtn.textContent = "Vytvořit účet";
 
+            if (data.redirect_browser_to || response.status === 303) {
+                console.log("Intercepting Kratos redirect to show OTP overlay.");
+                showVerificationOverlay(email);
+                return;
+            }
+
             const errorText = data.ui?.messages?.[0]?.text
                 || data.ui?.nodes?.find(n => n.messages?.length > 0)?.messages[0]?.text
                 || "Nastala chyba při registraci.";
@@ -148,7 +149,7 @@ regForm.addEventListener('submit', async (e) => {
         }
 
     } catch (error) {
-        console.error(error);
+        console.error("Submit error:", error);
         statusMsg.className = "mt-3 text-center text-danger";
         statusMsg.textContent = "Server neodpovídá. Zkuste to prosím později.";
         regBtn.disabled = false;
