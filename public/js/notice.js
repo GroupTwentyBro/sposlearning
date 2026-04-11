@@ -1,7 +1,7 @@
-import { CONFIG } from "/js/config.js";
-import { showVerificationOverlay } from "/js/verify.js";
+import {CONFIG} from "/js/config.js";
 
 const KRATOS_URL = CONFIG.AUTH_URL;
+
 let userEmailForVerification = "";
 
 async function checkGlobalVerification() {
@@ -19,7 +19,7 @@ async function checkGlobalVerification() {
         if (!isSocialLogin) {
             const address = session.identity.verifiable_addresses?.[0];
             if (address && !address.verified) {
-                userEmailForVerification = address.value;
+                userEmailForVerification = address.value; // Store the email here
                 showVerificationWarning(userEmailForVerification);
             }
         }
@@ -40,9 +40,9 @@ function showVerificationWarning(email) {
                 <span class="material-symbols-outlined">warning</span> Email není ověřen
             </h5>
             <p style="font-size: 0.9rem; margin: 10px 0;">
-                Pro plnou funkčnost si prosím ověřte svůj email: <b>${email}</b>
+                Při migraci systému bylo resetováno ověření. Pro plnou funkčnost (např. feedback) si prosím znovu ověřte svůj email: <b>${email}</b>
             </p>
-            <button id="resend-verification-btn" class="btn btn-sm btn-primary w-100">Odeslat ověřovací kód</button>
+            <button id="resend-verification-btn" class="btn btn-sm btn-primary w-100">Odeslat ověřovací email</button>
             <p id="resend-status" style="font-size: 0.8rem; margin-top: 8px; text-align: center;"></p>
         </div>
     `;
@@ -59,32 +59,32 @@ async function resendVerification() {
     btn.textContent = "Odesílání...";
 
     try {
+        // 1. Get the flow
         const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
         const flow = await flowRes.json();
+
+        // 2. Extract CSRF token
         const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
+        // 3. Submit using the email we captured from the session
         const submitRes = await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             body: JSON.stringify({
-                method: 'code',
+                method: 'link',
                 csrf_token: csrfToken,
-                email: userEmailForVerification
+                email: userEmailForVerification // Use the stored email
             }),
             credentials: 'include'
         });
 
         if (submitRes.ok) {
             status.style.color = "var(--primary-hl-clr)";
-            status.textContent = "Kód byl odeslán!";
-
-            showVerificationOverlay(userEmailForVerification);
-
-            btn.textContent = "Odeslat znovu";
-            btn.disabled = false;
+            status.textContent = "Odkaz byl odeslán! Zkontrolujte spam.";
+            btn.textContent = "Odesláno";
         } else {
             const errData = await submitRes.json();
             throw new Error(errData.ui?.messages?.[0]?.text || "Chyba");
