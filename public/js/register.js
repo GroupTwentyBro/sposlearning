@@ -1,5 +1,6 @@
 import { createServerLog } from '/js/logging.js';
-import {CONFIG} from "/js/config.js";
+import { CONFIG } from "/js/config.js";
+import { showVerificationOverlay } from "/js/verify.js";
 
 const KRATOS_URL = CONFIG.AUTH_URL;
 
@@ -39,7 +40,7 @@ initializeFlow();
 
 regForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    statusMsg.className = "text-danger";
+    statusMsg.className = "mt-3 text-center text-danger";
     statusMsg.textContent = "";
 
     const email = emailInput.value;
@@ -107,11 +108,14 @@ regForm.addEventListener('submit', async (e) => {
                 userName: 'none'
             });
 
-            statusMsg.className = "text-success";
-            statusMsg.innerHTML = `Účet vytvořen! <br> Zkontrolujte <b>${email}</b> pro ověřovací odkaz (často padá do spamu).`;
+            statusMsg.className = "mt-3 text-center text-success";
+            statusMsg.innerHTML = `Účet vytvořen! Odesílám ověřovací kód...`;
+
             regForm.reset();
             regBtn.disabled = false;
             regBtn.textContent = "Vytvořit účet";
+
+            showVerificationOverlay(email);
 
             await initializeFlow();
 
@@ -134,7 +138,7 @@ regForm.addEventListener('submit', async (e) => {
 
     } catch (error) {
         console.error(error);
-        statusMsg.className = "text-danger";
+        statusMsg.className = "mt-3 text-center text-danger";
         statusMsg.textContent = "Server neodpovídá. Zkuste to prosím později.";
         regBtn.disabled = false;
         regBtn.textContent = "Vytvořit účet";
