@@ -95,7 +95,10 @@ async function updateKratosTrait(key, value) {
     const body = {
         method: 'profile',
         csrf_token: csrfToken,
-        traits: { ...currentUser.traits, [key]: value }
+        traits: {
+            ...currentUser.traits,
+            picture: value
+        }
     };
 
     const submitRes = await fetch(fixUrl(flow.ui.action), {
