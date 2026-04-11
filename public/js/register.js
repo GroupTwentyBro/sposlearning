@@ -21,17 +21,28 @@ async function initializeFlow() {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
+
+        if (!response.ok) {
+            const errBody = await response.json();
+            console.error("Kratos Error Detail:", errBody); // <--- THIS WILL TELL YOU THE REAL PROBLEM
+
+            // If user is already logged in, redirect them
+            if (errBody.error?.id === 'session_already_available') {
+                window.location.href = '/';
+                return;
+            }
+        }
+
         currentFlowData = await response.json();
         flowId = currentFlowData.id;
     } catch (err) {
         console.error("Initialization failed:", err);
-        statusMsg.textContent = "Nelze inicializovat registraci.";
     }
 }
 
 function getCsrfToken() {
     if (!currentFlowData) return null;
-    return currentFlowData.ui.nodes.find(
+    return currentFlowData?.ui?.nodes?.find(
         node => node.attributes.name === 'csrf_token'
     )?.attributes.value;
 }
