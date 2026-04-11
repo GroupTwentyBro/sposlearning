@@ -68,16 +68,13 @@ export async function showVerificationOverlay(email) {
                 credentials: 'include'
             });
 
-            if (res.ok) {
+            if (res.ok && data.state === 'passed_challenge') {
                 status.className = "text-success";
-                status.textContent = "Email ověřen! Přesměrovávám...";
+                status.textContent = "Email ověřen!";
                 setTimeout(() => location.reload(), 1500);
             } else {
-                const data = await res.json();
-                if (res.status === 410 || res.status === 403) {
-                    throw new Error("Kód vypršel. Nechte si poslat nový.");
-                }
-                throw new Error(data.ui?.nodes?.find(n => n.messages?.length > 0)?.messages[0]?.text || "Neplatný kód.");
+                const errorMsg = data.ui?.messages?.[0]?.text || "Neplatný kód. Zkuste to znovu.";
+                throw new Error(errorMsg);
             }
         } catch (err) {
             status.className = "text-danger";
