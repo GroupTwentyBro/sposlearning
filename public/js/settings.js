@@ -5,9 +5,6 @@ const KRATOS_URL = CONFIG.AUTH_URL;
 const API_URL = CONFIG.API_URL;
 let currentUser = null;
 
-/**
- * HELPER: Forces Kratos URLs to use HTTPS
- */
 const fixUrl = (url) => url ? url.replace("http://", "https://") : url;
 
 function setCookie(name, value, days = 365) {
@@ -25,9 +22,6 @@ function getCookie(name) {
     return null;
 }
 
-/**
- * INITIALIZATION: Check Auth and Load Data
- */
 async function initSettings() {
     try {
         const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
@@ -39,17 +33,14 @@ async function initSettings() {
         const session = await res.json();
         currentUser = session.identity;
 
-        // Display Name Logic
         const nameText = document.getElementById('display-name-text');
         const n = currentUser.traits.name;
         const formattedName = (n && typeof n === 'object') ? `${n.first} ${n.last}`.trim() : (n || "Not set");
         if (nameText) nameText.textContent = formattedName;
 
-        // Email field
         const emailInput = document.getElementById('account-email');
         if (emailInput) emailInput.value = currentUser.traits.email;
 
-        // Profile Picture Preview
         if (currentUser.traits.picture) {
             document.getElementById('pfp-preview').src = currentUser.traits.picture;
         }
@@ -63,9 +54,6 @@ async function initSettings() {
     }
 }
 
-/**
- * PFP UPLOAD: Logic to send to API and then update Kratos
- */
 async function handlePfpUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -78,7 +66,6 @@ async function handlePfpUpload(e) {
     formData.append('image', file);
 
     try {
-        // 1. Send to Proxmox API
         const res = await fetch(`${API_URL}/upload-pfp`, {
             method: 'POST',
             body: formData,
@@ -88,10 +75,8 @@ async function handlePfpUpload(e) {
         if (!res.ok) throw new Error("Server rejected image");
         const data = await res.json();
 
-        // 2. Update Kratos metadata with the new URL
         await updateKratosTrait('picture', data.imageUrl);
 
-        // 3. UI Update
         preview.src = data.imageUrl + "?t=" + Date.now();
         status.innerHTML = '<span class="text-success">Obrázek úspěšně nahrán!</span>';
     } catch (err) {
@@ -99,11 +84,7 @@ async function handlePfpUpload(e) {
     }
 }
 
-/**
- * KRATOS UPDATE: Updates identity traits with 403 Session Refresh handling
- */
 async function updateKratosTrait(key, value) {
-    // 1. Get new Settings Flow
     const flowRes = await fetch(`${KRATOS_URL}/self-service/settings/browser`, {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
@@ -111,7 +92,6 @@ async function updateKratosTrait(key, value) {
     const flow = await flowRes.json();
     const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
 
-    // 2. Build update body
     const body = {
         method: 'profile',
         csrf_token: csrfToken,
@@ -121,7 +101,6 @@ async function updateKratosTrait(key, value) {
         }
     };
 
-    // 3. Submit Update
     const submitRes = await fetch(fixUrl(flow.ui.action), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -129,32 +108,23 @@ async function updateKratosTrait(key, value) {
         credentials: 'include'
     });
 
-    // 4. Handle stale session (403 Forbidden)
     if (submitRes.status === 403) {
         const result = await submitRes.json();
         if (result.error?.id === 'session_refresh_required') {
-            alert("Pro uložení změn se musíte znovu přihlásit (bezpečnostní limit).");
-            window.location.href = fixUrl(result.redirect_browser_to);
+            const returnTo = encodeURIComponent(window.location.href);
+            window.location.href = `/login?refresh=true&return_to=${returnTo}`;
             return;
         }
     }
 
-    if (!submitRes.ok) {
-        const errData = await submitRes.json();
-        console.error("Kratos Error Detail:", errData);
-        throw new Error("Kratos update failed");
-    }
-
+    if (!submitRes.ok) throw new Error("Kratos update failed");
     return await submitRes.json();
 }
 
-/**
- * UI CONTROLS: Name Editing
- */
 window.toggleNameEdit = function() {
     const container = document.getElementById('name-container');
     const textSpan = document.getElementById('display-name-text');
-    const currentName = textSpan.textContent === "Not set" ? "" : textSpan.textContent;
+    const currentName = textSpan.textContent === 'Not set' ? '' : textSpan.textContent;
 
     container.innerHTML = `
         <div class="d-flex align-items-center justify-content-end">
@@ -169,14 +139,9 @@ window.saveNameChange = async function() {
     try {
         await updateKratosTrait('name', val);
         location.reload();
-    } catch (err) {
-        alert("Chyba při ukládání jména: " + err.message);
-    }
+    } catch (err) { alert(err.message); }
 };
 
-/**
- * UI CONTROLS: Theming and Font Size
- */
 function initThemeControls() {
     const themeSelect = document.querySelector('#theme-select');
     const hueSlider = document.getElementById('hueSlider');
@@ -224,9 +189,6 @@ function initFontSizeControl() {
     }
 }
 
-/**
- * VERIFICATION UI
- */
 async function triggerVerification() {
     try {
         const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, { credentials: 'include', headers: { 'Accept': 'application/json' }});
@@ -238,7 +200,7 @@ async function triggerVerification() {
             credentials: 'include'
         });
         alert("Ověřovací email odeslán!");
-    } catch (err) { alert("Chyba při odesílání ověření."); }
+    } catch (err) { alert("Chyba."); }
 }
 
 function updateVerificationUI() {
@@ -251,12 +213,13 @@ function updateVerificationUI() {
     } else {
         statusDiv.innerHTML = `<span class="text-warning small">⚠ Email není ověřený</span>`;
         resendContainer.innerHTML = `<button class="btn btn-sm btn-link p-0" id="btn-resend">Poslat ověřovací email</button>`;
-        document.getElementById('btn-resend').onclick = triggerVerification;
+        if (document.getElementById('btn-resend')) document.getElementById('btn-resend').onclick = triggerVerification;
     }
 }
 
 function renderProviders(methods) {
     const list = document.getElementById('provider-list');
+    if (!list) return;
     const hasOidc = methods.some(m => m.method === 'oidc');
     const icon = (src, active) => `<div class="${active ? '' : 'opacity-25'}"><img src="${src}" width="24"></div>`;
     list.innerHTML =
@@ -264,27 +227,22 @@ function renderProviders(methods) {
         icon('https://github.githubassets.com/favicons/favicon-dark.png', hasOidc);
 }
 
-/**
- * GLOBAL EVENT LISTENERS
- */
 document.addEventListener("DOMContentLoaded", () => {
     initSettings();
     initFontSizeControl();
     initThemeControls();
     initThemeListeners();
 
-    // PFP Upload Listener
-    const pfpUploadInput = document.getElementById('pfp-upload');
-    if (pfpUploadInput) pfpUploadInput.addEventListener('change', handlePfpUpload);
+    const uploadBtn = document.getElementById('pfp-upload');
+    if (uploadBtn) uploadBtn.addEventListener('change', handlePfpUpload);
 
-    // Page Opening Preference
     const winSel = document.getElementById('window-select');
     if (winSel) {
         winSel.value = localStorage.getItem('openPreference') || "same";
         winSel.onchange = (e) => localStorage.setItem("openPreference", e.target.value);
     }
 
-    // Password Reset
+    // Password Reset Recovery trigger
     const resetPwBtn = document.getElementById('btn-reset-pw');
     if (resetPwBtn) {
         resetPwBtn.onclick = async () => {
@@ -298,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     credentials: 'include'
                 });
                 alert("Resetovací email odeslán.");
-            } catch (err) { alert("Chyba při odesílání resetu."); }
+            } catch (err) { alert("Chyba při odesílání."); }
         };
     }
 });

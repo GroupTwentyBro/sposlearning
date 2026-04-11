@@ -18,7 +18,14 @@ let currentFlowData = null;
 
 async function initializeFlow() {
     try {
-        const response = await fetch(`${KRATOS_URL}/self-service/login/browser`, {
+        const urlParams = new URLSearchParams(window.location.search);
+        let flowUrl = `${KRATOS_URL}/self-service/login/browser`;
+
+        if (urlParams.get('refresh') === 'true') {
+            flowUrl += '?refresh=true';
+        }
+
+        const response = await fetch(flowUrl, {
             method: 'GET',
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
@@ -75,7 +82,15 @@ loginForm.addEventListener('submit', async (e) => {
             const isAdmin = user.metadata_public?.admin === true;
 
             document.cookie = "isLoggedIn=true; path=/; domain=.sposlearning.cz; max-age=2592000; Secure; SameSite=Lax";
-            window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const returnTo = urlParams.get('return_to');
+
+            if (returnTo) {
+                window.location.href = decodeURIComponent(returnTo);
+            } else {
+                window.location.href = isAdmin ? REDIRECT_ADMIN : REDIRECT_MAIN;
+            }
         } else {
             errorMessage.textContent = data.ui?.messages?.[0]?.text || "Špatný email nebo heslo.";
             if (data.error?.id === 'self_service_flow_expired' || response.status === 410) {
@@ -88,45 +103,13 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-function handleOAuthLogin(provider) {
-    const csrfToken = getCsrfToken();
-    if (!csrfToken) {
-        errorMessage.textContent = "Chyba relace. Zkuste obnovit stránku.";
+async function checkExistingSession() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('refresh') === 'true') {
+        console.log("Refresh requested: staying on login page.");
         return;
     }
 
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `${KRATOS_URL}/self-service/login?flow=${flowId}`;
-
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = 'csrf_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-
-    const providerInput = document.createElement('input');
-    providerInput.type = 'hidden';
-    providerInput.name = 'provider';
-    providerInput.value = provider;
-    form.appendChild(providerInput);
-
-    const methodInput = document.createElement('input');
-    methodInput.type = 'hidden';
-    methodInput.name = 'method';
-    methodInput.value = 'oidc';
-    form.appendChild(methodInput);
-
-    document.body.appendChild(form);
-    form.submit();
-}
-
-document.getElementById('google-login-btn').addEventListener('click', () => handleOAuthLogin('google'));
-document.getElementById('microsoft-login-btn').addEventListener('click', () => handleOAuthLogin('microsoft'));
-document.getElementById('github-login-btn').addEventListener('click', () => handleOAuthLogin('github'));
-
-
-async function checkExistingSession() {
     try {
         const response = await fetch(`${KRATOS_URL}/sessions/whoami`, {
             credentials: 'include',
@@ -141,3 +124,33 @@ async function checkExistingSession() {
     } catch (e) {
     }
 }
+
+function handleOAuthLogin(provider) {
+    const csrfToken = getCsrfToken();
+    if (!csrfToken) return;
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `${KRATOS_URL}/self-service/login?flow=${flowId}`;
+
+    const params = {
+        'csrf_token': csrfToken,
+        'provider': provider,
+        'method': 'oidc'
+    };
+
+    for (const [key, val] of Object.entries(params)) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = val;
+        form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+document.getElementById('google-login-btn').addEventListener('click', () => handleOAuthLogin('google'));
+document.getElementById('microsoft-login-btn').addEventListener('click', () => handleOAuthLogin('microsoft'));
+document.getElementById('github-login-btn').addEventListener('click', () => handleOAuthLogin('github'));
