@@ -15,23 +15,18 @@ export async function showVerificationOverlay(email) {
     overlay.innerHTML = `
         <div class="box d-flex flex-column align-items-center p-5 text-center" 
              style="max-width: 500px; width: 95%; background: var(--box-clr); border: 2px solid var(--primary-hl-clr); border-radius: var(--box-border-radius); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-            
             <h2 class="mb-4 text-white fw-bold">Ověření účtu</h2>
-            
             <p class="mb-4">Zadejte 6-místný kód odeslaný na:<br>
                <span class="text-primary fw-bold">${email}</span>
             </p>
-            
             <input type="text" id="verify-otp" class="form-control form-control-lg text-center fw-bold mb-2" 
                    placeholder="000000" maxlength="6" 
                    style="font-size: 2rem; letter-spacing: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--box-border-clr); color: white;">
-
             <div id="verify-status" class="mb-3" style="min-height: 1.5rem; font-size: 0.9rem;"></div>
-
             <div class="d-flex flex-column w-100 gap-3">
                 <button id="btn-confirm-verify" class="btn btn-primary btn-lg py-3">Ověřit kód</button>
                 <div class="d-flex justify-content-between align-items-center mt-2">
-                    <button id="btn-resend-otp" class="btn btn-link btn-sm text-decoration-none p-0">Poslat nový kód</button>
+                    <button id="btn-resend-otp" class="btn btn-link btn-sm text-decoration-none p-0 text-primary">Poslat nový kód</button>
                     <button id="btn-close-verify" class="btn btn-link btn-sm text-muted text-decoration-none p-0">Zavřít</button>
                 </div>
             </div>
@@ -43,7 +38,6 @@ export async function showVerificationOverlay(email) {
     const input = document.getElementById('verify-otp');
     const status = document.getElementById('verify-status');
     const confirmBtn = document.getElementById('btn-confirm-verify');
-    const resendBtn = document.getElementById('btn-resend-otp');
 
     const submitCode = async () => {
         const code = input.value.trim();
@@ -68,12 +62,16 @@ export async function showVerificationOverlay(email) {
                 credentials: 'include'
             });
 
+            const data = await res.json();
+
             if (res.ok && data.state === 'passed_challenge') {
                 status.className = "text-success";
-                status.textContent = "Email ověřen!";
+                status.textContent = "Email ověřen! Přesměrovávám...";
                 setTimeout(() => location.reload(), 1500);
             } else {
-                const errorMsg = data.ui?.messages?.[0]?.text || "Neplatný kód. Zkuste to znovu.";
+                const errorMsg = data.ui?.messages?.[0]?.text ||
+                    data.ui?.nodes?.find(n => n.messages?.length > 0)?.messages[0]?.text ||
+                    "Neplatný nebo vypršený kód.";
                 throw new Error(errorMsg);
             }
         } catch (err) {
@@ -83,46 +81,7 @@ export async function showVerificationOverlay(email) {
         }
     };
 
-    const resendCode = async () => {
-        resendBtn.disabled = true;
-        status.textContent = "Posílám nový kód...";
-        status.className = "text-info";
-
-        try {
-            const flowRes = await fetch(`${KRATOS_URL}/self-service/verification/browser`, {
-                credentials: 'include',
-                headers: { 'Accept': 'application/json' }
-            });
-            const flow = await flowRes.json();
-            const csrfToken = flow.ui.nodes.find(n => n.attributes.name === 'csrf_token')?.attributes.value;
-
-            const res = await fetch(`${KRATOS_URL}/self-service/verification?flow=${flow.id}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ method: 'code', csrf_token: csrfToken, email: email }),
-                credentials: 'include'
-            });
-
-            if (res.ok) {
-                status.className = "text-success";
-                status.textContent = "Nový kód byl odeslán!";
-                input.value = "";
-            } else {
-                throw new Error("Nepodařilo se odeslat kód.");
-            }
-        } catch (err) {
-            status.className = "text-danger";
-            status.textContent = err.message;
-        } finally {
-            setTimeout(() => { resendBtn.disabled = false; }, 5000);
-        }
-    };
-
     confirmBtn.onclick = submitCode;
-    resendBtn.onclick = resendCode;
+    input.addEventListener('input', () => { if (input.value.length === 6) submitCode(); });
     document.getElementById('btn-close-verify').onclick = () => overlay.remove();
-
-    input.addEventListener('input', () => {
-        if (input.value.length === 6) submitCode();
-    });
 }
