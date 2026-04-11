@@ -1,5 +1,6 @@
 import { createServerLog } from '/js/logging.js';
-import {CONFIG} from "/js/config.js";
+import { CONFIG } from "/js/config.js";
+import { showVerificationOverlay } from "/js/verify.js";
 
 const KRATOS_URL = CONFIG.AUTH_URL;
 
@@ -20,17 +21,27 @@ async function initializeFlow() {
             credentials: 'include',
             headers: { 'Accept': 'application/json' }
         });
-        currentFlowData = await response.json();
-        flowId = currentFlowData.id;
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("Kratos Initialization Error:", data);
+
+            if (data.error?.id === 'session_already_available') {
+                window.location.href = '/';
+                return;
+            }
+        }
+
+        currentFlowData = data;
+        flowId = data.id;
     } catch (err) {
-        console.error("Initialization failed:", err);
-        statusMsg.textContent = "Nelze inicializovat registraci.";
+        console.error("Failed to initialize registration flow:", err);
     }
 }
 
 function getCsrfToken() {
-    if (!currentFlowData) return null;
-    return currentFlowData.ui.nodes.find(
+    return currentFlowData?.ui?.nodes?.find(
         node => node.attributes.name === 'csrf_token'
     )?.attributes.value;
 }
@@ -39,7 +50,7 @@ initializeFlow();
 
 regForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    statusMsg.className = "text-danger";
+    statusMsg.className = "mt-3 text-center text-danger";
     statusMsg.textContent = "";
 
     const email = emailInput.value;
@@ -53,7 +64,7 @@ regForm.addEventListener('submit', async (e) => {
 
     const csrfToken = getCsrfToken();
     if (!csrfToken) {
-        statusMsg.textContent = "Chyba relace. Zkuste obnovit stránku.";
+        statusMsg.textContent = "Chyba relace (CSRF). Zkuste obnovit stránku.";
         return;
     }
 
@@ -78,22 +89,18 @@ regForm.addEventListener('submit', async (e) => {
 
         regBtn.textContent = "Vytváření...";
 
-        const body = {
-            method: 'password',
-            csrf_token: csrfToken,
-            password: pass,
-            traits: {
-                email: email
-            }
-        };
-
         const response = await fetch(`${KRATOS_URL}/self-service/registration?flow=${flowId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify({
+                method: 'password',
+                csrf_token: csrfToken,
+                password: pass,
+                traits: { email: email }
+            }),
             credentials: 'include'
         });
 
@@ -107,17 +114,26 @@ regForm.addEventListener('submit', async (e) => {
                 userName: 'none'
             });
 
-            statusMsg.className = "text-success";
-            statusMsg.innerHTML = `Účet vytvořen! <br> Zkontrolujte <b>${email}</b> pro ověřovací odkaz (často padá do spamu).`;
+            statusMsg.className = "mt-3 text-center text-success";
+            statusMsg.innerHTML = `Účet vytvořen! Odesílám ověřovací kód...`;
+
             regForm.reset();
             regBtn.disabled = false;
             regBtn.textContent = "Vytvořit účet";
+
+            showVerificationOverlay(email);
 
             await initializeFlow();
 
         } else {
             regBtn.disabled = false;
             regBtn.textContent = "Vytvořit účet";
+
+            if (data.redirect_browser_to || response.status === 303) {
+                console.log("Intercepting Kratos redirect to show OTP overlay.");
+                showVerificationOverlay(email);
+                return;
+            }
 
             const errorText = data.ui?.messages?.[0]?.text
                 || data.ui?.nodes?.find(n => n.messages?.length > 0)?.messages[0]?.text
@@ -133,8 +149,8 @@ regForm.addEventListener('submit', async (e) => {
         }
 
     } catch (error) {
-        console.error(error);
-        statusMsg.className = "text-danger";
+        console.error("Submit error:", error);
+        statusMsg.className = "mt-3 text-center text-danger";
         statusMsg.textContent = "Server neodpovídá. Zkuste to prosím později.";
         regBtn.disabled = false;
         regBtn.textContent = "Vytvořit účet";
