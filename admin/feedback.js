@@ -151,10 +151,10 @@ function renderFeedback(term = "") {
         a.innerHTML = `
             <div class="feedback-header">
                 <div class="feedback-title">
-                    <span class="badge ${config.class} mr-2">${config.label}</span>
-                    ${priority === 'high' ? '<span class="badge badge-warning mr-2" style="color: #000; font-weight: bold;">HIGH PRIORITY</span>' : ''}
-                    <span style="font-size: calc(var(--fs-text) * 1.25)">${escapeHtml(data.title)}</span>
-                    <span class="text-muted" style="font-size: calc(var(--fs-footer))">${escapeHtml(data.page)}</span>
+                    <span class="badge ${config.class} mr-2" style="font-size: calc(var(--fs-text) * 1.25);">${config.label}</span>
+                    ${priority === 'high' ? '<span class="badge badge-error mr-2" style="color: #FFF; font-weight: bold; font-size: calc(var(--fs-text) * 1.25);">HIGH PRIORITY</span>' : ''}
+                    <span style="font-size: calc(var(--fs-text) * 1.25);">${escapeHtml(data.title)}</span>
+                    <span class="text-muted" style="font-size: calc(var(--fs-footer));">${escapeHtml(data.page)}</span>
                 </div>
                 <div class="feedback-meta">
                     <div>${escapeHtml(data.contact)}</div>
