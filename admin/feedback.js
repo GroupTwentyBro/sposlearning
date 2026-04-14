@@ -154,7 +154,7 @@ function renderFeedback(term = "") {
                     <span class="badge ${config.class} mr-2">${config.label}</span>
                     ${priority === 'high' ? '<span class="badge badge-warning mr-2" style="color: #000; font-weight: bold;">HIGH PRIORITY</span>' : ''}
                     ${escapeHtml(data.title)}
-                    <p class="text-muted fs-4">${escapeHtml(data.page)}</p>
+                    <span class="text-muted" style="font-size: calc(var(--fs-footer) * 0.8)">${escapeHtml(data.page)}</span>
                 </div>
                 <div class="feedback-meta">
                     <div>${escapeHtml(data.contact)}</div>
