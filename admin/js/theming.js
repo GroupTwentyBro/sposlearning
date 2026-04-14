@@ -1,4 +1,4 @@
-function setGlobalItem(name, value) {
+export function setGlobalItem(name, value) {
   const domain = ".sposlearning.cz";
   const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
   document.cookie = `${name}=${value}; domain=${domain}; path=/; expires=${expires}; SameSite=Lax; Secure`;
@@ -9,6 +9,15 @@ export function getGlobalItem(name) {
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop().split(';').shift();
   return null;
+}
+
+const savedFontSize = document.cookie
+    .split('; ')
+    .find(row => row.startsWith('user-font-size='))
+    ?.split('=')[1];
+
+if (savedFontSize) {
+  document.documentElement.style.setProperty('--base-fs', savedFontSize);
 }
 
 const root = document.documentElement;
