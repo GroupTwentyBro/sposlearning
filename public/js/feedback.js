@@ -78,7 +78,7 @@ form.addEventListener('submit', async (e) => {
             ipAddress = ipData.ip;
         } catch (err) { console.warn("IP fetch failed"); }
 
-        console.log(page.split('/', 2));
+        console.log(page.split('/', 2)[1]);
 
         const feedbackData = {
             title: title,
