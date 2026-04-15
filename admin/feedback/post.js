@@ -114,6 +114,7 @@ async function loadPostData() {
 
         document.getElementById('status-select').onchange = handleUpdate;
         document.getElementById('priority-select').onchange = handleUpdate;
+        document.getElementById('category-select').onchange = handleUpdate;
 
         deleteBtn.onclick = async () => {
             if (confirm("Permanently delete this feedback?")) {
