@@ -10,6 +10,8 @@ const submitBtn = document.getElementById('submit-btn');
 const statusMsg = document.getElementById('status-message');
 const pageInput = document.getElementById('feedback-page');
 const formWrapper = document.getElementById('feedback-form-wrapper');
+const pageGroup = document.getElementById('feedback-page');
+const categoryField = document.getElementById('feedback-category');
 
 let currentUser = null;
 
@@ -117,6 +119,17 @@ form.addEventListener('submit', async (e) => {
         statusMsg.textContent = error.message;
         submitBtn.disabled = false;
         submitBtn.textContent = 'Odeslat zpětnou vazbu';
+    }
+});
+
+categoryField.addEventListener('change', async (e) => {
+    if (e.target.value === 'articles') {
+        pageGroup.innerHTML = `
+                <label for="feedback-page">Stránka</label>
+                <input type="text" class="form-control" id="feedback-page" placeholder="/mat/mnoziny">
+        `
+    } else {
+        pageGroup.innerHTML = '';
     }
 });
 
