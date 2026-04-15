@@ -127,7 +127,7 @@ categoryField.addEventListener('change', async (e) => {
         pageGroup.innerHTML = `
                 <label for="feedback-page">Stránka</label>
                 <input type="text" class="form-control" id="feedback-page" placeholder="/mat/mnoziny">
-        `
+        `;
     } else {
         pageGroup.innerHTML = '';
     }

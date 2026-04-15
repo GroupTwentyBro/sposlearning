@@ -50,6 +50,7 @@ async function loadPostData() {
 
         const data = await res.json();
         const currentStatus = data.status || (data.resolved ? 'resolved' : 'open');
+        const currentCategory = data.category || 'other';
         const currentPriority = data.priority || 'medium';
         const date = new Date(data.timestamp).toLocaleString();
 
@@ -57,6 +58,12 @@ async function loadPostData() {
             <div class="d-flex justify-content-between align-items-start">
                 <h2>${escapeHtml(data.page)} - ${escapeHtml(data.title)}</h2>
                 <div class="text-right">
+                    <select id="category-select" class="form-control mb-2" style="width: 200px;">
+                        <option value="articles" ${currentCategory === 'articles' ? 'selected' : ''}>Zápisy</option>
+                        <option value="bug" ${currentCategory === 'bug' ? 'selected' : ''}>Chyba webu</option>
+                        <option value="idea" ${currentCategory === 'idea' ? 'selected' : ''}>Nápad</option>
+                        <option value="other" ${currentCategory === 'other' ? 'selected' : ''}>Ostatní</option>
+                    </select>
                     <select id="status-select" class="form-control mb-2" style="width: 200px;">
                         <option value="open" ${currentStatus === 'open' ? 'selected' : ''}>Open</option>
                         <option value="in-progress" ${currentStatus === 'in-progress' ? 'selected' : ''}>In Progress</option>
@@ -80,6 +87,7 @@ async function loadPostData() {
 
         // Update logic
         const handleUpdate = async () => {
+            const newCategory = document.getElementById('category-select').value;
             const newStatus = document.getElementById('status-select').value;
             const newPriority = document.getElementById('priority-select').value;
 
@@ -87,6 +95,7 @@ async function loadPostData() {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    category: newCategory,
                     status: newStatus,
                     priority: newPriority,
                     resolved: newStatus === 'resolved'
