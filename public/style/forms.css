@@ -11,7 +11,8 @@
 
 #page-form select,
 #edit-form select,
-#login-form select {
+#login-form select,
+#feedback-form select {
     background-color: var(--box-overlay-clr);
     border: 1px solid var(--box-overlay-border-clr);
     border-radius: var(--box-border-radius);
