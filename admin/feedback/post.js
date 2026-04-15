@@ -99,7 +99,7 @@ async function loadPostData() {
                     status: newStatus,
                     priority: newPriority,
                     resolved: newStatus === 'resolved',
-                    taken_by: null
+                    taken_by: ''
                 }),
                 credentials: 'include'
             });
