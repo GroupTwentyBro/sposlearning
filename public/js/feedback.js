@@ -10,7 +10,7 @@ const submitBtn = document.getElementById('submit-btn');
 const statusMsg = document.getElementById('status-message');
 const pageInput = document.getElementById('feedback-page');
 const formWrapper = document.getElementById('feedback-form-wrapper');
-const pageGroup = document.getElementById('feedback-page');
+const pageGroup = document.getElementById('feedback-page-group');
 const categoryField = document.getElementById('feedback-category');
 
 let currentUser = null;
