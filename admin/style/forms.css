@@ -159,7 +159,8 @@
 #sort-select,
 #priority-filter,
 #status-select,
-#priority-select {
+#priority-select,
+#category-select {
     background-color: var(--box-overlay-clr) !important;
     border: 1px solid var(--box-overlay-border-clr) !important;
     border-radius: var(--box-border-radius) !important;
@@ -171,7 +172,9 @@
 #sort-select option,
 #priority-filter option,
 #status-select option,
-#priority-select option {
+#priority-select option,
+#category-select option,
+#feedback-category option {
     background-color: var(--root-box-bg-clr);
     color: var(--root-fg-clr);
 }
