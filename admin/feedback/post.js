@@ -98,8 +98,7 @@ async function loadPostData() {
                     category: newCategory,
                     status: newStatus,
                     priority: newPriority,
-                    resolved: newStatus === 'resolved',
-                    taken_by: ''
+                    resolved: newStatus === 'resolved'
                 }),
                 credentials: 'include'
             });
