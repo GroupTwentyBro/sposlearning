@@ -58,6 +58,7 @@ form.addEventListener('submit', async (e) => {
 
     const title = document.getElementById('feedback-title').value;
     const page = document.getElementById('feedback-page').value;
+    const category = document.getElementById('feedback-category').value;
     const message = document.getElementById('feedback-message').value;
 
     if (message.length < 10) {
@@ -77,9 +78,13 @@ form.addEventListener('submit', async (e) => {
             ipAddress = ipData.ip;
         } catch (err) { console.warn("IP fetch failed"); }
 
+        console.log(page.split('/', 1));
+
         const feedbackData = {
             title: title,
-            page: page || 'General',
+            page: page || null,
+            category: category,
+            // subject: page.split('/', 1) || null,
             message: message,
             ip: ipAddress
         };
