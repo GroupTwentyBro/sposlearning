@@ -41,12 +41,15 @@ function renderUserTable(users) {
     tbody.innerHTML = users.map(user => {
         const isAdmin = user.customClaims?.admin === true;
         const isDev = user.customClaims?.developer === true;
-        const adminLink = !isDev ? `
+        const adminLink = !isDev ? (!isAdmin ? `
             <button class="btn btn-sm btn-outline-danger toggle-admin-btn" data-uid="${user.uid}">
-                <span class="material-symbols-outlined fs-6">shield_person</span>
-            </button>` : '';
+                <span class="material-symbols-outlined fs-6">encrypted_add_circle</span>
+            </button>` : `
+            <button class="btn btn-sm btn-danger toggle-admin-btn" data-uid="${user.uid}" style="color: white;">
+                <span class="material-symbols-outlined fs-6">encrypted_minus_circle</span>
+            </button>`) : '';
         const deletionLink = !isDev ? `
-            <button class="btn btn-sm btn-outline-danger delete-btn" data-uid="${user.uid}">
+            <button class="btn btn-sm btn-danger delete-btn" data-uid="${user.uid}">
                 <span class="material-symbols-outlined fs-6">delete</span>
             </button>` : '';
 
