@@ -5,6 +5,8 @@ const KRATOS_URL = CONFIG.AUTH_URL;
 const API_URL = CONFIG.API_URL;
 const LOGIN_REDIRECT = `${CONFIG.BASE_URL}/login`;
 
+const filteringButton = document.getElementById('filter-button');
+
 let allFeedback = [];
 let currentSort = 'desc';
 let hideResolved = false;
@@ -170,6 +172,26 @@ function escapeHtml(text) {
     if (!text) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+filteringButton.addEventListener('click', (e) => {
+    handleFiltering();
+});
+
+function handleFiltering() {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById('filter-modal-overlay');
+        const input = document.getElementById('modal-password-input');
+        overlay.style.display = 'flex';
+        input.value = '';
+        input.focus();
+
+        const clean = (val) => { overlay.style.display = 'none'; resolve(val); };
+
+        document.getElementById('modal-confirm-btn').onclick = () => clean(input.value);
+        document.getElementById('modal-cancel-btn').onclick = () => clean(null);
+        input.onkeydown = (e) => { if (e.key === 'Enter') clean(input.value); };
+    });
 }
 
 checkAuthAndInit();
