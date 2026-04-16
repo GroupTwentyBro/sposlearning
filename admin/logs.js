@@ -63,7 +63,7 @@ async function fetchLogData() {
             if (log.type === 'feedback') badgeClass = 'badge-warning';
             if (log.type === 'admin') badgeClass = 'badge-danger';
 
-            const { type, action, timestamp, userEmail, requestIP, ...extraDetails } = log;
+            const { type, action, timestamp, userName, requestIP, ...extraDetails } = log;
 
             let detailsString = Object.entries(extraDetails).length > 0
                 ? `<br><small style="color: gray;">${Object.entries(extraDetails)
