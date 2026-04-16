@@ -1,5 +1,4 @@
 import { applyTheme, initThemeListeners } from '/js/theming.js';
-import { createServerLog } from "/js/logging.js";
 import { CONFIG } from "/js/config.js";
 
 const KRATOS_URL = CONFIG.AUTH_URL;

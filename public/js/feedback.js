@@ -105,6 +105,7 @@ form.addEventListener('submit', async (e) => {
 
         await createServerLog('feedback', `Feedback Sent: ${title}`, {
             userEmail: currentUser.traits.email,
+            userName: currentUser.traits.name ? currentUser.traits.name : currentUser.traits.email,
             feedbackID: result.id
         });
 

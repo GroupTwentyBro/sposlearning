@@ -101,6 +101,7 @@ async function handleSave(e) {
 
         await createServerLog('page', `Page Edited: ${updatedData.title}`, {
             userEmail: currentUser.traits.email,
+            userName: currentUser.traits.name ? currentUser.traits.name : currentUser.traits.email,
             oldPath: originalPath,
             newPath: newPath
         });

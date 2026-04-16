@@ -107,7 +107,8 @@ async function loadPostData() {
                 await createServerLog('admin', `Updated Feedback: ${data.title}`, {
                     feedbackID: postId,
                     newStatus,
-                    user: currentUser.traits.email
+                    user: currentUser.traits.email,
+                    userName: currentUser.traits.name ? currentUser.traits.name : currentUser.traits.email,
                 });
             }
         };

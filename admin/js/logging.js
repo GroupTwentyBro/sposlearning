@@ -8,8 +8,8 @@ export async function createServerLog(type, actionDescription, details = {}) {
             ...details
         };
 
-        if (!payload.userEmail) {
-            payload.userEmail = 'Anonym/Neznámý';
+        if (!payload.userName) {
+            payload.userName = 'Unknown';
         }
 
         const response = await fetch(`${CONFIG.BASE_URL}/api/write-log.php`, {

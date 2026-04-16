@@ -71,7 +71,8 @@ regForm.addEventListener('submit', async (e) => {
 
             await createServerLog('auth', `Zablokována registrace z dočasného emailu`, {
                 isUser: false,
-                userEmail: email
+                userEmail: email,
+                userName: email
             });
             return;
         }
@@ -104,7 +105,7 @@ regForm.addEventListener('submit', async (e) => {
                 isUser: true,
                 userEmail: email,
                 userEmailVerified: false,
-                userName: 'none'
+                userName: email
             });
 
             statusMsg.className = "text-success";

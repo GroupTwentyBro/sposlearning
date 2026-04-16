@@ -76,6 +76,7 @@ async function handlePageSubmit(e) {
 
         await createServerLog('page', `Added Page: ${title}`, {
             userEmail: currentUser.traits.email,
+            userName: currentUser.traits.name ? currentUser.traits.name : currentUser.traits.email,
             pageFullPath: fullPath
         });
 

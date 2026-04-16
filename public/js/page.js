@@ -123,6 +123,7 @@ async function handleDeletePage() {
         if (deleteRes.ok) {
             await createServerLog('page', `Deleted Page: ${currentPage.title}`, {
                 userEmail: currentUser.traits.email,
+                userName: currentUser.traits.name ? currentUser.traits.name : currentUser.traits.email,
                 pageTitle: currentPage.title
             });
             alert('Smazáno.');
