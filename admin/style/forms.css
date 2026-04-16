@@ -175,12 +175,12 @@
     border-radius: var(--box-border-radius) !important;
     color: var(--root-fg-clr) !important;
     padding: 6px;
-    height: auto;
+    height: fit-content;
     aspect-ratio: 1/1 !important;
 }
 
 #sort-button icon {
-    font-size: 1.5rem;
+    font-size: var(--icon-small);
 }
 
 #sort-select option,
