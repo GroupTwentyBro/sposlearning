@@ -179,6 +179,10 @@
     aspect-ratio: 1/1 !important;
 }
 
+#sort-button icon {
+    font-size: 1.5rem;
+}
+
 #sort-select option,
 #priority-filter option,
 #status-select option,
