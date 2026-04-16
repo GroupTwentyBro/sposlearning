@@ -18,13 +18,22 @@ async function checkAuth() {
             return;
         }
 
-        // Show UI and fetch
         document.querySelector('.dot-container')?.classList.add('hidden');
         document.getElementById('secure-container')?.classList.add('visible');
         fetchLogData();
     } catch (err) {
         window.location.href = `${CONFIG.BASE_URL}/login`;
     }
+}
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 async function fetchLogData() {
@@ -34,10 +43,8 @@ async function fetchLogData() {
     try {
         const response = await fetch(`${API_URL}?t=${Date.now()}`, {
             method: 'GET',
-            credentials: 'include', // Important to send the Kratos cookie to PHP
-            headers: {
-                'X-Admin-Secret': 'a8Fk2#9zLp$5vQx1@wErT'
-            }
+            credentials: 'include',
+            headers: { 'X-Admin-Secret': 'a8Fk2#9zLp$5vQx1@wErT' }
         });
 
         if (!response.ok) throw new Error("Access Denied");
@@ -59,15 +66,17 @@ async function fetchLogData() {
             const { type, action, timestamp, userEmail, requestIP, ...extraDetails } = log;
 
             let detailsString = Object.entries(extraDetails).length > 0
-                ? `<br><small style="color: gray;">${Object.entries(extraDetails).map(([k, v]) => `<b>${k}:</b> ${v}`).join(' | ')}</small>`
+                ? `<br><small style="color: gray;">${Object.entries(extraDetails)
+                    .map(([k, v]) => `<b>${escapeHTML(k)}:</b> ${escapeHTML(v)}`)
+                    .join(' | ')}</small>`
                 : '';
 
             html += `
                 <tr>
-                    <td>${timestamp || 'Unknown'}</td>
-                    <td><span class="badge ${badgeClass}">${(type || 'system').toUpperCase()}</span></td>
-                    <td>${userEmail || 'Neznámý'}</td>
-                    <td>${action} ${detailsString}</td>
+                    <td>${escapeHTML(timestamp) || 'Unknown'}</td>
+                    <td><span class="badge ${badgeClass}">${(escapeHTML(type) || 'system').toUpperCase()}</span></td>
+                    <td>${escapeHTML(userEmail) || 'Neznámý'}</td>
+                    <td>${escapeHTML(action)} ${detailsString}</td>
                 </tr>
             `;
         });
