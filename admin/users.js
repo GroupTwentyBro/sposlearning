@@ -43,10 +43,10 @@ function renderUserTable(users) {
         const isDev = user.customClaims?.developer === true;
         const adminLink = !isDev ? (!isAdmin ? `
             <button class="btn btn-sm btn-outline-danger toggle-admin-btn" data-uid="${user.uid}" style="border-color: #F44 !important; color: #F44 !important;">
-                <span class="material-symbols-outlined fs-6">encrypted_add_circle</span>
+                <span class="material-symbols-outlined fs-6">encrypted</span>
             </button>` : `
             <button class="btn btn-sm btn-danger toggle-admin-btn" data-uid="${user.uid}" style="color: white; border-color: #F44 !important; background-color: #F44 !important;">
-                <span class="material-symbols-outlined fs-6">encrypted_minus_circle</span>
+                <span class="material-symbols-outlined fs-6">encrypted_off</span>
             </button>`) : '';
         const deletionLink = !isDev ? `
             <button class="btn btn-sm btn-outline-danger delete-btn" data-uid="${user.uid}" style="border-color: #F44 !important; color: #F44 !important;">
