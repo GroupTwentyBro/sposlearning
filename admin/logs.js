@@ -75,7 +75,7 @@ async function fetchLogData() {
                 <tr>
                     <td>${escapeHTML(timestamp) || 'Unknown'}</td>
                     <td><span class="badge ${badgeClass}">${(escapeHTML(type) || 'system').toUpperCase()}</span></td>
-                    <td>${escapeHTML(userEmail) || 'Neznámý'}</td>
+                    <td>${escapeHTML(userName) || 'Neznámý'}</td>
                     <td>${escapeHTML(action)} ${detailsString}</td>
                 </tr>
             `;
