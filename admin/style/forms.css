@@ -169,6 +169,16 @@
     height: auto;
 }
 
+#sort-button {
+    background-color: var(--box-overlay-clr) !important;
+    border: 1px solid var(--box-overlay-border-clr) !important;
+    border-radius: var(--box-border-radius) !important;
+    color: var(--root-fg-clr) !important;
+    padding: 6px;
+    height: auto;
+    aspect-ratio: 1/1 !important;
+}
+
 #sort-select option,
 #priority-filter option,
 #status-select option,
