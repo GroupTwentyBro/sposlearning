@@ -55,12 +55,6 @@
                     </icon>
                 </button>
             </div>
-            <div class="col-md-4 d-flex align-items-center">
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="hide-resolved" style="border-radius: var(--box-border-radius);">
-                    <label class="custom-control-label" for="hide-resolved">Hide Resolved</label>
-                </div>
-            </div>
             <div class="col-md-4 d-flex align-items-end">
                 <div class="feedback-search">
                     <icon>search</icon>
@@ -85,6 +79,10 @@
             <option value="desc">Sort by: Recent</option>
             <option value="asc">Sort by: Oldest</option>
         </select>
+        <div class="custom-control custom-switch">
+            <input type="checkbox" class="custom-control-input" id="hide-resolved" style="border-radius: var(--box-border-radius);">
+            <label class="custom-control-label" for="hide-resolved">Hide Resolved</label>
+        </div>
         <div style="display: flex; gap: 10px; justify-content: flex-end;">
             <button id="modal-cancel-btn" class="btn btn-sm btn-secondary">Close</button>
         </div>
