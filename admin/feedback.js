@@ -11,6 +11,7 @@ let allFeedback = [];
 let currentSort = 'priority';
 let sortOrder = 'desc';
 let hideResolved = false;
+let resolvedOnBottom = false;
 let currentPriority = 'all';
 
 async function checkAuthAndInit() {
@@ -47,6 +48,11 @@ function setupControls() {
 
     document.getElementById('hide-resolved')?.addEventListener('change', (e) => {
         hideResolved = e.target.checked;
+        renderFeedback(searchInput?.value);
+    });
+
+    document.getElementById('resolved-on-bottom')?.addEventListener('change', (e) => {
+        resolvedOnBottom = e.target.checked;
         renderFeedback(searchInput?.value);
     });
 
@@ -100,6 +106,18 @@ function renderFeedback(term = "") {
     });
 
     filtered.sort((a, b) => {
+        if (resolvedOnBottom) {
+            const statusA = a.status || (a.resolved ? 'resolved' : 'open');
+            const statusB = b.status || (b.resolved ? 'resolved' : 'open');
+
+            const isClosedA = (statusA === 'resolved' || statusA === 'denied');
+            const isClosedB = (statusB === 'resolved' || statusB === 'denied');
+
+            if (isClosedA !== isClosedB) {
+                return isClosedA ? 1 : -1;
+            }
+        }
+
         let result = 0;
 
         if (currentSort === 'priority') {
@@ -174,8 +192,6 @@ function handleFiltering() {
         const clean = (val) => { overlay.style.display = 'none'; resolve(val); };
         document.getElementById('modal-cancel-btn').onclick = () => clean(null);
     });
-
-    renderFeedback();
 }
 
 document.getElementById('direction-toggle')?.addEventListener('click', () => {
@@ -190,5 +206,6 @@ document.getElementById('direction-toggle')?.addEventListener('click', () => {
 
     renderFeedback(document.getElementById('search-input')?.value);
 });
+
 
 checkAuthAndInit();
