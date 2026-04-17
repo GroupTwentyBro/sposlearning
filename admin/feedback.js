@@ -8,7 +8,7 @@ const LOGIN_REDIRECT = `${CONFIG.BASE_URL}/login`;
 const filteringButton = document.getElementById('filter-button');
 
 let allFeedback = [];
-let currentSort = 'desc';
+let currentSort = 'priority';
 let hideResolved = false;
 let currentPriority = 'all';
 
