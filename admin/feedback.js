@@ -49,9 +49,12 @@ function setupControls() {
     document.getElementById('hide-resolved')?.addEventListener('change', (e) => {
         hideResolved = e.target.checked;
         if (hideResolved) {
-            document.getElementById('resolved-on-bottom').style.display = 'none';
+            document.getElementById('resolved-on-bottom-container').innerHTML = '';
         } else {
-            document.getElementById('resolved-on-bottom').style.display = 'block';
+            document.getElementById('resolved-on-bottom-container').innerHTML = `
+                <input type="checkbox" class="custom-control-input" id="resolved-on-bottom" style="border-radius: var(--box-border-radius);">
+                <label class="custom-control-label" for="resolved-on-bottom">Resolved on bottom</label>
+`           ;
         }
 
         renderFeedback(searchInput?.value);
