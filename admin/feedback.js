@@ -100,32 +100,24 @@ function renderFeedback(term = "") {
         return matchesResolved && matchesPriority && matchesSearch;
     });
 
-    // 3. Restore the Deep Sorting Logic
     filtered.sort((a, b) => {
-        const statusA = a.status || (a.resolved ? 'resolved' : 'open');
-        const statusB = b.status || (b.resolved ? 'resolved' : 'open');
-        const prioA = a.priority || 'medium';
-        const prioB = b.priority || 'medium';
+        if (currentSort === 'priority') {
+            const prioA = a.priority || 'medium';
+            const prioB = b.priority || 'medium';
 
-        // Rule A: Group Active vs Closed (Resolved/Denied always go to bottom)
-        const isClosedA = (statusA === 'resolved' || statusA === 'denied');
-        const isClosedB = (statusB === 'resolved' || statusB === 'denied');
-        if (isClosedA !== isClosedB) return isClosedA ? 1 : -1;
-
-        // Rule B: Sort by Priority (High > Medium > Low)
-        if (priorityWeight[prioA] !== priorityWeight[prioB]) {
-            return priorityWeight[prioA] - priorityWeight[prioB];
+            // If priorities are different, sort by weight (High < Medium < Low)
+            if (priorityWeight[prioA] !== priorityWeight[prioB]) {
+                return priorityWeight[prioA] - priorityWeight[prioB];
+            }
+            // If priorities are same, secondary sort by newest date
+            return new Date(b.timestamp) - new Date(a.timestamp);
         }
 
-        // Rule C: Sort by Status Weight (Open > In Progress)
-        if (statusConfig[statusA].weight !== statusConfig[statusB].weight) {
-            return statusConfig[statusA].weight - statusConfig[statusB].weight;
+        if (currentSort === 'date') {
+            return new Date(b.timestamp) - new Date(a.timestamp);
         }
 
-        // Rule D: Finally, sort by Time
-        const timeA = new Date(a.timestamp).getTime();
-        const timeB = new Date(b.timestamp).getTime();
-        return currentSort === 'desc' ? timeB - timeA : timeA - timeB;
+        return 0;
     });
 
     // 4. Render Items
@@ -185,6 +177,8 @@ function handleFiltering() {
         const clean = (val) => { overlay.style.display = 'none'; resolve(val); };
         document.getElementById('modal-cancel-btn').onclick = () => clean(null);
     });
+
+    renderFeedback();
 }
 
 checkAuthAndInit();
