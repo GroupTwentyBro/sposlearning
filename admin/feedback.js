@@ -11,6 +11,7 @@ let allFeedback = [];
 let currentSort = 'priority';
 let sortOrder = 'desc';
 let hideResolved = false;
+let hideInProgress = false;
 let resolvedOnBottom = false;
 let currentPriority = 'all';
 
@@ -54,7 +55,7 @@ function setupControls() {
             document.getElementById('resolved-on-bottom-container').innerHTML = `
                 <input type="checkbox" class="custom-control-input" id="resolved-on-bottom" style="border-radius: var(--box-border-radius);">
                 <label class="custom-control-label" for="resolved-on-bottom">Resolved on bottom</label>
-`           ;
+            `;
         }
 
         renderFeedback(searchInput?.value);
@@ -62,6 +63,11 @@ function setupControls() {
 
     document.getElementById('resolved-on-bottom')?.addEventListener('change', (e) => {
         resolvedOnBottom = e.target.checked;
+        renderFeedback(searchInput?.value);
+    });
+
+    document.getElementById('hide-in-progress')?.addEventListener('change', (e) => {
+        hideInProgress = e.target.checked;
         renderFeedback(searchInput?.value);
     });
 
@@ -105,13 +111,14 @@ function renderFeedback(term = "") {
         const priority = item.priority || 'medium';
 
         const matchesResolved = hideResolved ? (status !== 'resolved' && status !== 'denied') : true;
+        const matchesInProgress = hideInProgress ? (status !== 'in-progress') : true;
         const matchesPriority = currentPriority === 'all' || priority === currentPriority;
         const matchesSearch = searchTerm === "" ||
             (item.title || '').toLowerCase().includes(searchTerm) ||
             (item.page || '').toLowerCase().includes(searchTerm) ||
             (item.message || '').toLowerCase().includes(searchTerm);
 
-        return matchesResolved && matchesPriority && matchesSearch;
+        return matchesResolved && matchesInProgress && matchesPriority && matchesSearch;
     });
 
     filtered.sort((a, b) => {
