@@ -48,6 +48,12 @@ function setupControls() {
 
     document.getElementById('hide-resolved')?.addEventListener('change', (e) => {
         hideResolved = e.target.checked;
+        if (hideResolved) {
+            document.getElementById('resolved-on-bottom').style.display = 'none';
+        } else {
+            document.getElementById('resolved-on-bottom').style.display = 'block';
+        }
+
         renderFeedback(searchInput?.value);
     });
 
