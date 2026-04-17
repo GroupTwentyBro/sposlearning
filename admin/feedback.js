@@ -9,6 +9,7 @@ const filteringButton = document.getElementById('filter-button');
 
 let allFeedback = [];
 let currentSort = 'priority';
+let sortOrder = 'desc';
 let hideResolved = false;
 let currentPriority = 'all';
 
@@ -75,7 +76,6 @@ function renderFeedback(term = "") {
     const searchTerm = (term || '').trim().toLowerCase();
     listContainer.innerHTML = '';
 
-    // 1. Restore your original Status Configuration
     const statusConfig = {
         'open': { class: 'badge-primary', label: 'Open', weight: 10 },
         'in-progress': { class: 'badge-info', label: 'In Progress', weight: 20 },
@@ -85,7 +85,6 @@ function renderFeedback(term = "") {
 
     const priorityWeight = { 'high': 1, 'medium': 2, 'low': 3 };
 
-    // 2. Filter logic (including the priority filter if you have that UI element)
     let filtered = allFeedback.filter(item => {
         const status = item.status || (item.resolved ? 'resolved' : 'open');
         const priority = item.priority || 'medium';
@@ -101,26 +100,25 @@ function renderFeedback(term = "") {
     });
 
     filtered.sort((a, b) => {
+        let result = 0;
+
         if (currentSort === 'priority') {
-            const prioA = a.priority || 'medium';
-            const prioB = b.priority || 'medium';
+            const prioA = priorityWeight[a.priority || 'medium'];
+            const prioB = priorityWeight[b.priority || 'medium'];
 
-            // If priorities are different, sort by weight (High < Medium < Low)
-            if (priorityWeight[prioA] !== priorityWeight[prioB]) {
-                return priorityWeight[prioA] - priorityWeight[prioB];
+            result = prioA - prioB;
+
+            if (result === 0) {
+                result = new Date(b.timestamp) - new Date(a.timestamp);
             }
-            // If priorities are same, secondary sort by newest date
-            return new Date(b.timestamp) - new Date(a.timestamp);
+        }
+        else if (currentSort === 'date') {
+            result = new Date(b.timestamp) - new Date(a.timestamp);
         }
 
-        if (currentSort === 'date') {
-            return new Date(b.timestamp) - new Date(a.timestamp);
-        }
-
-        return 0;
+        return sortOrder === 'desc' ? result : result * -1;
     });
 
-    // 4. Render Items
     if (filtered.length === 0) {
         listContainer.innerHTML = '<p class="text-center mt-3">No matching feedback found.</p>';
         return;
@@ -136,7 +134,6 @@ function renderFeedback(term = "") {
         a.href = `/feedback/post?id=${data.id}`;
         a.className = `feedback-item list-group-item list-group-item-action ${ (currentStatus === 'resolved' || currentStatus === 'denied') ? 'read' : ''}`;
 
-        // High Priority Visual styling
         if (priority === 'high') {
             a.style.borderLeft = "6px solid #ff4d4d";
             a.style.backgroundColor = "rgba(255, 77, 77, 0.05)";
@@ -180,5 +177,18 @@ function handleFiltering() {
 
     renderFeedback();
 }
+
+document.getElementById('direction-toggle')?.addEventListener('click', () => {
+    sortOrder = (sortOrder === 'desc') ? 'asc' : 'desc';
+
+    const icon = document.getElementById('direction-icon');
+    if (sortOrder === 'asc') {
+        icon.classList.add('rotate-180');
+    } else {
+        icon.classList.remove('rotate-180');
+    }
+
+    renderFeedback(document.getElementById('search-input')?.value);
+});
 
 checkAuthAndInit();
