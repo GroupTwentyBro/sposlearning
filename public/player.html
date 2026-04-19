@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluid Lyric Player</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <style>
+        :root {
+            --track-color: #ffffff;
+            --track-glow: #ffffff;
+            --lyric-blur: 20px;
+            --lyric-dim: 0.65;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body, html {
+            height: 100%; overflow: hidden;
+            color: white; background: #000;
+            font-family: "Google Sans", sans-serif;
+            font-style: normal;
+        }
+
+        .bg-blur {
+            position: absolute; inset: 0;
+            background-size: cover; background-position: center;
+            filter: blur(60px) brightness(0.4) saturate(1.4);
+            transform: scale(1.15); z-index: 1;
+            transition: background-image 1s ease;
+            background-repeat: no-repeat;
+        }
+
+        .player-content {
+            position: relative; z-index: 2;
+            display: flex; align-items: stretch;
+            height: 100vh;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .cover-art {
+            flex-shrink: 0;
+            height: min(70vh, 500px);
+            width: min(70vh, 500px);
+            margin: auto 24px;
+            border-radius: 16px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.85);
+            display: block;
+        }
+
+        .main-info {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; padding: 32px 40px 32px 8px;
+            min-width: 0; text-align: left;
+        }
+
+        h1 { font-size: clamp(20px, 2.5vw, 32px); font-weight: 700; line-height: 1.2; }
+        p#meta { opacity: 0.55; margin-top: 8px; font-size: clamp(13px, 1.5vw, 17px); }
+
+        .controls { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; }
+        .progress-wrap { display: flex; align-items: center; gap: 10px; }
+        .time-label { font-size: 12px; opacity: 0.5; font-variant-numeric: tabular-nums; min-width: 34px; }
+
+        .progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; cursor: pointer; position: relative; }
+        .progress-fill { height: 100%; border-radius: 2px; background: white; width: 0%; pointer-events: none; }
+        .progress-thumb { position: absolute; top: 50%; width: 12px; height: 12px; border-radius: 50%; background: white; transform: translate(-50%, -50%); left: 0%; opacity: 0; transition: opacity 0.15s; }
+        .progress-track:hover .progress-thumb { opacity: 1; }
+
+        .btn-row { display: flex; align-items: center; gap: 6px; }
+        .ctrl-btn {
+            background: none; border: none; color: white; cursor: pointer;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.7; transition: 0.15s;
+        }
+        .ctrl-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+        .ctrl-btn.play-pause { width: 54px; height: 54px; background: rgba(255,255,255,0.15); opacity: 1; }
+        .ctrl-btn.play-pause .material-symbols-rounded { font-size: 32px; font-variation-settings: 'FILL' 1; }
+
+        .volume-wrap { display: flex; align-items: center; gap: 8px; margin-left: auto;}
+        .volume-slider { -webkit-appearance: none; width: 72px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; outline: none;}
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: white; cursor: pointer; }
+
+        .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 9px 20px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 13px; margin-left: 6px; }
+
+        /* ── STATUS POPUP ── */
+        #status-message {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            font-size: 24px;
+            font-weight: 500;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            pointer-events: none;
+        }
+        #status-message.show { opacity: 1; visibility: visible; }
+
+        #lyrics-screen {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; overflow-y: auto; background: #000;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 1.2s ease, visibility 1.2s ease;
+            font-family: "Google Sans", sans-serif;
+            font-weight: 700;
+            font-style: normal;
+        }
+        #lyrics-screen.active { opacity: 1; visibility: visible; pointer-events: auto; }
+
+        #lyrics-video {
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: -1;
+            transition: filter 1s ease, opacity 1s ease, transform 1s ease;
+            display: none;
+        }
+
+        #lyrics-bg {
+            position: fixed; inset: 0;
+            background-size: cover; background-position: center;
+            background-repeat: no-repeat; z-index: -2;
+            transition: filter 1s ease, opacity 1s ease, transform 1s ease;
+        }
+
+        .lyric-view-filtered {
+            filter: blur(5px) brightness(var(--lyric-dim)) saturate(1.3);
+            transform: scale(1.08);
+        }
+
+        #lyrics-container {
+            position: relative; z-index: 2; width: 100%; max-width: 780px;
+            padding: 50vh 24px; display: flex; flex-direction: column; align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        .lyric-line {
+            font-size: clamp(22px, 4vw, 38px); font-weight: 800; line-height: 1.35;
+            margin: 13px 0; text-align: center; width: 100%;
+            opacity: var(--line-opacity, 0.18); transition: opacity 0.5s ease;
+        }
+
+        .word { display: inline-block; position: relative; color: rgba(255,255,255,0.2); }
+        .word::before { content: attr(data-text); position: absolute; inset: 0; color: var(--track-color); clip-path: inset(0 calc((100 - var(--fill, 0)) * 1%) 0 0); white-space: nowrap; pointer-events: none; }
+        .word::after {
+            content: attr(data-text); position: absolute; inset: 0; color: transparent;
+            text-shadow: 0 0 16px rgba(255,255,255,0.7), 0 0 35px var(--track-glow), 0 0 70px var(--track-glow), 0 0 110px var(--track-glow);
+            opacity: calc(var(--fill, 0) / 100 * 0.9); white-space: nowrap; pointer-events: none; z-index: -1;
+        }
+
+        .close-lyrics { position: fixed; top: 26px; right: 28px; cursor: pointer; z-index: 103; opacity: 0.65; }
+        .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; color: white; }
+
+        canvas#colorThief { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="bg-blur" id="bg"></div>
+<canvas id="colorThief"></canvas>
+
+<div id="status-message">Lyrics will appear shortly</div>
+
+<div class="player-content">
+    <div class="cover-art" id="art"></div>
+    <div class="main-info">
+        <h1 id="title">Select Track</h1>
+        <p id="meta">Artist • Album</p>
+
+        <div class="controls">
+            <div class="progress-wrap">
+                <span class="time-label" id="time-cur">0:00</span>
+                <div class="progress-track" id="progress-track">
+                    <div class="progress-fill" id="progress-fill"></div>
+                    <div class="progress-thumb" id="progress-thumb"></div>
+                </div>
+                <span class="time-label right" id="time-dur">0:00</span>
+            </div>
+
+            <div class="btn-row">
+                <button class="ctrl-btn" id="btn-back"><span class="material-symbols-rounded">replay_10</span></button>
+                <button class="ctrl-btn play-pause" id="btn-play">
+                    <span class="material-symbols-rounded" id="icon-play">play_arrow</span>
+                    <span class="material-symbols-rounded" id="icon-pause" style="display:none">pause</span>
+                </button>
+                <button class="ctrl-btn" id="btn-fwd"><span class="material-symbols-rounded">forward_10</span></button>
+                <div class="volume-wrap"><input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="1"></div>
+                <button class="lyric-btn" onclick="toggleLyrics()">Lyrics</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="lyrics-screen">
+    <video id="lyrics-video" loop muted playsinline></video>
+    <div id="lyrics-bg"></div>
+    <span class="close-lyrics" onclick="toggleLyrics()"><span class="material-symbols-rounded" style="font-size: 36px;">close</span></span>
+    <div id="lyrics-container"></div>
+</div>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const trackId = params.get('track');
+    const audio = document.getElementById('audio');
+    const lyricsEl = document.getElementById('lyrics-screen');
+    const container = document.getElementById('lyrics-container');
+    const lVideo = document.getElementById('lyrics-video');
+    const lBg = document.getElementById('lyrics-bg');
+    const statusMsg = document.getElementById('status-message');
+
+    let userWantsLyrics = false;
+    let hasVideo = false;
+
+    async function init() {
+        if (!trackId) return;
+        const path = `music/${trackId}`;
+        const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = `${path}.jpeg`;
+        img.onload = () => {
+            const url = `url('${img.src}')`;
+            document.getElementById('bg').style.backgroundImage = url;
+            document.getElementById('art').style.backgroundImage = url;
+            lBg.style.backgroundImage = url;
+            extractColor(img);
+        };
+        fetch(`${path}.webm`, { method: 'HEAD' }).then(res => {
+            if (res.ok) {
+                lVideo.src = `${path}.webm`; lVideo.style.display = 'block'; hasVideo = true;
+                audio.addEventListener('seeked', () => lVideo.currentTime = audio.currentTime);
+            }
+        });
+        audio.src = `${path}.mp3`;
+        try {
+            const text = await (await fetch(`${path}.txt`)).text();
+            const meta = {};
+            text.split('\n').forEach(line => {
+                const [k, ...rest] = line.split('=');
+                if (rest.length) meta[k.trim()] = rest.join('=').trim();
+            });
+            document.getElementById('title').textContent = meta.Title ?? '';
+            document.getElementById('meta').textContent = `${meta.Artist ?? ''} • ${meta.Album ?? ''}`;
+        } catch(_) {}
+        try {
+            const ttml = await (await fetch(`${path}.ttml`)).text();
+            const xml = new DOMParser().parseFromString(ttml, 'text/xml');
+            for (const p of xml.getElementsByTagName('p')) {
+                const lineDiv = document.createElement('div'); lineDiv.className = 'lyric-line';
+                let sTime = Infinity, eTime = -Infinity;
+                Array.from(p.childNodes).forEach(node => {
+                    if (node.nodeType === 1 && node.tagName.toLowerCase() === 'span') {
+                        const start = parseTime(node.getAttribute('begin')), end = parseTime(node.getAttribute('end'));
+                        sTime = Math.min(sTime, start); eTime = Math.max(eTime, end);
+                        const word = document.createElement('span'); word.className = 'word';
+                        word.textContent = node.textContent; word.dataset.text = node.textContent;
+                        word.dataset.start = start; word.dataset.end = end;
+                        lineDiv.appendChild(word);
+                    } else if (node.nodeType === 3) lineDiv.appendChild(document.createTextNode(node.textContent));
+                });
+                lineDiv.dataset.start = sTime; lineDiv.dataset.end = eTime;
+                container.appendChild(lineDiv);
+            }
+        } catch(_) {}
+    }
+
+    function extractColor(img) {
+        const canvas = document.getElementById('colorThief'); const ctx = canvas.getContext('2d');
+        canvas.width = canvas.height = 40; ctx.drawImage(img, 0, 0, 40, 40);
+        const data = ctx.getImageData(0, 0, 40, 40).data;
+        let rS = 0, gS = 0, bS = 0, n = 0;
+        for (let i = 0; i < data.length; i += 4) {
+            const lum = 0.2126*data[i] + 0.7152*data[i+1] + 0.0722*data[i+2];
+            if (lum < 20 || lum > 230) continue;
+            rS += data[i]; gS += data[i+1]; bS += data[i+2]; n++;
+        }
+        if (!n) return;
+        const gr = Math.min(255, Math.max(0, Math.round(128 + (rS/n - 128) * 2.2)));
+        const gg = Math.min(255, Math.max(0, Math.round(128 + (gS/n - 128) * 2.2)));
+        const gb = Math.min(255, Math.max(0, Math.round(128 + (bS/n - 128) * 2.2)));
+        document.documentElement.style.setProperty('--track-glow', `rgb(${gr},${gg},${gb})`);
+        document.documentElement.style.setProperty('--track-color', `rgb(${Math.round(gr*0.15+216)},${Math.round(gg*0.15+216)},${Math.round(gb*0.15+216)})`);
+    }
+
+    function parseTime(t) { const parts = t.split(':'); return parseFloat(parts.pop()) + (parts.length ? parseFloat(parts.pop()) * 60 : 0); }
+    function formatTime(s) { return Math.floor(s/60) + ":" + Math.floor(s%60).toString().padStart(2,'0'); }
+
+    const btnPlay = document.getElementById('btn-play'), iPlay = document.getElementById('icon-play'), iPause = document.getElementById('icon-pause');
+    const f = document.getElementById('progress-fill'), th = document.getElementById('progress-thumb'), cur = document.getElementById('time-cur'), dur = document.getElementById('time-dur');
+
+    btnPlay.addEventListener('click', () => audio.paused ? audio.play() : audio.pause());
+    audio.addEventListener('play', () => { iPlay.style.display='none'; iPause.style.display='block'; if(hasVideo) lVideo.play(); });
+    audio.addEventListener('pause', () => { iPlay.style.display='block'; iPause.style.display='none'; if(hasVideo) lVideo.pause(); });
+    document.getElementById('btn-back').addEventListener('click', () => audio.currentTime -= 10);
+    document.getElementById('btn-fwd').addEventListener('click', () => audio.currentTime += 10);
+    audio.addEventListener('loadedmetadata', () => dur.textContent = formatTime(audio.duration));
+    audio.addEventListener('timeupdate', () => {
+        const pct = (audio.currentTime / audio.duration) * 100;
+        f.style.width = th.style.left = pct + '%'; cur.textContent = formatTime(audio.currentTime);
+    });
+
+    let scrubbing = false;
+    document.getElementById('progress-track').addEventListener('mousedown', e => { scrubbing = true; scrubTo(e); });
+    window.addEventListener('mousemove', e => scrubbing && scrubTo(e));
+    window.addEventListener('mouseup', () => scrubbing = false);
+    function scrubTo(e) { const r = document.getElementById('progress-track').getBoundingClientRect(); audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration; }
+
+    function toggleLyrics() {
+        userWantsLyrics = !userWantsLyrics;
+        if (userWantsLyrics) {
+            // Check for intro gap + no video to show popup
+            const allLines = Array.from(document.querySelectorAll('.lyric-line'));
+            if (allLines.length > 0) {
+                const firstStart = parseFloat(allLines[0].dataset.start);
+                if (audio.currentTime < firstStart - 1.5 && !hasVideo) {
+                    statusMsg.classList.add('show');
+                    setTimeout(() => statusMsg.classList.remove('show'), 3000);
+                }
+            }
+            lyricsEl.classList.add('active');
+            if(hasVideo) { lVideo.currentTime = audio.currentTime; if(!audio.paused) lVideo.play(); }
+        } else {
+            lyricsEl.classList.remove('active');
+            statusMsg.classList.remove('show');
+        }
+    }
+
+    let activeLineEl = null;
+    function sync() {
+        const time = audio.currentTime;
+        const allLines = Array.from(document.querySelectorAll('.lyric-line'));
+        if (allLines.length === 0) return requestAnimationFrame(sync);
+
+        let currentIdx = -1;
+        allLines.forEach((line, i) => {
+            if (time >= parseFloat(line.dataset.start) && time <= parseFloat(line.dataset.end)) currentIdx = i;
+        });
+
+        if (userWantsLyrics) {
+            const firstStart = parseFloat(allLines[0].dataset.start);
+            const lastEnd = parseFloat(allLines[allLines.length - 1].dataset.end);
+
+            let isInstrumental = false;
+
+            if (time < firstStart - 1.5) {
+                isInstrumental = true;
+            } else if (time > lastEnd + 1) {
+                isInstrumental = true;
+            } else if (currentIdx === -1) {
+                const next = allLines.find(l => parseFloat(l.dataset.start) > time);
+                const prev = allLines.filter(l => parseFloat(l.dataset.end) < time).pop();
+                if (next && prev) {
+                    const gap = parseFloat(next.dataset.start) - parseFloat(prev.dataset.end);
+                    if (gap > 5 && (time - parseFloat(prev.dataset.end) > 0.5) && (parseFloat(next.dataset.start) - time > 0.5)) {
+                        isInstrumental = true;
+                    }
+                }
+            }
+
+            if (isInstrumental) {
+                container.style.opacity = "0";
+                lVideo.classList.remove('lyric-view-filtered');
+                lBg.classList.remove('lyric-view-filtered');
+                if (!hasVideo) lyricsEl.classList.remove('active');
+            } else {
+                lyricsEl.classList.add('active');
+                container.style.opacity = "1";
+                lVideo.classList.add('lyric-view-filtered');
+                lBg.classList.add('lyric-view-filtered');
+                statusMsg.classList.remove('show'); // Hide popup once lyrics hit
+            }
+        }
+
+        allLines.forEach((line, i) => {
+            const dist = currentIdx < 0 ? Infinity : Math.abs(i - currentIdx);
+            line.style.setProperty('--line-opacity', dist === 0 ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.28 : 0.15);
+        });
+
+        document.querySelectorAll('.word').forEach(w => {
+            const s = parseFloat(w.dataset.start), e = parseFloat(w.dataset.end);
+            let t = time < s ? 0 : time > e ? 1 : (time - s) / (e - s);
+            w.style.setProperty('--fill', ( (1 - (1 - t) * (1 - t)) * 100).toFixed(2));
+        });
+
+        if (lyricsEl.classList.contains('active') && allLines[currentIdx] && allLines[currentIdx] !== activeLineEl) {
+            activeLineEl = allLines[currentIdx];
+            smoothScrollTo(activeLineEl);
+        }
+        requestAnimationFrame(sync);
+    }
+
+    function smoothScrollTo(el) {
+        const s = lyricsEl, start = s.scrollTop, target = el.offsetTop - s.clientHeight / 2 + el.offsetHeight / 2;
+        const delta = target - start, d = 600; let st = null;
+        function step(ts) {
+            if (!st) st = ts; const t = Math.min((ts - st) / d, 1);
+            s.scrollTop = start + delta * (1 - Math.pow(1 - t, 3));
+            if (t < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    init(); requestAnimationFrame(sync);
+</script>
+</body>
+</html>

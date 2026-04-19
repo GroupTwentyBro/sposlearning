@@ -8,7 +8,7 @@ RewriteBase /
 # ErrorDocument 503 /maintenance.html
 
 RewriteCond %{HTTP_HOST} !^www\. [NC]
-RewriteCond %{HTTP_HOST} !^dev\. [NC]  <-- Add this line
+RewriteCond %{HTTP_HOST} !^dev\. [NC]
 RewriteRule ^(.*)$ https://www.sposlearning.cz/$1 [L,R=301]
 
 # 2. Redirect /admin or /admin.html to /login

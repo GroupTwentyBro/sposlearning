@@ -1,0 +1,6 @@
+Title=REACT (Culture Shock Remix)
+Artist=Switch Disco, Ella Henderson
+Album=REACT (Culture Shock Remix)
+YTMLink=https://music.youtube.com/watch?v=D8UIJ_gcS6w
+SpotifyLink=https://open.spotify.com/track/1dD7hIDGV3lfMn0AGh5Q4d
+AppleMusicLink=https://music.apple.com/us/song/yellow-lights/1886270822
