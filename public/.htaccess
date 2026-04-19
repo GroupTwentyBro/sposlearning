@@ -19,6 +19,7 @@ RewriteRule ^admin/?$ /login [R=301,L]
 RewriteRule ^page\.html$ - [L]
 RewriteRule ^login\.html$ - [L]
 RewriteRule ^settings\.html$ - [L]
+RewriteRule ^player\.html$ - [L]
 RewriteRule ^register/?$ register.html [L]
 # Force the server to see the api folder as a real directory and stop all other rules
 RewriteCond %{REQUEST_URI} ^/api/
