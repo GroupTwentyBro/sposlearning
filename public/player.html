@@ -33,7 +33,7 @@
             background-repeat: no-repeat;
         }
 
-        /* ── RESPONSIVE PLAYER CONTENT ── */
+        /* ── MAIN PLAYER CONTENT ── */
         .player-content {
             position: relative; z-index: 2;
             display: flex; flex-direction: row; align-items: stretch;
@@ -52,7 +52,7 @@
             justify-content: center; padding: 0 16px; min-width: 0; text-align: left;
         }
 
-        /* PORTRAIT MODE */
+        /* PORTRAIT OVERRIDES */
         @media (max-aspect-ratio: 1/1) or (max-width: 768px) {
             .player-content { flex-direction: column; justify-content: center; align-items: center; text-align: center; }
             .cover-art { width: 80vw; height: 80vw; max-width: 320px; max-height: 320px; margin: 0 0 32px 0; }
@@ -83,7 +83,7 @@
         .volume-slider { -webkit-appearance: none; width: 72px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; outline: none;}
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: white; cursor: pointer; }
 
-        .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 14px; }
+        .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 13px; margin-left: 6px; }
 
         /* ── STATUS POPUP ── */
         #status-message {
@@ -121,7 +121,7 @@
         }
 
         .lyric-view-filtered {
-            filter: blur(20px) brightness(var(--lyric-dim)) saturate(1.3);
+            filter: blur(var(--lyric-blur)) brightness(var(--lyric-dim)) saturate(1.3);
             transform: scale(1.08);
         }
 
@@ -137,7 +137,7 @@
             opacity: var(--line-opacity, 0.18); transition: opacity 0.5s ease;
         }
 
-        .word { display: inline-block; position: relative; margin-right: 0.22em; color: rgba(255,255,255,0.2); }
+        .word { display: inline-block; position: relative; color: rgba(255,255,255,0.2); }
         .word::before { content: attr(data-text); position: absolute; inset: 0; color: var(--track-color); clip-path: inset(0 calc((100 - var(--fill, 0)) * 1%) 0 0); white-space: nowrap; pointer-events: none; }
         .word::after {
             content: attr(data-text); position: absolute; inset: 0; color: transparent;
@@ -213,6 +213,7 @@
     async function init() {
         if (!trackId) return;
         const path = `music/${trackId}`;
+        
         const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = `${path}.jpeg`;
         img.onload = () => {
             const url = `url('${img.src}')`;
@@ -221,13 +222,16 @@
             lBg.style.backgroundImage = url;
             extractColor(img);
         };
+
         fetch(`${path}.webm`, { method: 'HEAD' }).then(res => {
             if (res.ok) {
                 lVideo.src = `${path}.webm`; lVideo.style.display = 'block'; hasVideo = true;
                 audio.addEventListener('seeked', () => lVideo.currentTime = audio.currentTime);
             }
         });
+
         audio.src = `${path}.mp3`;
+
         try {
             const text = await (await fetch(`${path}.txt`)).text();
             const meta = {};
@@ -238,6 +242,7 @@
             document.getElementById('title').textContent = meta.Title ?? '';
             document.getElementById('meta').textContent = `${meta.Artist ?? ''} • ${meta.Album ?? ''}`;
         } catch(_) {}
+
         try {
             const ttml = await (await fetch(`${path}.ttml`)).text();
             const xml = new DOMParser().parseFromString(ttml, 'text/xml');
@@ -303,17 +308,29 @@
 
     function toggleLyrics() {
         userWantsLyrics = !userWantsLyrics;
+        
+        const allLines = Array.from(document.querySelectorAll('.lyric-line'));
+        const firstStart = allLines.length > 0 ? parseFloat(allLines[0].dataset.start) : 0;
+        const isIntro = audio.currentTime < firstStart - 1.5;
+
         if (userWantsLyrics) {
-            const allLines = Array.from(document.querySelectorAll('.lyric-line'));
-            if (allLines.length > 0) {
-                const firstStart = parseFloat(allLines[0].dataset.start);
-                if (audio.currentTime < firstStart - 1.5 && !hasVideo) {
-                    statusMsg.classList.add('show');
-                    setTimeout(() => statusMsg.classList.remove('show'), 3000);
-                }
+            // Popup logic
+            if (isIntro && !hasVideo) {
+                statusMsg.classList.add('show');
+                setTimeout(() => statusMsg.classList.remove('show'), 3000);
             }
-            lyricsEl.classList.add('active');
-            if(hasVideo) { lVideo.currentTime = audio.currentTime; if(!audio.paused) lVideo.play(); }
+            
+            // Screen display logic: hide if intro and no video
+            if (isIntro && !hasVideo) {
+                lyricsEl.classList.remove('active');
+            } else {
+                lyricsEl.classList.add('active');
+            }
+
+            if(hasVideo) { 
+                lVideo.currentTime = audio.currentTime; 
+                if(!audio.paused) lVideo.play(); 
+            }
         } else {
             lyricsEl.classList.remove('active');
             statusMsg.classList.remove('show');
@@ -337,16 +354,16 @@
             let isInstrumental = false;
 
             if (time < firstStart - 1.5) {
-                isInstrumental = true;
+                isInstrumental = true; // Intro
             } else if (time > lastEnd + 1) {
-                isInstrumental = true;
+                isInstrumental = true; // Outro
             } else if (currentIdx === -1) {
                 const next = allLines.find(l => parseFloat(l.dataset.start) > time);
                 const prev = allLines.filter(l => parseFloat(l.dataset.end) < time).pop();
                 if (next && prev) {
                     const gap = parseFloat(next.dataset.start) - parseFloat(prev.dataset.end);
                     if (gap > 5 && (time - parseFloat(prev.dataset.end) > 0.5) && (parseFloat(next.dataset.start) - time > 0.5)) {
-                        isInstrumental = true;
+                        isInstrumental = true; // Mid-song gap
                     }
                 }
             }
@@ -355,8 +372,13 @@
                 container.style.opacity = "0"; 
                 lVideo.classList.remove('lyric-view-filtered');
                 lBg.classList.remove('lyric-view-filtered');
-                // THE FIX: Only remove .active if NO video is present.
-                if (!hasVideo) lyricsEl.classList.remove('active');
+                
+                // Hide whole screen during instrumental IF no video
+                if (!hasVideo) {
+                    lyricsEl.classList.remove('active');
+                } else {
+                    lyricsEl.classList.add('active'); 
+                }
             } else {
                 lyricsEl.classList.add('active');
                 container.style.opacity = "1";
@@ -385,9 +407,8 @@
     }
 
     function smoothScrollTo(el) {
-        const s = lyricsEl;
-        const target = el.offsetTop - s.clientHeight / 2 + el.offsetHeight / 2;
-        const start = s.scrollTop, delta = target - start, d = 600; let st = null;
+        const s = lyricsEl, start = s.scrollTop, target = el.offsetTop - s.clientHeight / 2 + el.offsetHeight / 2;
+        const delta = target - start, d = 600; let st = null;
         function step(ts) {
             if (!st) st = ts; const t = Math.min((ts - st) / d, 1);
             s.scrollTop = start + delta * (1 - Math.pow(1 - t, 3));
