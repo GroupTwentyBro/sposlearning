@@ -81,8 +81,9 @@
         .volume-slider { -webkit-appearance: none; width: 72px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; outline: none;}
         .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%; background: white; cursor: pointer; }
 
-        .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 13px; margin-left: 6px; }
+        .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 14px; }
 
+        /* ── STATUS MESSAGE ── */
         #status-message {
             position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
             padding: 12px 24px; background: rgba(255, 255, 255, 0.1);
@@ -93,13 +94,13 @@
         }
         #status-message.show { opacity: 1; visibility: visible; }
 
-        /* ── LYRICS OVERLAY ── */
+        /* ── LYRICS SCREEN ── */
         #lyrics-screen {
             position: fixed; inset: 0; z-index: 100;
             display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden; overflow-y: auto; background: #000;
             opacity: 0; visibility: hidden; pointer-events: none;
-            transition: opacity 1.2s ease, visibility 1.2s ease;
+            transition: opacity 0.8s ease, visibility 0.8s ease; /* Faster fade out */
         }
         #lyrics-screen.active { opacity: 1; visibility: visible; pointer-events: auto; }
 
@@ -207,6 +208,8 @@
     async function init() {
         if (!trackId) return;
         const path = `music/${trackId}`;
+        
+        // Load Image
         const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = `${path}.jpeg`;
         img.onload = () => {
             const url = `url('${img.src}')`;
@@ -215,13 +218,10 @@
             lBg.style.backgroundImage = url;
             extractColor(img);
         };
-        fetch(`${path}.webm`, { method: 'HEAD' }).then(res => {
-            if (res.ok) {
-                lVideo.src = `${path}.webm`; lVideo.style.display = 'block'; hasVideo = true;
-                audio.addEventListener('seeked', () => lVideo.currentTime = audio.currentTime);
-            }
-        });
+
         audio.src = `${path}.mp3`;
+
+        // 1. Fetch TXT Metadata to check for NoVideo
         try {
             const text = await (await fetch(`${path}.txt`)).text();
             const meta = {};
@@ -229,9 +229,20 @@
                 const [k, ...rest] = line.split('=');
                 if (rest.length) meta[k.trim()] = rest.join('=').trim();
             });
+            
             document.getElementById('title').textContent = meta.Title ?? '';
             document.getElementById('meta').textContent = `${meta.Artist ?? ''} • ${meta.Album ?? ''}`;
+
+            // autoritative check for video
+            if (meta.NoVideo !== "true") {
+                lVideo.src = `${path}.webm`;
+                lVideo.style.display = 'block';
+                hasVideo = true;
+                audio.addEventListener('seeked', () => lVideo.currentTime = audio.currentTime);
+            }
         } catch(_) {}
+
+        // 2. Fetch TTML
         try {
             const ttml = await (await fetch(`${path}.ttml`)).text();
             const xml = new DOMParser().parseFromString(ttml, 'text/xml');
@@ -305,9 +316,9 @@
             if (isIntro && !hasVideo) {
                 statusMsg.classList.add('show');
                 setTimeout(() => statusMsg.classList.remove('show'), 3000);
-                lyricsEl.classList.remove('active'); // STAY AT PLAYER UI
+                lyricsEl.classList.remove('active'); 
             } else {
-                lyricsEl.classList.add('active'); // SHOW LYRICS SCREEN
+                lyricsEl.classList.add('active'); 
             }
             if(hasVideo) { lVideo.currentTime = audio.currentTime; if(!audio.paused) lVideo.play(); }
         } else {
@@ -344,9 +355,16 @@
                 container.style.opacity = "0"; 
                 lVideo.classList.remove('lyric-view-filtered');
                 lBg.classList.remove('lyric-view-filtered');
-                if (!hasVideo) lyricsEl.classList.remove('active'); // THE FIX: WHOLE OVERLAY FADES OUT
+                
+                // Hide WHOLE screen if there's no video during gap
+                if (!hasVideo) {
+                    lyricsEl.classList.remove('active');
+                } else {
+                    lyricsEl.classList.add('active'); 
+                }
             } else {
-                lyricsEl.classList.add('active'); // THE FIX: WHOLE OVERLAY FADES IN
+                // Active Lyrics: Show screen and filter background
+                lyricsEl.classList.add('active');
                 container.style.opacity = "1";
                 lVideo.classList.add('lyric-view-filtered');
                 lBg.classList.add('lyric-view-filtered');
