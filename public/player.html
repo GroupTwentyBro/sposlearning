@@ -99,10 +99,16 @@
             position: fixed; inset: 0; z-index: 100;
             display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden; overflow-y: auto; background: #000;
-            opacity: 0; visibility: hidden; pointer-events: none;
-            transition: opacity 0.8s ease, visibility 0.8s ease; /* Faster fade out */
+            /* Use opacity + pointer-events for smooth fade; visibility removed so
+               CSS transitions can play properly in both directions */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.8s ease;
         }
-        #lyrics-screen.active { opacity: 1; visibility: visible; pointer-events: auto; }
+        #lyrics-screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
         #lyrics-video {
             position: fixed; inset: 0; width: 100%; height: 100%;
@@ -193,6 +199,8 @@
 <audio id="audio" preload="metadata"></audio>
 
 <script>
+    const INSTRUMENTAL_THRESHOLD = 4; // seconds of silence before fading out
+
     const params = new URLSearchParams(window.location.search);
     const trackId = params.get('track');
     const audio = document.getElementById('audio');
@@ -209,7 +217,6 @@
         if (!trackId) return;
         const path = `music/${trackId}`;
         
-        // Load Image
         const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = `${path}.jpeg`;
         img.onload = () => {
             const url = `url('${img.src}')`;
@@ -221,7 +228,6 @@
 
         audio.src = `${path}.mp3`;
 
-        // 1. Fetch TXT Metadata to check for NoVideo
         try {
             const text = await (await fetch(`${path}.txt`)).text();
             const meta = {};
@@ -233,7 +239,6 @@
             document.getElementById('title').textContent = meta.Title ?? '';
             document.getElementById('meta').textContent = `${meta.Artist ?? ''} • ${meta.Album ?? ''}`;
 
-            // autoritative check for video
             if (meta.NoVideo !== "true") {
                 lVideo.src = `${path}.webm`;
                 lVideo.style.display = 'block';
@@ -242,7 +247,6 @@
             }
         } catch(_) {}
 
-        // 2. Fetch TTML
         try {
             const ttml = await (await fetch(`${path}.ttml`)).text();
             const xml = new DOMParser().parseFromString(ttml, 'text/xml');
@@ -306,21 +310,66 @@
     window.addEventListener('mouseup', () => scrubbing = false);
     function scrubTo(e) { const r = document.getElementById('progress-track').getBoundingClientRect(); audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration; }
 
+    /**
+     * Determines whether the current playback position is in an instrumental gap.
+     * A gap counts if there are no lyrics for more than INSTRUMENTAL_THRESHOLD seconds.
+     * This includes the intro (before first line) and outro (after last line).
+     */
+    function isInstrumentalGap(time, allLines) {
+        if (allLines.length === 0) return false;
+
+        const firstStart = parseFloat(allLines[0].dataset.start);
+        const lastEnd = parseFloat(allLines[allLines.length - 1].dataset.end);
+
+        // Intro gap: before the first lyric line
+        if (time < firstStart) {
+            return (firstStart - time) > INSTRUMENTAL_THRESHOLD || time < firstStart - INSTRUMENTAL_THRESHOLD;
+        }
+
+        // Outro gap: after the last lyric line
+        if (time > lastEnd) {
+            return (time - lastEnd) > INSTRUMENTAL_THRESHOLD;
+        }
+
+        // Mid-song gap: find surrounding lyric lines
+        let prevEnd = -Infinity;
+        let nextStart = Infinity;
+        for (const line of allLines) {
+            const s = parseFloat(line.dataset.start);
+            const e = parseFloat(line.dataset.end);
+            if (e <= time) prevEnd = Math.max(prevEnd, e);
+            if (s >= time) nextStart = Math.min(nextStart, s);
+        }
+
+        const gapDuration = nextStart - prevEnd;
+        const timeIntoGap = time - prevEnd;
+        const timeUntilNext = nextStart - time;
+
+        // Only treat as instrumental if the *total* gap is long enough,
+        // and we're solidly within it (not right at the edge of a line).
+        return gapDuration > INSTRUMENTAL_THRESHOLD && timeIntoGap > 0.3 && timeUntilNext > 0.3;
+    }
+
     function toggleLyrics() {
         userWantsLyrics = !userWantsLyrics;
-        const allLines = Array.from(document.querySelectorAll('.lyric-line'));
-        const firstStart = allLines.length > 0 ? parseFloat(allLines[0].dataset.start) : 0;
-        const isIntro = audio.currentTime < firstStart - 1.5;
 
         if (userWantsLyrics) {
-            if (isIntro && !hasVideo) {
+            const allLines = Array.from(document.querySelectorAll('.lyric-line'));
+            const time = audio.currentTime;
+            const inGap = isInstrumentalGap(time, allLines);
+
+            if (inGap && !hasVideo) {
+                // In a no-video instrumental gap: show status toast, keep screen hidden
                 statusMsg.classList.add('show');
                 setTimeout(() => statusMsg.classList.remove('show'), 3000);
-                lyricsEl.classList.remove('active'); 
             } else {
-                lyricsEl.classList.add('active'); 
+                lyricsEl.classList.add('active');
             }
-            if(hasVideo) { lVideo.currentTime = audio.currentTime; if(!audio.paused) lVideo.play(); }
+
+            if (hasVideo) {
+                lVideo.currentTime = audio.currentTime;
+                if (!audio.paused) lVideo.play();
+            }
         } else {
             lyricsEl.classList.remove('active');
             statusMsg.classList.remove('show');
@@ -328,65 +377,64 @@
     }
 
     let activeLineEl = null;
+
     function sync() {
         const time = audio.currentTime;
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
-        if (allLines.length === 0) return requestAnimationFrame(sync);
 
+        // ── Determine active line index ──────────────────────────────────────
         let currentIdx = -1;
         allLines.forEach((line, i) => {
             if (time >= parseFloat(line.dataset.start) && time <= parseFloat(line.dataset.end)) currentIdx = i;
         });
 
+        // ── Lyrics screen visibility (only when user wants lyrics) ───────────
         if (userWantsLyrics) {
-            const firstStart = parseFloat(allLines[0].dataset.start);
-            const lastEnd = parseFloat(allLines[allLines.length - 1].dataset.end);
-            let isInstrumental = false;
+            const inGap = isInstrumentalGap(time, allLines);
 
-            if (time < firstStart - 1.5) isInstrumental = true;
-            else if (time > lastEnd + 1) isInstrumental = true;
-            else if (currentIdx === -1) {
-                const next = allLines.find(l => parseFloat(l.dataset.start) > time);
-                const prev = allLines.filter(l => parseFloat(l.dataset.end) < time).pop();
-                if (next && prev && (parseFloat(next.dataset.start) - parseFloat(prev.dataset.end) > 5) && (time - parseFloat(prev.dataset.end) > 0.5) && (parseFloat(next.dataset.start) - time > 0.5)) isInstrumental = true;
-            }
-
-            if (isInstrumental) {
-                container.style.opacity = "0"; 
-                lVideo.classList.remove('lyric-view-filtered');
-                lBg.classList.remove('lyric-view-filtered');
-                
-                // Hide WHOLE screen if there's no video during gap
-                if (!hasVideo) {
-                    lyricsEl.classList.remove('active');
-                } else {
-                    lyricsEl.classList.add('active'); 
-                }
-            } else {
-                // Active Lyrics: Show screen and filter background
+            if (inGap && !hasVideo) {
+                // No video: fade the screen out during gaps
+                lyricsEl.classList.remove('active');
+                statusMsg.classList.remove('show');
+            } else if (!inGap) {
+                // Active lyric section: ensure screen is visible and background filtered
                 lyricsEl.classList.add('active');
-                container.style.opacity = "1";
-                lVideo.classList.add('lyric-view-filtered');
-                lBg.classList.add('lyric-view-filtered');
                 statusMsg.classList.remove('show');
             }
+            // If hasVideo and inGap: leave lyricsEl as-is (video keeps showing)
+
+            // Background filter: blur when lyrics are active, clear during gaps
+            if (inGap) {
+                lVideo.classList.remove('lyric-view-filtered');
+                lBg.classList.remove('lyric-view-filtered');
+            } else {
+                lVideo.classList.add('lyric-view-filtered');
+                lBg.classList.add('lyric-view-filtered');
+            }
+
+            // Lyrics text opacity: hide text during gaps
+            container.style.opacity = inGap ? '0' : '1';
         }
 
+        // ── Per-line opacity ─────────────────────────────────────────────────
         allLines.forEach((line, i) => {
             const dist = currentIdx < 0 ? Infinity : Math.abs(i - currentIdx);
             line.style.setProperty('--line-opacity', dist === 0 ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.28 : 0.15);
         });
 
+        // ── Per-word fill animation ──────────────────────────────────────────
         document.querySelectorAll('.word').forEach(w => {
             const s = parseFloat(w.dataset.start), e = parseFloat(w.dataset.end);
-            let t = time < s ? 0 : time > e ? 1 : (time - s) / (e - s);
-            w.style.setProperty('--fill', ( (1 - (1 - t) * (1 - t)) * 100).toFixed(2));
+            const t = time < s ? 0 : time > e ? 1 : (time - s) / (e - s);
+            w.style.setProperty('--fill', ((1 - (1 - t) * (1 - t)) * 100).toFixed(2));
         });
 
+        // ── Auto-scroll to active line ───────────────────────────────────────
         if (lyricsEl.classList.contains('active') && allLines[currentIdx] && allLines[currentIdx] !== activeLineEl) {
             activeLineEl = allLines[currentIdx];
             smoothScrollTo(activeLineEl);
         }
+
         requestAnimationFrame(sync);
     }
 
