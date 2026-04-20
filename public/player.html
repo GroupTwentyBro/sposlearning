@@ -33,7 +33,6 @@
             background-repeat: no-repeat;
         }
 
-        /* ── MAIN PLAYER CONTENT ── */
         .player-content {
             position: relative; z-index: 2;
             display: flex; flex-direction: row; align-items: stretch;
@@ -52,7 +51,6 @@
             justify-content: center; padding: 0 16px; min-width: 0; text-align: left;
         }
 
-        /* PORTRAIT OVERRIDES */
         @media (max-aspect-ratio: 1/1) or (max-width: 768px) {
             .player-content { flex-direction: column; justify-content: center; align-items: center; text-align: center; }
             .cover-art { width: 80vw; height: 80vw; max-width: 320px; max-height: 320px; margin: 0 0 32px 0; }
@@ -85,7 +83,6 @@
 
         .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 13px; margin-left: 6px; }
 
-        /* ── STATUS POPUP ── */
         #status-message {
             position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
             padding: 12px 24px; background: rgba(255, 255, 255, 0.1);
@@ -96,7 +93,7 @@
         }
         #status-message.show { opacity: 1; visibility: visible; }
 
-        /* ── LYRICS SCREEN ── */
+        /* ── LYRICS OVERLAY ── */
         #lyrics-screen {
             position: fixed; inset: 0; z-index: 100;
             display: flex; flex-direction: column; align-items: center;
@@ -121,7 +118,7 @@
         }
 
         .lyric-view-filtered {
-            filter: blur(var(--lyric-blur)) brightness(var(--lyric-dim)) saturate(1.3);
+            filter: blur(20px) brightness(var(--lyric-dim)) saturate(1.3);
             transform: scale(1.08);
         }
 
@@ -137,7 +134,7 @@
             opacity: var(--line-opacity, 0.18); transition: opacity 0.5s ease;
         }
 
-        .word { display: inline-block; position: relative; color: rgba(255,255,255,0.2); }
+        .word { display: inline-block; position: relative; margin-right: 0.22em; color: rgba(255,255,255,0.2); }
         .word::before { content: attr(data-text); position: absolute; inset: 0; color: var(--track-color); clip-path: inset(0 calc((100 - var(--fill, 0)) * 1%) 0 0); white-space: nowrap; pointer-events: none; }
         .word::after {
             content: attr(data-text); position: absolute; inset: 0; color: transparent;
@@ -155,7 +152,6 @@
 
 <div class="bg-blur" id="bg"></div>
 <canvas id="colorThief"></canvas>
-
 <div id="status-message">Lyrics will appear shortly</div>
 
 <div class="player-content">
@@ -163,7 +159,6 @@
     <div class="main-info">
         <h1 id="title">Select Track</h1>
         <p id="meta">Artist • Album</p>
-
         <div class="controls">
             <div class="progress-wrap">
                 <span class="time-label" id="time-cur">0:00</span>
@@ -173,7 +168,6 @@
                 </div>
                 <span class="time-label right" id="time-dur">0:00</span>
             </div>
-
             <div class="btn-row">
                 <button class="ctrl-btn" id="btn-back"><span class="material-symbols-rounded">replay_10</span></button>
                 <button class="ctrl-btn play-pause" id="btn-play">
@@ -213,7 +207,6 @@
     async function init() {
         if (!trackId) return;
         const path = `music/${trackId}`;
-        
         const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = `${path}.jpeg`;
         img.onload = () => {
             const url = `url('${img.src}')`;
@@ -222,16 +215,13 @@
             lBg.style.backgroundImage = url;
             extractColor(img);
         };
-
         fetch(`${path}.webm`, { method: 'HEAD' }).then(res => {
             if (res.ok) {
                 lVideo.src = `${path}.webm`; lVideo.style.display = 'block'; hasVideo = true;
                 audio.addEventListener('seeked', () => lVideo.currentTime = audio.currentTime);
             }
         });
-
         audio.src = `${path}.mp3`;
-
         try {
             const text = await (await fetch(`${path}.txt`)).text();
             const meta = {};
@@ -242,7 +232,6 @@
             document.getElementById('title').textContent = meta.Title ?? '';
             document.getElementById('meta').textContent = `${meta.Artist ?? ''} • ${meta.Album ?? ''}`;
         } catch(_) {}
-
         try {
             const ttml = await (await fetch(`${path}.ttml`)).text();
             const xml = new DOMParser().parseFromString(ttml, 'text/xml');
@@ -308,29 +297,19 @@
 
     function toggleLyrics() {
         userWantsLyrics = !userWantsLyrics;
-        
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         const firstStart = allLines.length > 0 ? parseFloat(allLines[0].dataset.start) : 0;
         const isIntro = audio.currentTime < firstStart - 1.5;
 
         if (userWantsLyrics) {
-            // Popup logic
             if (isIntro && !hasVideo) {
                 statusMsg.classList.add('show');
                 setTimeout(() => statusMsg.classList.remove('show'), 3000);
-            }
-            
-            // Screen display logic: hide if intro and no video
-            if (isIntro && !hasVideo) {
-                lyricsEl.classList.remove('active');
+                lyricsEl.classList.remove('active'); // STAY AT PLAYER UI
             } else {
-                lyricsEl.classList.add('active');
+                lyricsEl.classList.add('active'); // SHOW LYRICS SCREEN
             }
-
-            if(hasVideo) { 
-                lVideo.currentTime = audio.currentTime; 
-                if(!audio.paused) lVideo.play(); 
-            }
+            if(hasVideo) { lVideo.currentTime = audio.currentTime; if(!audio.paused) lVideo.play(); }
         } else {
             lyricsEl.classList.remove('active');
             statusMsg.classList.remove('show');
@@ -353,34 +332,21 @@
             const lastEnd = parseFloat(allLines[allLines.length - 1].dataset.end);
             let isInstrumental = false;
 
-            if (time < firstStart - 1.5) {
-                isInstrumental = true; // Intro
-            } else if (time > lastEnd + 1) {
-                isInstrumental = true; // Outro
-            } else if (currentIdx === -1) {
+            if (time < firstStart - 1.5) isInstrumental = true;
+            else if (time > lastEnd + 1) isInstrumental = true;
+            else if (currentIdx === -1) {
                 const next = allLines.find(l => parseFloat(l.dataset.start) > time);
                 const prev = allLines.filter(l => parseFloat(l.dataset.end) < time).pop();
-                if (next && prev) {
-                    const gap = parseFloat(next.dataset.start) - parseFloat(prev.dataset.end);
-                    if (gap > 5 && (time - parseFloat(prev.dataset.end) > 0.5) && (parseFloat(next.dataset.start) - time > 0.5)) {
-                        isInstrumental = true; // Mid-song gap
-                    }
-                }
+                if (next && prev && (parseFloat(next.dataset.start) - parseFloat(prev.dataset.end) > 5) && (time - parseFloat(prev.dataset.end) > 0.5) && (parseFloat(next.dataset.start) - time > 0.5)) isInstrumental = true;
             }
 
             if (isInstrumental) {
                 container.style.opacity = "0"; 
                 lVideo.classList.remove('lyric-view-filtered');
                 lBg.classList.remove('lyric-view-filtered');
-                
-                // Hide whole screen during instrumental IF no video
-                if (!hasVideo) {
-                    lyricsEl.classList.remove('active');
-                } else {
-                    lyricsEl.classList.add('active'); 
-                }
+                if (!hasVideo) lyricsEl.classList.remove('active'); // THE FIX: WHOLE OVERLAY FADES OUT
             } else {
-                lyricsEl.classList.add('active');
+                lyricsEl.classList.add('active'); // THE FIX: WHOLE OVERLAY FADES IN
                 container.style.opacity = "1";
                 lVideo.classList.add('lyric-view-filtered');
                 lBg.classList.add('lyric-view-filtered');
