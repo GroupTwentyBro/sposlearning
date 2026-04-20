@@ -83,7 +83,6 @@
 
         .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 14px; }
 
-        /* ── STATUS MESSAGE ── */
         #status-message {
             position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
             padding: 12px 24px; background: rgba(255, 255, 255, 0.1);
@@ -94,26 +93,20 @@
         }
         #status-message.show { opacity: 1; visibility: visible; }
 
-        /* ── LYRICS SCREEN ── */
         #lyrics-screen {
             position: fixed; inset: 0; z-index: 100;
             display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden; overflow-y: auto; background: #000;
-            /* Use opacity + pointer-events for smooth fade; visibility removed so
-               CSS transitions can play properly in both directions */
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.8s ease;
+            transition: opacity 1.2s ease;
         }
-        #lyrics-screen.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        #lyrics-screen.active { opacity: 1; pointer-events: auto; }
 
         #lyrics-video {
             position: fixed; inset: 0; width: 100%; height: 100%;
             object-fit: cover; z-index: -1;
-            transition: filter 1s ease, opacity 1s ease, transform 1s ease;
+            transition: filter 1s ease, transform 1s ease;
             display: none;
         }
 
@@ -121,7 +114,7 @@
             position: fixed; inset: 0;
             background-size: cover; background-position: center;
             background-repeat: no-repeat; z-index: -2;
-            transition: filter 1s ease, opacity 1s ease, transform 1s ease;
+            transition: filter 1s ease, transform 1s ease;
         }
 
         .lyric-view-filtered {
@@ -151,7 +144,6 @@
 
         .close-lyrics { position: fixed; top: 26px; right: 28px; cursor: pointer; z-index: 103; opacity: 0.65; }
         .material-symbols-rounded { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; color: white; }
-        
         canvas#colorThief { display: none; }
     </style>
 </head>
@@ -199,8 +191,6 @@
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-    const INSTRUMENTAL_THRESHOLD = 4; // seconds of silence before fading out
-
     const params = new URLSearchParams(window.location.search);
     const trackId = params.get('track');
     const audio = document.getElementById('audio');
@@ -210,13 +200,20 @@
     const lBg = document.getElementById('lyrics-bg');
     const statusMsg = document.getElementById('status-message');
 
+    const INSTRUMENTAL_GAP = 4; // seconds
+
     let userWantsLyrics = false;
     let hasVideo = false;
+
+    function setScreenVisible(visible) {
+        if (visible) lyricsEl.classList.add('active');
+        else lyricsEl.classList.remove('active');
+    }
 
     async function init() {
         if (!trackId) return;
         const path = `music/${trackId}`;
-        
+
         const img = new Image(); img.crossOrigin = 'Anonymous'; img.src = `${path}.jpeg`;
         img.onload = () => {
             const url = `url('${img.src}')`;
@@ -235,7 +232,6 @@
                 const [k, ...rest] = line.split('=');
                 if (rest.length) meta[k.trim()] = rest.join('=').trim();
             });
-            
             document.getElementById('title').textContent = meta.Title ?? '';
             document.getElementById('meta').textContent = `${meta.Artist ?? ''} • ${meta.Album ?? ''}`;
 
@@ -292,7 +288,7 @@
 
     const btnPlay = document.getElementById('btn-play'), iPlay = document.getElementById('icon-play'), iPause = document.getElementById('icon-pause');
     const f = document.getElementById('progress-fill'), th = document.getElementById('progress-thumb'), cur = document.getElementById('time-cur'), dur = document.getElementById('time-dur');
-    
+
     btnPlay.addEventListener('click', () => audio.paused ? audio.play() : audio.pause());
     audio.addEventListener('play', () => { iPlay.style.display='none'; iPause.style.display='block'; if(hasVideo) lVideo.play(); });
     audio.addEventListener('pause', () => { iPlay.style.display='block'; iPause.style.display='none'; if(hasVideo) lVideo.pause(); });
@@ -310,131 +306,114 @@
     window.addEventListener('mouseup', () => scrubbing = false);
     function scrubTo(e) { const r = document.getElementById('progress-track').getBoundingClientRect(); audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration; }
 
-    /**
-     * Determines whether the current playback position is in an instrumental gap.
-     * A gap counts if there are no lyrics for more than INSTRUMENTAL_THRESHOLD seconds.
-     * This includes the intro (before first line) and outro (after last line).
-     */
-    function isInstrumentalGap(time, allLines) {
+    // Returns true only if time is in a "long" gap with no lyrics (> INSTRUMENTAL_GAP seconds).
+    // Short gaps between lines (< INSTRUMENTAL_GAP) are NOT considered instrumental.
+    function isInstrumentalAt(time, allLines) {
         if (allLines.length === 0) return false;
 
         const firstStart = parseFloat(allLines[0].dataset.start);
         const lastEnd = parseFloat(allLines[allLines.length - 1].dataset.end);
 
-        // Intro gap: before the first lyric line
-        if (time < firstStart) {
-            return (firstStart - time) > INSTRUMENTAL_THRESHOLD || time < firstStart - INSTRUMENTAL_THRESHOLD;
+        // Intro
+        if (time < firstStart - INSTRUMENTAL_GAP) return true;
+
+        // Outro
+        if (time > lastEnd + INSTRUMENTAL_GAP) return true;
+
+        // Mid-song gaps only when the gap itself is longer than the threshold
+        for (let i = 0; i < allLines.length - 1; i++) {
+            const gapStart = parseFloat(allLines[i].dataset.end);
+            const gapEnd = parseFloat(allLines[i + 1].dataset.start);
+            if ((gapEnd - gapStart) > INSTRUMENTAL_GAP && time > gapStart && time < gapEnd) return true;
         }
 
-        // Outro gap: after the last lyric line
-        if (time > lastEnd) {
-            return (time - lastEnd) > INSTRUMENTAL_THRESHOLD;
-        }
-
-        // Mid-song gap: find surrounding lyric lines
-        let prevEnd = -Infinity;
-        let nextStart = Infinity;
-        for (const line of allLines) {
-            const s = parseFloat(line.dataset.start);
-            const e = parseFloat(line.dataset.end);
-            if (e <= time) prevEnd = Math.max(prevEnd, e);
-            if (s >= time) nextStart = Math.min(nextStart, s);
-        }
-
-        const gapDuration = nextStart - prevEnd;
-        const timeIntoGap = time - prevEnd;
-        const timeUntilNext = nextStart - time;
-
-        // Only treat as instrumental if the *total* gap is long enough,
-        // and we're solidly within it (not right at the edge of a line).
-        return gapDuration > INSTRUMENTAL_THRESHOLD && timeIntoGap > 0.3 && timeUntilNext > 0.3;
+        return false;
     }
 
     function toggleLyrics() {
         userWantsLyrics = !userWantsLyrics;
 
-        if (userWantsLyrics) {
-            const allLines = Array.from(document.querySelectorAll('.lyric-line'));
-            const time = audio.currentTime;
-            const inGap = isInstrumentalGap(time, allLines);
-
-            if (inGap && !hasVideo) {
-                // In a no-video instrumental gap: show status toast, keep screen hidden
-                statusMsg.classList.add('show');
-                setTimeout(() => statusMsg.classList.remove('show'), 3000);
-            } else {
-                lyricsEl.classList.add('active');
-            }
-
-            if (hasVideo) {
-                lVideo.currentTime = audio.currentTime;
-                if (!audio.paused) lVideo.play();
-            }
-        } else {
-            lyricsEl.classList.remove('active');
+        if (!userWantsLyrics) {
+            setScreenVisible(false);
             statusMsg.classList.remove('show');
+            return;
+        }
+
+        // Opening lyrics — check if we're currently in an instrumental
+        const allLines = Array.from(document.querySelectorAll('.lyric-line'));
+        const instrumental = isInstrumentalAt(audio.currentTime, allLines);
+
+        if (hasVideo) {
+            // With video: always show the screen (video plays in bg); lyrics container hidden during instrumental
+            setScreenVisible(true);
+            lVideo.currentTime = audio.currentTime;
+            if (!audio.paused) lVideo.play();
+        } else if (instrumental) {
+            // No video + instrumental: show toast, keep screen hidden
+            statusMsg.classList.add('show');
+            setTimeout(() => statusMsg.classList.remove('show'), 3000);
+            setScreenVisible(false);
+        } else {
+            setScreenVisible(true);
         }
     }
 
     let activeLineEl = null;
-
     function sync() {
         const time = audio.currentTime;
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
+        if (allLines.length === 0) return requestAnimationFrame(sync);
 
-        // ── Determine active line index ──────────────────────────────────────
         let currentIdx = -1;
         allLines.forEach((line, i) => {
             if (time >= parseFloat(line.dataset.start) && time <= parseFloat(line.dataset.end)) currentIdx = i;
         });
 
-        // ── Lyrics screen visibility (only when user wants lyrics) ───────────
         if (userWantsLyrics) {
-            const inGap = isInstrumentalGap(time, allLines);
+            const instrumental = isInstrumentalAt(time, allLines);
 
-            if (inGap && !hasVideo) {
-                // No video: fade the screen out during gaps
-                lyricsEl.classList.remove('active');
-                statusMsg.classList.remove('show');
-            } else if (!inGap) {
-                // Active lyric section: ensure screen is visible and background filtered
-                lyricsEl.classList.add('active');
-                statusMsg.classList.remove('show');
-            }
-            // If hasVideo and inGap: leave lyricsEl as-is (video keeps showing)
-
-            // Background filter: blur when lyrics are active, clear during gaps
-            if (inGap) {
-                lVideo.classList.remove('lyric-view-filtered');
-                lBg.classList.remove('lyric-view-filtered');
+            if (hasVideo) {
+                // With video: screen always stays open — only toggle container + filter
+                if (instrumental) {
+                    container.style.opacity = "0";
+                    lVideo.classList.remove('lyric-view-filtered');
+                    lBg.classList.remove('lyric-view-filtered');
+                } else {
+                    container.style.opacity = "1";
+                    lVideo.classList.add('lyric-view-filtered');
+                    lBg.classList.add('lyric-view-filtered');
+                    statusMsg.classList.remove('show');
+                }
             } else {
-                lVideo.classList.add('lyric-view-filtered');
-                lBg.classList.add('lyric-view-filtered');
+                // No video: fade the whole screen in/out
+                if (instrumental) {
+                    setScreenVisible(false);
+                    container.style.opacity = "0";
+                    lBg.classList.remove('lyric-view-filtered');
+                } else {
+                    setScreenVisible(true);
+                    container.style.opacity = "1";
+                    lBg.classList.add('lyric-view-filtered');
+                    statusMsg.classList.remove('show');
+                }
             }
-
-            // Lyrics text opacity: hide text during gaps
-            container.style.opacity = inGap ? '0' : '1';
         }
 
-        // ── Per-line opacity ─────────────────────────────────────────────────
         allLines.forEach((line, i) => {
             const dist = currentIdx < 0 ? Infinity : Math.abs(i - currentIdx);
             line.style.setProperty('--line-opacity', dist === 0 ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.28 : 0.15);
         });
 
-        // ── Per-word fill animation ──────────────────────────────────────────
         document.querySelectorAll('.word').forEach(w => {
             const s = parseFloat(w.dataset.start), e = parseFloat(w.dataset.end);
-            const t = time < s ? 0 : time > e ? 1 : (time - s) / (e - s);
+            let t = time < s ? 0 : time > e ? 1 : (time - s) / (e - s);
             w.style.setProperty('--fill', ((1 - (1 - t) * (1 - t)) * 100).toFixed(2));
         });
 
-        // ── Auto-scroll to active line ───────────────────────────────────────
         if (lyricsEl.classList.contains('active') && allLines[currentIdx] && allLines[currentIdx] !== activeLineEl) {
             activeLineEl = allLines[currentIdx];
             smoothScrollTo(activeLineEl);
         }
-
         requestAnimationFrame(sync);
     }
 
