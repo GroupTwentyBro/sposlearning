@@ -361,7 +361,8 @@
             img.src = thumbUrl;
 
             if (track.duration) {
-                document.getElementById('time-dur').textContent = formatTime(track.duration / 1000);
+                totalDurationSeconds = track.duration / 1000;
+                document.getElementById('time-dur').textContent = formatTime(totalDurationSeconds);
             }
         } catch (err) {
             showError(`Metadata error: ${err.message}`);
@@ -411,9 +412,15 @@
     });
 
     audio.addEventListener('timeupdate', () => {
-        const pct = (audio.currentTime / audio.duration) * 100;
-        f.style.width = th.style.left = pct + '%';
-        cur.textContent = formatTime(audio.currentTime);
+        const duration = totalDurationSeconds || audio.duration;
+
+        if (duration && !isNaN(duration) && isFinite(duration)) {
+            const pct = (audio.currentTime / duration) * 100;
+            f.style.width = th.style.left = pct + '%';
+            cur.textContent = formatTime(audio.currentTime);
+        } else {
+            cur.textContent = formatTime(audio.currentTime);
+        }
     });
 
     document.getElementById('btn-back').addEventListener('click', () => audio.currentTime -= 10);
@@ -426,7 +433,11 @@
     window.addEventListener('mouseup',   () => scrubbing = false);
     function scrubTo(e) {
         const r = document.getElementById('progress-track').getBoundingClientRect();
-        audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+        const duration = totalDurationSeconds || audio.duration;
+
+        if (duration && isFinite(duration)) {
+            audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * duration;
+        }
     }
 
     // ─── Lyrics helpers ───────────────────────────────────────────────────────
