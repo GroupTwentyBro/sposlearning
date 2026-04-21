@@ -83,6 +83,7 @@
 
         .lyric-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 24px; border-radius: 20px; cursor: pointer; transition: background 0.2s; font-weight: 600; font-size: 14px; }
 
+        /* Loading state */
         #loading-overlay {
             position: fixed; inset: 0; z-index: 200;
             background: #000; display: flex; align-items: center; justify-content: center;
@@ -223,8 +224,10 @@
 <audio id="audio" preload="metadata"></audio>
 
 <script>
-    const API_BASE = 'http://localhost:3001';
+    // ─── Config ───────────────────────────────────────────────────────────────
+    const API_BASE = 'http://music.sposlearning.cz:3001';
 
+    // ─── DOM refs ─────────────────────────────────────────────────────────────
     const params   = new URLSearchParams(window.location.search);
     const videoId  = params.get('v') ?? params.get('track');
     const audio    = document.getElementById('audio');
@@ -240,6 +243,7 @@
     let userWantsLyrics = false;
     let hasLyrics = false;
 
+    // ─── Helpers ──────────────────────────────────────────────────────────────
     function showError(msg, duration = 4000) {
         errorEl.textContent = msg;
         errorEl.classList.add('show');
@@ -264,6 +268,7 @@
         return Math.floor(s / 60) + ':' + Math.floor(s % 60).toString().padStart(2, '0');
     }
 
+    // ─── Color extraction ─────────────────────────────────────────────────────
     function extractColor(img) {
         const canvas = document.getElementById('colorThief');
         const ctx = canvas.getContext('2d');
@@ -284,6 +289,7 @@
         document.documentElement.style.setProperty('--track-color', `rgb(${Math.round(gr*0.15+216)},${Math.round(gg*0.15+216)},${Math.round(gb*0.15+216)})`);
     }
 
+    // ─── TTML parser ──────────────────────────────────────────────────────────
     function parseTTML(ttml) {
         container.innerHTML = '';
         noLyrics.style.display = 'none';
@@ -315,10 +321,12 @@
             container.appendChild(lineDiv);
             count++;
         }
+        // Re-append no-lyrics div (it was cleared)
         container.appendChild(noLyrics);
         return count;
     }
 
+    // ─── Init ─────────────────────────────────────────────────────────────────
     async function init() {
         if (!videoId) {
             document.getElementById('title').textContent = 'No track specified';
@@ -327,6 +335,7 @@
             return;
         }
 
+        // 1. Fetch metadata
         try {
             document.getElementById('loading-text').textContent = 'Fetching track info…';
             const trackRes = await fetch(`${API_BASE}/track/${videoId}`);
@@ -337,12 +346,14 @@
             document.getElementById('meta').textContent =
                 [track.artist, track.album].filter(Boolean).join(' • ');
 
+            // Album art
             const thumbUrl = track.thumbnail;
             const artStyle = `url('${thumbUrl}')`;
             document.getElementById('bg').style.backgroundImage  = artStyle;
             document.getElementById('art').style.backgroundImage = artStyle;
             lBg.style.backgroundImage = artStyle;
 
+            // Extract accent color from thumbnail
             const img = new Image();
             img.crossOrigin = 'Anonymous';
             img.onload = () => extractColor(img);
@@ -357,9 +368,11 @@
             return;
         }
 
+        // 2. Set audio stream src (streaming, not downloaded)
         document.getElementById('loading-text').textContent = 'Preparing stream…';
         audio.src = `${API_BASE}/stream/${videoId}`;
 
+        // 3. Fetch lyrics (non-blocking — player works without them)
         document.getElementById('loading-text').textContent = 'Loading lyrics…';
         try {
             const lyricsRes = await fetch(`${API_BASE}/lyrics/${videoId}`);
@@ -378,6 +391,7 @@
         requestAnimationFrame(sync);
     }
 
+    // ─── Playback controls ────────────────────────────────────────────────────
     const btnPlay = document.getElementById('btn-play');
     const iPlay   = document.getElementById('icon-play');
     const iPause  = document.getElementById('icon-pause');
@@ -414,6 +428,7 @@
         audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
     }
 
+    // ─── Lyrics helpers ───────────────────────────────────────────────────────
     function isInstrumentalAt(time, allLines) {
         if (allLines.length === 0) return false;
         const firstStart = parseFloat(allLines[0].dataset.start);
@@ -445,6 +460,7 @@
         }
     }
 
+    // ─── Sync loop ────────────────────────────────────────────────────────────
     function sync() {
         const time     = audio.currentTime;
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
@@ -487,6 +503,7 @@
                 });
             });
 
+            // Auto-scroll active line into view
             if (currentIdx >= 0 && allLines[currentIdx]) {
                 allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
@@ -495,6 +512,7 @@
         requestAnimationFrame(sync);
     }
 
+    // ─── Boot ─────────────────────────────────────────────────────────────────
     init();
 </script>
 </body>
