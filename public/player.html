@@ -243,6 +243,12 @@
     </span>
     <div id="lyrics-container">
         <div id="no-lyrics-msg">No lyrics available for this track.</div>
+
+        <div id="lyric-editor" style="display: none; margin-top: 20px; width: 100%; text-align: center;">
+            <textarea id="ttml-input" placeholder="Paste TTML content here..."
+              style="width: 100%; height: 200px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; font-family: monospace; font-size: 12px; outline: none; margin-bottom: 12px;"></textarea>
+            <button class="lyric-btn" onclick="submitLyrics()">Save Lyrics</button>
+        </div>
     </div>
 </div>
 
@@ -262,6 +268,8 @@
     const loadingEl= document.getElementById('loading-overlay');
     const errorEl  = document.getElementById('error-banner');
     const noLyrics = document.getElementById('no-lyrics-msg');
+    const lyricEditor = document.getElementById('lyric-editor');
+    const ttmlInput = document.getElementById('ttml-input');
 
     const INSTRUMENTAL_GAP = 4;
     let userWantsLyrics = false;
@@ -522,12 +530,26 @@
             video.pause();
             return;
         }
+
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         const instrumental = isInstrumentalAt(audio.currentTime, allLines);
-        if (instrumental || !hasLyrics) {
-            statusMsg.textContent = hasLyrics ? 'Lyrics will appear shortly' : 'No lyrics for this track';
+
+        if (!hasLyrics) {
+            statusMsg.textContent = 'Help the community by adding lyrics';
             statusMsg.classList.add('show');
             setTimeout(() => statusMsg.classList.remove('show'), 3000);
+
+            setScreenVisible(true);
+            noLyrics.style.display = 'block';
+            lyricEditor.style.display = 'block';
+            return;
+        }
+
+        if (instrumental) {
+            statusMsg.textContent = 'Lyrics will appear shortly';
+            statusMsg.classList.add('show');
+            setTimeout(() => statusMsg.classList.remove('show'), 3000);
+
             if (videoAvailable) {
                 setScreenVisible(true);
                 video.style.opacity = "1";
@@ -545,6 +567,29 @@
                 video.currentTime = audio.currentTime;
                 if (!audio.paused) video.play().catch(() => {});
             }
+        }
+    }
+
+    async function submitLyrics() {
+        const ttml = ttmlInput.value.trim();
+        if (!ttml) return showError("Please paste TTML content first");
+
+        try {
+            const res = await fetch(`${API_BASE}/lyrics/${videoId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ttml: ttml })
+            });
+
+            if (res.ok) {
+                const result = await res.json();
+                showError("Lyrics saved! Reloading..."); // Using error banner as a toast
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                throw new Error("Failed to save lyrics");
+            }
+        } catch (err) {
+            showError(`Submission error: ${err.message}`);
         }
     }
 
