@@ -191,7 +191,6 @@
             margin-top: 40px; display: none;
         }
 
-        /* Source Selector Styling */
         #source-selector {
             background: rgba(255,255,255,0.1);
             color: white;
@@ -307,7 +306,6 @@
     let videoAvailable = false;
     let totalDurationSeconds = 0;
 
-    // Track state for sources
     let currentSource = 'ttml';
     let rawTTML = null;
     let rawLRC = null;
@@ -467,8 +465,6 @@
             }
         } catch (e) { videoAvailable = false; }
 
-        // --- Lyric Initial Load ---
-        // 1. Try Local TTML
         try {
             const lyricsRes = await fetch(`${API_BASE}/lyrics/${videoId}`);
             if (lyricsRes.ok) {
@@ -479,7 +475,6 @@
             }
         } catch (_) {}
 
-        // 2. Fallback to LRCLIB
         if (!rawTTML && trackData) {
             try {
                 const cleanArtist = trackData.artist.replace(/\s*-\s*Topic$/i, '').trim();
@@ -567,7 +562,6 @@
         return false;
     }
 
-    // --- Lyric UI Controls ---
     function switchSource() {
         const val = sourceSelector.value;
         currentSource = val;
@@ -594,17 +588,41 @@
     }
 
     function openEditor() {
+        console.log("Opening Editor...");
+
+        if (rawTTML) {
+            ttmlInput.value = rawTTML;
+        } else {
+            ttmlInput.value = "";
+        }
+
         container.style.opacity = "0";
+        noLyrics.style.opacity = "0";
+
         setTimeout(() => {
             container.style.display = "none";
+            noLyrics.style.display = "none";
+
             lyricEditor.style.display = "block";
-            container.style.opacity = "1";
+            lyricEditor.style.opacity = "0";
+            setTimeout(() => lyricEditor.style.opacity = "1", 50);
         }, 400);
     }
 
     function closeEditor() {
-        lyricEditor.style.display = "none";
-        container.style.display = "flex";
+        lyricEditor.style.opacity = "0";
+
+        setTimeout(() => {
+            lyricEditor.style.display = "none";
+            container.style.display = "flex";
+
+            if (!hasLyrics) {
+                noLyrics.style.display = "block";
+                noLyrics.style.opacity = "0.4";
+            }
+
+            setTimeout(() => container.style.opacity = "1", 50);
+        }, 400);
     }
 
     async function submitLyrics() {
@@ -641,7 +659,6 @@
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         const instrumental = isInstrumentalAt(audio.currentTime, allLines);
 
-        // If user force-opens lyrics and none exist, show editor
         if (!hasLyrics && currentSource === 'ttml') {
             setScreenVisible(true);
             noLyrics.style.display = 'block';
