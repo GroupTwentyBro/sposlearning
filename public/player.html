@@ -250,7 +250,7 @@
     const INSTRUMENTAL_GAP = 4;
     let userWantsLyrics = false;
     let hasLyrics = false;
-    let hasVideo = false;
+    let videoAvailable = false;
     let totalDurationSeconds = 0;
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
@@ -272,9 +272,9 @@
     function parseTime(t) {
         if (!t) return 0;
         const parts = t.split(':').map(parseFloat);
-        if (parts.length === 3) return (parts[0] * 3600) + (parts[1] * 60) + parts[2]; // HH:MM:SS
-        if (parts.length === 2) return (parts[0] * 60) + parts[1]; // MM:SS
-        return parts[0]; // SS
+        if (parts.length === 3) return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
+        if (parts.length === 2) return (parts[0] * 60) + parts[1];
+        return parts[0];
     }
 
     function formatTime(s) {
@@ -347,13 +347,10 @@
             return;
         }
 
-        // 1. Meta
         try {
             document.getElementById('loading-text').textContent = 'Fetching track info…';
             const trackRes = await fetch(`${API_BASE}/track/${videoId}`);
-            if (!trackRes.ok) throw new Error(`Track not found`);
             const track = await trackRes.json();
-
             document.getElementById('title').textContent = track.title;
             document.getElementById('meta').textContent = [track.artist, track.album].filter(Boolean).join(' • ');
 
@@ -372,37 +369,29 @@
                 totalDurationSeconds = parseFloat(track.duration);
                 document.getElementById('time-dur').textContent = formatTime(totalDurationSeconds);
             }
-        } catch (err) {
-            showError(`Metadata error: ${err.message}`);
-        }
+        } catch (err) { showError(`Metadata error: ${err.message}`); }
 
-        // 2. Audio & Video Streams
-        document.getElementById('loading-text').textContent = 'Preparing stream…';
         audio.src = `${API_BASE}/stream/${videoId}`;
 
-        // Silent Video Head Check
+        // Video Check
         try {
-            const videoUrl = `${API_BASE}/video/${videoId}`;
-            const check = await fetch(videoUrl, { method: 'HEAD' });
-            if (check.ok) {
-                video.src = videoUrl;
-                hasVideo = true;
+            const vUrl = `${API_BASE}/video/${videoId}`;
+            const vCheck = await fetch(vUrl, { method: 'HEAD' });
+            if (vCheck.ok) {
+                video.src = vUrl;
+                videoAvailable = true;
             }
-        } catch (e) {}
+        } catch (e) { videoAvailable = false; }
 
-        // 3. Lyrics
-        document.getElementById('loading-text').textContent = 'Loading lyrics…';
         try {
             const lyricsRes = await fetch(`${API_BASE}/lyrics/${videoId}`);
             if (lyricsRes.ok) {
-                const ttml = await lyricsRes.text();
-                const lineCount = parseTTML(ttml);
+                const lineCount = parseTTML(await lyricsRes.text());
                 hasLyrics = lineCount > 0;
             }
         } catch (_) {}
 
         if (!hasLyrics) noLyrics.style.display = 'block';
-
         hideLoading();
         requestAnimationFrame(sync);
     }
@@ -417,22 +406,25 @@
     const dur     = document.getElementById('time-dur');
 
     btnPlay.addEventListener('click', () => audio.paused ? audio.play() : audio.pause());
-    audio.addEventListener('play',  () => { iPlay.style.display = 'none';  iPause.style.display = 'block'; if(hasVideo && userWantsLyrics) video.play(); });
-    audio.addEventListener('pause', () => { iPlay.style.display = 'block'; iPause.style.display = 'none';  if(hasVideo) video.pause(); });
+    audio.addEventListener('play',  () => {
+        iPlay.style.display = 'none'; iPause.style.display = 'block';
+        if(videoAvailable && userWantsLyrics) video.play();
+    });
+    audio.addEventListener('pause', () => {
+        iPlay.style.display = 'block'; iPause.style.display = 'none';
+        if(videoAvailable) video.pause();
+    });
 
     audio.addEventListener('timeupdate', () => {
         const duration = totalDurationSeconds || audio.duration;
         if (duration && isFinite(duration) && duration > 0) {
-            const pct = (audio.currentTime / duration) * 100;
-            const safePct = isNaN(pct) ? 0 : Math.min(100, Math.max(0, pct));
-            f.style.width = th.style.left = safePct + '%';
+            const safePct = (audio.currentTime / duration) * 100;
+            f.style.width = th.style.left = Math.min(100, Math.max(0, safePct)) + '%';
             cur.textContent = formatTime(audio.currentTime);
         }
     });
 
-    audio.addEventListener('seeking', () => {
-        if (hasVideo) video.currentTime = audio.currentTime;
-    });
+    audio.addEventListener('seeking', () => { if (videoAvailable) video.currentTime = audio.currentTime; });
 
     document.getElementById('btn-back').addEventListener('click', () => audio.currentTime -= 10);
     document.getElementById('btn-fwd').addEventListener('click',  () => audio.currentTime += 10);
@@ -441,13 +433,11 @@
     let scrubbing = false;
     document.getElementById('progress-track').addEventListener('mousedown', e => { scrubbing = true; scrubTo(e); });
     window.addEventListener('mousemove', e => scrubbing && scrubTo(e));
-    window.addEventListener('mouseup',   () => scrubbing = false);
+    window.addEventListener('mouseup', () => scrubbing = false);
     function scrubTo(e) {
         const r = document.getElementById('progress-track').getBoundingClientRect();
         const duration = totalDurationSeconds || audio.duration;
-        if (duration && isFinite(duration)) {
-            audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * duration;
-        }
+        if (duration && isFinite(duration)) audio.currentTime = ((e.clientX - r.left) / r.width) * duration;
     }
 
     // ─── Core Sync Logic ──────────────────────────────────────────────────────
@@ -472,10 +462,8 @@
             video.pause();
             return;
         }
-
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         const instrumental = isInstrumentalAt(audio.currentTime, allLines);
-
         if (instrumental || !hasLyrics) {
             statusMsg.textContent = hasLyrics ? 'Lyrics will appear shortly' : 'No lyrics for this track';
             statusMsg.classList.add('show');
@@ -484,7 +472,7 @@
             video.style.opacity = "0";
         } else {
             setScreenVisible(true);
-            if (hasVideo) {
+            if (videoAvailable) {
                 video.style.opacity = "1";
                 video.currentTime = audio.currentTime;
                 if (!audio.paused) video.play().catch(()=>{});
@@ -494,18 +482,12 @@
 
     function sync() {
         const time = audio.currentTime;
-        const allLines = Array.from(document.querySelectorAll('.lyric-line'));
-
-        // Video drift correction
-        if (hasVideo && userWantsLyrics && !video.paused) {
-            if (Math.abs(video.currentTime - time) > 0.3) {
-                video.currentTime = time;
-            }
+        if (videoAvailable && userWantsLyrics && !video.paused) {
+            if (Math.abs(video.currentTime - time) > 0.3) video.currentTime = time;
         }
-
+        const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         if (allLines.length > 0 && userWantsLyrics) {
             const instrumental = isInstrumentalAt(time, allLines);
-
             if (instrumental) {
                 setScreenVisible(false);
                 container.style.opacity = '0';
@@ -515,36 +497,27 @@
                 setScreenVisible(true);
                 container.style.opacity = '1';
                 lBg.classList.add('lyric-view-filtered');
-                if (hasVideo) video.style.opacity = "1";
+                if (videoAvailable) video.style.opacity = "1";
             }
-
             let currentIdx = -1;
             allLines.forEach((line, i) => {
-                const ls = parseFloat(line.dataset.start);
-                const le = parseFloat(line.dataset.end);
+                const ls = parseFloat(line.dataset.start), le = parseFloat(line.dataset.end);
                 if (time >= ls && time <= le) currentIdx = i;
             });
-
             allLines.forEach((line, i) => {
                 const dist = Math.abs(i - currentIdx);
                 const opacity = currentIdx === -1 ? 0.18 : i === currentIdx ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.25 : 0.12;
                 line.style.setProperty('--line-opacity', opacity);
-
                 line.querySelectorAll('.word').forEach(word => {
-                    const ws = parseFloat(word.dataset.start);
-                    const we = parseFloat(word.dataset.end);
+                    const ws = parseFloat(word.dataset.start), we = parseFloat(word.dataset.end);
                     const fill = time < ws ? 0 : time > we ? 100 : ((time - ws) / (we - ws)) * 100;
                     word.style.setProperty('--fill', fill.toFixed(1));
                 });
             });
-
-            if (currentIdx >= 0 && allLines[currentIdx]) {
-                allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            if (currentIdx >= 0 && allLines[currentIdx]) allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         requestAnimationFrame(sync);
     }
-
     init();
 </script>
 </body>
