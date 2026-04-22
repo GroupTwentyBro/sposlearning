@@ -434,9 +434,11 @@
         if (!hasLyrics) {
             try {
                 const track = await fetch(`${API_BASE}/track/${videoId}`).then(r => r.json());
+                const cleanArtist = track.artist.replace(/\s*-\s*Topic$/i, '').trim();
+
                 const q = new URLSearchParams({
                     track_name:  track.title,
-                    artist_name: track.artist,
+                    artist_name: cleanArtist,
                     ...(track.album ? { album_name: track.album } : {}),
                     ...(track.duration ? { duration: Math.round(track.duration) } : {}),
                 });
