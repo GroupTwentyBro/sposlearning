@@ -232,7 +232,7 @@
             tracks.forEach((track, i) => {
                 const a = document.createElement('a');
                 a.className = 'result-item';
-                a.href = `media__player.html?v=${track.videoId}`;
+                a.href = `../player.html?v=${track.videoId}`;
                 a.style.animationDelay = `${i * 40}ms`;
 
                 const sub = [track.artist, track.album].filter(Boolean).join(' • ');
