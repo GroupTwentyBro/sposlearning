@@ -12,8 +12,7 @@
         https://*.sposlearning.cz
         https://cdn.jsdelivr.net
         https://fonts.googleapis.com
-        https://cdn.jsdelivr.net;"
-    >
+        https://cdn.jsdelivr.net;">
     <title>Fluid Lyric Player</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -191,6 +190,21 @@
             opacity: 0.4; font-size: 18px; font-weight: 600; text-align: center;
             margin-top: 40px; display: none;
         }
+
+        /* Source Selector Styling */
+        #source-selector {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 12px;
+            border-radius: 20px;
+            outline: none;
+            font-family: inherit;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        #source-selector:hover { background: rgba(255,255,255,0.15); }
+        #source-selector option { background: #111; color: white; }
     </style>
 </head>
 <body>
@@ -238,16 +252,31 @@
 <div id="lyrics-screen">
     <video id="lyrics-video" muted playsinline></video>
     <div id="lyrics-bg"></div>
+
     <span class="close-lyrics" onclick="toggleLyrics()">
         <span class="material-symbols-rounded" style="font-size: 36px;">close</span>
     </span>
+
+    <div id="lyric-controls" style="position: fixed; bottom: 30px; right: 30px; z-index: 110; display: flex; gap: 10px; align-items: center;">
+        <select id="source-selector" onchange="switchSource()">
+            <option value="ttml">Source: TTML (Local)</option>
+            <option value="lrc">Source: LRCLIB (Cloud)</option>
+        </select>
+        <button class="ctrl-btn" onclick="openEditor()" title="Edit/Add TTML">
+            <span class="material-symbols-rounded">edit_note</span>
+        </button>
+    </div>
+
     <div id="lyrics-container">
         <div id="no-lyrics-msg">No lyrics available for this track.</div>
 
-        <div id="lyric-editor" style="display: none; margin-top: 20px; width: 100%; text-align: center;">
-            <textarea id="ttml-input" placeholder="Paste TTML content here..."
-              style="width: 100%; height: 200px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 12px; font-family: monospace; font-size: 12px; outline: none; margin-bottom: 12px;"></textarea>
-            <button class="lyric-btn" onclick="submitLyrics()">Save Lyrics</button>
+        <div id="lyric-editor" style="display: none; width: 100%; max-width: 600px; margin-top: 20px;">
+            <textarea id="ttml-input" placeholder="Paste your <tt>...</tt> content here..."
+                      style="width: 100%; height: 250px; background: rgba(0,0,0,0.4); color: white; border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 15px; font-family: monospace; font-size: 11px; margin-bottom: 15px; outline: none;"></textarea>
+            <div style="display:flex; gap: 10px; justify-content: center;">
+                <button class="lyric-btn" onclick="submitLyrics()">Save to Database</button>
+                <button class="lyric-btn" style="background: rgba(255,255,255,0.05);" onclick="closeEditor()">Cancel</button>
+            </div>
         </div>
     </div>
 </div>
@@ -270,12 +299,18 @@
     const noLyrics = document.getElementById('no-lyrics-msg');
     const lyricEditor = document.getElementById('lyric-editor');
     const ttmlInput = document.getElementById('ttml-input');
+    const sourceSelector = document.getElementById('source-selector');
 
     const INSTRUMENTAL_GAP = 4;
     let userWantsLyrics = false;
     let hasLyrics = false;
     let videoAvailable = false;
     let totalDurationSeconds = 0;
+
+    // Track state for sources
+    let currentSource = 'ttml';
+    let rawTTML = null;
+    let rawLRC = null;
 
     function showError(msg, duration = 4000) {
         errorEl.textContent = msg;
@@ -395,15 +430,16 @@
             return;
         }
 
+        let trackData;
         try {
             document.getElementById('loading-text').textContent = 'Fetching track info…';
             const trackRes = await fetch(`${API_BASE}/track/${videoId}`);
-            const track = await trackRes.json();
-            const cleanArtist = track.artist.replace(/\s*-\s*Topic$/i, '').trim();
-            document.getElementById('title').textContent = track.title;
-            document.getElementById('meta').textContent = [cleanArtist, track.album].filter(Boolean).join(' • ');
+            trackData = await trackRes.json();
+            const cleanArtist = trackData.artist.replace(/\s*-\s*Topic$/i, '').trim();
+            document.getElementById('title').textContent = trackData.title;
+            document.getElementById('meta').textContent = [cleanArtist, trackData.album].filter(Boolean).join(' • ');
 
-            const thumbUrl = track.thumbnail;
+            const thumbUrl = trackData.thumbnail;
             const artStyle = `url('${thumbUrl}')`;
             document.getElementById('bg').style.backgroundImage  = artStyle;
             document.getElementById('art').style.backgroundImage = artStyle;
@@ -414,8 +450,8 @@
             img.onload = () => extractColor(img);
             img.src = thumbUrl;
 
-            if (track.duration) {
-                totalDurationSeconds = parseFloat(track.duration);
+            if (trackData.duration) {
+                totalDurationSeconds = parseFloat(trackData.duration);
                 document.getElementById('time-dur').textContent = formatTime(totalDurationSeconds);
             }
         } catch (err) { showError(`Metadata error: ${err.message}`); }
@@ -431,35 +467,44 @@
             }
         } catch (e) { videoAvailable = false; }
 
+        // --- Lyric Initial Load ---
+        // 1. Try Local TTML
         try {
             const lyricsRes = await fetch(`${API_BASE}/lyrics/${videoId}`);
             if (lyricsRes.ok) {
-                const text = await lyricsRes.text();
-                const lineCount = parseTTML(text);
-                hasLyrics = lineCount > 0;
+                rawTTML = await lyricsRes.text();
+                hasLyrics = parseTTML(rawTTML) > 0;
+                currentSource = 'ttml';
+                sourceSelector.value = 'ttml';
             }
         } catch (_) {}
 
-        if (!hasLyrics) {
+        // 2. Fallback to LRCLIB
+        if (!rawTTML && trackData) {
             try {
-                const track = await fetch(`${API_BASE}/track/${videoId}`).then(r => r.json());
-                const cleanArtist = track.artist.replace(/\s*-\s*Topic$/i, '').trim();
-
+                const cleanArtist = trackData.artist.replace(/\s*-\s*Topic$/i, '').trim();
                 const q = new URLSearchParams({
-                    track_name:  track.title,
+                    track_name:  trackData.title,
                     artist_name: cleanArtist,
-                    ...(track.album ? { album_name: track.album } : {}),
-                    ...(track.duration ? { duration: Math.round(track.duration) } : {}),
+                    ...(trackData.album ? { album_name: trackData.album } : {}),
+                    ...(trackData.duration ? { duration: Math.round(trackData.duration) } : {}),
                 });
                 const lrcRes = await fetch(`https://lrclib.net/api/get?${q}`);
                 if (lrcRes.ok) {
                     const lrc = await lrcRes.json();
                     if (lrc.syncedLyrics) {
-                        const lineCount = parseLRC(lrc.syncedLyrics);
-                        hasLyrics = lineCount > 0;
+                        rawLRC = lrc.syncedLyrics;
+                        hasLyrics = parseLRC(rawLRC) > 0;
+                        currentSource = 'lrc';
+                        sourceSelector.value = 'lrc';
                     }
                 }
             } catch (_) {}
+        }
+
+        if (!hasLyrics) {
+            noLyrics.style.display = 'block';
+            sourceSelector.value = 'ttml';
         }
 
         hideLoading();
@@ -522,6 +567,68 @@
         return false;
     }
 
+    // --- Lyric UI Controls ---
+    function switchSource() {
+        const val = sourceSelector.value;
+        currentSource = val;
+        closeEditor();
+
+        if (val === 'ttml') {
+            if (rawTTML) {
+                parseTTML(rawTTML);
+                noLyrics.style.display = 'none';
+            } else {
+                container.innerHTML = '';
+                noLyrics.style.display = 'block';
+                openEditor();
+            }
+        } else {
+            if (rawLRC) {
+                parseLRC(rawLRC);
+                noLyrics.style.display = 'none';
+            } else {
+                container.innerHTML = '';
+                noLyrics.style.display = 'block';
+            }
+        }
+    }
+
+    function openEditor() {
+        container.style.opacity = "0";
+        setTimeout(() => {
+            container.style.display = "none";
+            lyricEditor.style.display = "block";
+            container.style.opacity = "1";
+        }, 400);
+    }
+
+    function closeEditor() {
+        lyricEditor.style.display = "none";
+        container.style.display = "flex";
+    }
+
+    async function submitLyrics() {
+        const ttml = ttmlInput.value.trim();
+        if (!ttml) return showError("Please paste TTML content first");
+
+        try {
+            const res = await fetch(`${API_BASE}/lyrics/${videoId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ttml: ttml })
+            });
+
+            if (res.ok) {
+                showError("Lyrics saved! Reloading...");
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                throw new Error("Failed to save lyrics");
+            }
+        } catch (err) {
+            showError(`Submission error: ${err.message}`);
+        }
+    }
+
     function toggleLyrics() {
         userWantsLyrics = !userWantsLyrics;
         if (!userWantsLyrics) {
@@ -534,11 +641,8 @@
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         const instrumental = isInstrumentalAt(audio.currentTime, allLines);
 
-        if (!hasLyrics) {
-            statusMsg.textContent = 'Help the community by adding lyrics';
-            statusMsg.classList.add('show');
-            setTimeout(() => statusMsg.classList.remove('show'), 3000);
-
+        // If user force-opens lyrics and none exist, show editor
+        if (!hasLyrics && currentSource === 'ttml') {
             setScreenVisible(true);
             noLyrics.style.display = 'block';
             lyricEditor.style.display = 'block';
@@ -567,29 +671,6 @@
                 video.currentTime = audio.currentTime;
                 if (!audio.paused) video.play().catch(() => {});
             }
-        }
-    }
-
-    async function submitLyrics() {
-        const ttml = ttmlInput.value.trim();
-        if (!ttml) return showError("Please paste TTML content first");
-
-        try {
-            const res = await fetch(`${API_BASE}/lyrics/${videoId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ttml: ttml })
-            });
-
-            if (res.ok) {
-                const result = await res.json();
-                showError("Lyrics saved! Reloading..."); // Using error banner as a toast
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                throw new Error("Failed to save lyrics");
-            }
-        } catch (err) {
-            showError(`Submission error: ${err.message}`);
         }
     }
 
@@ -634,9 +715,6 @@
                         const ws = parseFloat(word.dataset.start), we = parseFloat(word.dataset.end);
                         const fill = time < ws ? 0 : time > we ? 100 : ((time - ws) / (we - ws)) * 100;
                         word.style.setProperty('--fill', fill.toFixed(1));
-                        line.style.color = i === currentIdx
-                            ? `var(--track-color)`
-                            : 'rgba(255,255,255,0.2)';
                     });
                 }
             });
