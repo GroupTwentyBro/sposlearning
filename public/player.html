@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://proxy.piped.private.coffee https://i.ytimg.com https://*.googleapis.com https://*.gstatic.com https://*.sposlearning.cz/ https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdn.jsdelivr.net;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline'
+        https://lrclib.net
+        https://proxy.piped.private.coffee
+        https://i.ytimg.com
+        https://*.googleapis.com
+        https://*.gstatic.com
+        https://*.sposlearning.cz
+        https://cdn.jsdelivr.net
+        https://fonts.googleapis.com
+        https://cdn.jsdelivr.net;"
+    >
     <title>Fluid Lyric Player</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -342,6 +352,33 @@
         return count;
     }
 
+    function parseLRC(lrc) {
+        container.innerHTML = '';
+        noLyrics.style.display = 'none';
+        const lineRegex = /^\[(\d+):(\d+(?:\.\d+)?)\](.*)/;
+        const lines = lrc.split('\n')
+            .map(l => l.trim())
+            .filter(l => lineRegex.test(l))
+            .map(l => {
+                const m = l.match(lineRegex);
+                return { time: parseInt(m[1]) * 60 + parseFloat(m[2]), text: m[3].trim() };
+            })
+            .filter(l => l.text);
+
+        lines.forEach((line, i) => {
+            const end = lines[i + 1]?.time ?? (line.time + 5);
+            const lineDiv = document.createElement('div');
+            lineDiv.className = 'lyric-line lrc-line';
+            lineDiv.dataset.start = line.time;
+            lineDiv.dataset.end   = end;
+            lineDiv.textContent   = line.text;
+            container.appendChild(lineDiv);
+        });
+
+        container.appendChild(noLyrics);
+        return lines.length;
+    }
+
     async function init() {
         if (!videoId) {
             document.getElementById('title').textContent = 'No track specified';
@@ -388,12 +425,32 @@
         try {
             const lyricsRes = await fetch(`${API_BASE}/lyrics/${videoId}`);
             if (lyricsRes.ok) {
-                const lineCount = parseTTML(await lyricsRes.text());
+                const text = await lyricsRes.text();
+                const lineCount = parseTTML(text);
                 hasLyrics = lineCount > 0;
             }
         } catch (_) {}
 
-        if (!hasLyrics) noLyrics.style.display = 'block';
+        if (!hasLyrics) {
+            try {
+                const track = await fetch(`${API_BASE}/track/${videoId}`).then(r => r.json());
+                const q = new URLSearchParams({
+                    track_name:  track.title,
+                    artist_name: track.artist,
+                    ...(track.album ? { album_name: track.album } : {}),
+                    ...(track.duration ? { duration: Math.round(track.duration) } : {}),
+                });
+                const lrcRes = await fetch(`https://lrclib.net/api/get?${q}`);
+                if (lrcRes.ok) {
+                    const lrc = await lrcRes.json();
+                    if (lrc.syncedLyrics) {
+                        const lineCount = parseLRC(lrc.syncedLyrics);
+                        hasLyrics = lineCount > 0;
+                    }
+                }
+            } catch (_) {}
+        }
+
         hideLoading();
         requestAnimationFrame(sync);
     }
@@ -523,11 +580,17 @@
                 const dist = Math.abs(i - currentIdx);
                 const opacity = currentIdx === -1 ? 0.18 : i === currentIdx ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.25 : 0.12;
                 line.style.setProperty('--line-opacity', opacity);
-                line.querySelectorAll('.word').forEach(word => {
-                    const ws = parseFloat(word.dataset.start), we = parseFloat(word.dataset.end);
-                    const fill = time < ws ? 0 : time > we ? 100 : ((time - ws) / (we - ws)) * 100;
-                    word.style.setProperty('--fill', fill.toFixed(1));
-                });
+
+                if (!line.classList.contains('lrc-line')) {
+                    line.querySelectorAll('.word').forEach(word => {
+                        const ws = parseFloat(word.dataset.start), we = parseFloat(word.dataset.end);
+                        const fill = time < ws ? 0 : time > we ? 100 : ((time - ws) / (we - ws)) * 100;
+                        word.style.setProperty('--fill', fill.toFixed(1));
+                        line.style.color = i === currentIdx
+                            ? `var(--track-color)`
+                            : 'rgba(255,255,255,0.2)';
+                    });
+                }
             });
             if (currentIdx >= 0 && allLines[currentIdx]) allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
