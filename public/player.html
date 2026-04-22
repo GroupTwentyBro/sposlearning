@@ -391,8 +391,9 @@
             document.getElementById('loading-text').textContent = 'Fetching track info…';
             const trackRes = await fetch(`${API_BASE}/track/${videoId}`);
             const track = await trackRes.json();
+            const cleanArtist = track.artist.replace(/\s*-\s*Topic$/i, '').trim();
             document.getElementById('title').textContent = track.title;
-            document.getElementById('meta').textContent = [track.artist, track.album].filter(Boolean).join(' • ');
+            document.getElementById('meta').textContent = [cleanArtist, track.album].filter(Boolean).join(' • ');
 
             const thumbUrl = track.thumbnail;
             const artStyle = `url('${thumbUrl}')`;
