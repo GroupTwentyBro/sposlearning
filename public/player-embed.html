@@ -58,13 +58,13 @@
 
         .cover-art {
             flex-shrink: 0;
-            padding: 30px;
             /* Square that fills available height */
             height: calc(100% - 0px);
             aspect-ratio: 1 / 1;
             border-radius: 10px;
-            background-size: cover; background-position: center;
-            background-origin: content-box; background-clip: content-box;
+            background-size: calc(100% - 60px) calc(100% - 60px);
+            background-position: center;
+            background-repeat: no-repeat;
             box-shadow: 0 8px 32px rgba(0,0,0,0.85);
         }
 
