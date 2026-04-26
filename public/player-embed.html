@@ -57,10 +57,10 @@
         }
 
         .cover-art {
-            padding: 20px;
             flex-shrink: 0;
+            padding: 30px;
             /* Square that fills available height */
-            height: calc(100% - 20px);
+            height: calc(100% - 0px);
             aspect-ratio: 1 / 1;
             border-radius: 10px;
             background-size: cover; background-position: center;
@@ -192,7 +192,7 @@
         /* Scrollable inner layer so lyrics can scroll without affecting bg/video */
         #lyrics-scroll {
             position: absolute; inset: 0;
-            overflow-x: hidden; overflow-y: hidden;
+            overflow-x: hidden; overflow-y: auto;
             display: flex; flex-direction: column; align-items: center;
             z-index: 2;
         }
