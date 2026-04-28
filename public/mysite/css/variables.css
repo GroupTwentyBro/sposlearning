@@ -1,0 +1,8 @@
+:root {
+    --bright-lavender: hsl(256, 100%, 71%);
+    --tropical-teal: hsl(184, 100%, 63%);
+    --ink-black: hsla(206, 73%, 9%, 1);
+    --neon-chartreuse: hsla(67, 100%, 55%, 1);
+    --dark-raspberry: hsl(333, 100%, 55%);
+    --surface: hsl(0, 0%, 7%)
+}
