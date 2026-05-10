@@ -174,7 +174,7 @@
             opacity: var(--line-opacity, 0.18); transition: opacity 0.5s ease;
         }
 
-        .word { display: inline-block; position: relative; color: rgba(255,255,255,0.2); }
+        .word { display: inline-block; position: relative; color: rgba(255,255,255,0.2); transform: translateY(calc(var(--fill, 0) * (var(--fill, 0) - 100) * 0.0008px)); }
         .word::before { content: attr(data-text); position: absolute; inset: 0; color: var(--track-color); clip-path: inset(0 calc((100 - var(--fill, 0)) * 1%) 0 0); white-space: nowrap; pointer-events: none; }
         .word::after {
             content: attr(data-text); position: absolute; inset: 0; color: transparent;
