@@ -204,6 +204,37 @@
         }
         #source-selector:hover { background: rgba(255,255,255,0.15); }
         #source-selector option { background: #111; color: white; }
+
+        /* Sticky floating lyric shown when active line scrolls off the top */
+        #sticky-lyric {
+            position: fixed;
+            top: 0;
+            left: 0; right: 0;
+            z-index: 102;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 18px 80px 18px 24px; /* right padding to avoid overlap with close btn */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.72) 60%, transparent);
+            backdrop-filter: blur(0px);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        #sticky-lyric.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #sticky-lyric-text {
+            font-size: clamp(15px, 2.2vw, 22px);
+            font-weight: 800;
+            line-height: 1.3;
+            text-align: center;
+            color: var(--track-color);
+            text-shadow: 0 0 20px var(--track-glow), 0 0 50px var(--track-glow);
+            max-width: 680px;
+        }
     </style>
 </head>
 <body>
@@ -256,6 +287,11 @@
         <span class="material-symbols-rounded" style="font-size: 36px;">close</span>
     </span>
 
+    <!-- Sticky floating lyric -->
+    <div id="sticky-lyric">
+        <div id="sticky-lyric-text"></div>
+    </div>
+
     <div id="lyric-controls" style="position: fixed; bottom: 30px; right: 30px; z-index: 110;">
         <select id="source-selector" onchange="switchSource()">
             <option value="ttml">Source: TTML (Local)</option>
@@ -296,6 +332,8 @@
     const lyricEditor = document.getElementById('lyric-editor');
     const ttmlInput = document.getElementById('ttml-input');
     const sourceSelector = document.getElementById('source-selector');
+    const stickyLyric = document.getElementById('sticky-lyric');
+    const stickyLyricText = document.getElementById('sticky-lyric-text');
 
     const INSTRUMENTAL_GAP = 4;
     let userWantsLyrics = false;
@@ -657,6 +695,7 @@
             setScreenVisible(false);
             video.style.opacity = "0";
             video.pause();
+            stickyLyric.classList.remove('visible');
             return;
         }
 
@@ -695,6 +734,31 @@
         }
     }
 
+    function getLineText(line) {
+        // For TTML lines with .word spans, concatenate their text
+        const words = line.querySelectorAll('.word');
+        if (words.length > 0) {
+            return Array.from(words).map(w => w.dataset.text).join(' ');
+        }
+        return line.textContent.trim();
+    }
+
+    function updateStickyLyric(currentIdx, allLines) {
+        if (!userWantsLyrics || currentIdx < 0) {
+            stickyLyric.classList.remove('visible');
+            return;
+        }
+        const activeLine = allLines[currentIdx];
+        const rect = activeLine.getBoundingClientRect();
+        // Show sticky if the active line has scrolled above the viewport
+        if (rect.bottom < 0) {
+            stickyLyricText.textContent = getLineText(activeLine);
+            stickyLyric.classList.add('visible');
+        } else {
+            stickyLyric.classList.remove('visible');
+        }
+    }
+
     function sync() {
         const time = audio.currentTime;
         if (videoAvailable && userWantsLyrics && !video.paused) {
@@ -706,6 +770,7 @@
             if (instrumental) {
                 container.style.opacity = '0';
                 lBg.classList.remove('lyric-view-filtered');
+                stickyLyric.classList.remove('visible');
                 if (videoAvailable) {
                     setScreenVisible(true);
                     video.classList.add('unfiltered');
@@ -739,7 +804,12 @@
                     });
                 }
             });
-            if (currentIdx >= 0 && allLines[currentIdx]) allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (currentIdx >= 0 && allLines[currentIdx]) {
+                allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            updateStickyLyric(currentIdx, allLines);
+        } else {
+            stickyLyric.classList.remove('visible');
         }
         requestAnimationFrame(sync);
     }
