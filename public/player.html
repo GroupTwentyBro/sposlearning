@@ -225,10 +225,9 @@
             opacity: 1;
             transform: translateY(0);
         }
-        /* Clone inherits .lyric-line exactly; force full opacity, no margin */
+        /* Clone inherits .lyric-line exactly; margin reset only */
         #sticky-lyric .lyric-line {
             margin: 0 !important;
-            --line-opacity: 1 !important;
         }
     </style>
 </head>
@@ -735,8 +734,7 @@
         }
         const activeLine = allLines[currentIdx];
         const screenTop = lyricsEl.getBoundingClientRect().top;
-        const lineRect = activeLine.getBoundingClientRect();
-        const lineTop = lineRect.top;
+        const lineTop = activeLine.getBoundingClientRect().top;
         if (lineTop < screenTop) {
             // Re-clone only when the active line changes
             if (stickyClone !== activeLine) {
@@ -745,7 +743,10 @@
                 const clone = activeLine.cloneNode(true);
                 stickyLyric.appendChild(clone);
             }
-            // Mirror --fill values from original words to cloned words
+            // Force opacity inline (overrides any CSS rule)
+            const cloneLine = stickyLyric.querySelector('.lyric-line');
+            if (cloneLine) cloneLine.style.setProperty('--line-opacity', '1');
+            // Mirror --fill on every word every frame so animation is live
             const origWords = activeLine.querySelectorAll('.word');
             const cloneWords = stickyLyric.querySelectorAll('.word');
             origWords.forEach((w, i) => {
