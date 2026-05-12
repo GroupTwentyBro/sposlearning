@@ -749,9 +749,11 @@
             return;
         }
         const activeLine = allLines[currentIdx];
-        const rect = activeLine.getBoundingClientRect();
-        // Show sticky if the active line has scrolled above the viewport
-        if (rect.bottom < 0) {
+        // Compare line position against the lyrics screen container's top edge
+        const screenTop = lyricsEl.getBoundingClientRect().top;
+        const lineBottom = activeLine.getBoundingClientRect().bottom;
+        // Line has scrolled above the top of the lyrics screen
+        if (lineBottom < screenTop) {
             stickyLyricText.textContent = getLineText(activeLine);
             stickyLyric.classList.add('visible');
         } else {
@@ -807,7 +809,8 @@
             if (currentIdx >= 0 && allLines[currentIdx]) {
                 allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-            updateStickyLyric(currentIdx, allLines);
+            // Defer sticky check so smooth scroll has had time to settle
+            setTimeout(() => updateStickyLyric(currentIdx, allLines), 200);
         } else {
             stickyLyric.classList.remove('visible');
         }
