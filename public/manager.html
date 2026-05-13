@@ -7,24 +7,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
-        body { background: #000; color: #fff; font-family: 'Google Sans', sans-serif; padding: 40px; margin: 0; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid #222; padding-bottom: 20px; }
+        body { background: #000; color: #fff; font-family: 'Google Sans', sans-serif; padding: 20px; margin: 0; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 400px; gap: 30px; }
 
-        .search-box { display: flex; gap: 10px; background: #111; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 30px; }
+        .header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #222; }
+
+        /* Layout Sections */
+        .search-section, .queue-section { height: calc(100vh - 150px); display: flex; flex-direction: column; }
+        .scroll-area { flex: 1; overflow-y: auto; padding-right: 10px; }
+
+        /* Search Box */
+        .search-box { display: flex; gap: 10px; background: #111; padding: 12px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
         input { background: none; border: none; color: #fff; flex: 1; font-size: 16px; outline: none; }
 
-        .result-card { display: flex; align-items: center; gap: 20px; background: #0a0a0a; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; transition: 0.2s; }
-        .result-card:hover { background: #111; }
-        .result-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
-        .info { flex: 1; }
-        .title { font-weight: 700; font-size: 16px; }
-        .artist { opacity: 0.5; font-size: 13px; margin-top: 4px; }
+        /* Cards */
+        .card { display: flex; align-items: center; gap: 15px; background: #0a0a0a; padding: 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #1a1a1a; }
+        .card img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
+        .info { flex: 1; min-width: 0; }
+        .title { font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .artist { opacity: 0.5; font-size: 12px; margin-top: 2px; }
 
-        .btn { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        /* Buttons */
+        .btn { background: #fff; color: #000; border: none; padding: 8px 14px; border-radius: 30px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; }
         .btn:hover { background: #eee; }
+        .btn-icon { background: rgba(255,255,255,0.1); color: #fff; padding: 8px; border-radius: 50%; }
+        .btn-icon:hover { background: rgba(255,255,255,0.2); }
         .btn-red { background: rgba(255,59,48,0.1); color: #ff3b30; border: 1px solid #ff3b30; }
         .btn-red:hover { background: rgba(255,59,48,0.2); }
+        .btn-small { padding: 5px 10px; font-size: 11px; }
+
+        h2 { font-size: 18px; margin-bottom: 20px; opacity: 0.8; display: flex; align-items: center; gap: 10px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -37,22 +52,65 @@
         </button>
     </div>
 
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search YouTube Music for songs...">
-        <button class="btn" onclick="performSearch()">Search</button>
+    <!-- Left Side: Search -->
+    <div class="search-section">
+        <h2><span class="material-symbols-rounded">search</span> Search YouTube Music</h2>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search for songs...">
+            <button class="btn" onclick="performSearch()">Search</button>
+        </div>
+        <div class="scroll-area" id="searchResults"></div>
     </div>
 
-    <div id="results"></div>
+    <!-- Right Side: Queue -->
+    <div class="queue-section">
+        <h2><span class="material-symbols-rounded">queue_music</span> Live Queue</h2>
+        <div class="scroll-area" id="currentQueue">
+            <p style="text-align:center; opacity:0.3; margin-top:20px;">Queue is empty</p>
+        </div>
+    </div>
 </div>
 
 <script>
     const API_BASE = 'https://music.sposlearning.cz';
 
+    // Fetch and display the queue on load and after changes
+    async function refreshQueue() {
+        try {
+            const res = await fetch(`${API_BASE}/playlist`);
+            const queue = await res.json();
+            const queueDiv = document.getElementById('currentQueue');
+            queueDiv.innerHTML = '';
+
+            if (queue.length === 0) {
+                queueDiv.innerHTML = '<p style="text-align:center; opacity:0.3; margin-top:20px;">Queue is empty</p>';
+                return;
+            }
+
+            queue.forEach((t, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div style="font-size:10px; opacity:0.3; width:15px;">${index + 1}</div>
+                    <img src="${t.thumbnail}">
+                    <div class="info">
+                        <div class="title">${t.title}</div>
+                        <div class="artist">${t.artist}</div>
+                    </div>
+                    <button class="btn-icon btn-red" onclick="removeFromQueue('${t._id}')" title="Remove">
+                        <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
+                    </button>
+                `;
+                queueDiv.appendChild(card);
+            });
+        } catch (err) { console.error("Failed to fetch queue"); }
+    }
+
     async function performSearch() {
         const query = document.getElementById('searchInput').value;
         if (!query) return;
 
-        const resultsDiv = document.getElementById('results');
+        const resultsDiv = document.getElementById('searchResults');
         resultsDiv.innerHTML = '<p style="text-align:center; opacity:0.5;">Searching...</p>';
 
         try {
@@ -62,7 +120,7 @@
 
             tracks.forEach(t => {
                 const card = document.createElement('div');
-                card.className = 'result-card';
+                card.className = 'card';
                 card.innerHTML = `
                     <img src="${t.thumbnail}">
                     <div class="info">
@@ -70,13 +128,13 @@
                         <div class="artist">${t.artist}</div>
                     </div>
                     <button class="btn" onclick='addToRadio(${JSON.stringify(t).replace(/'/g, "&apos;")})'>
-                        <span class="material-symbols-rounded">add</span> Add to Radio
+                        <span class="material-symbols-rounded">add</span> Add
                     </button>
                 `;
                 resultsDiv.appendChild(card);
             });
         } catch (err) {
-            resultsDiv.innerHTML = '<p style="color:#ff3b30">Search failed. Try again.</p>';
+            resultsDiv.innerHTML = '<p style="color:#ff3b30">Search failed.</p>';
         }
     }
 
@@ -87,17 +145,27 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(track)
             });
-            if (res.ok) alert(`Added "${track.title}" to the broadcast queue!`);
+            if (res.ok) refreshQueue();
         } catch (err) { alert("Failed to add track."); }
     }
 
+    async function removeFromQueue(id) {
+        try {
+            const res = await fetch(`${API_BASE}/playlist/remove/${id}`, { method: 'POST' });
+            if (res.ok) refreshQueue();
+        } catch (err) { alert("Failed to remove track."); }
+    }
+
     async function clearPlaylist() {
-        if (!confirm("Are you sure you want to stop the radio and clear the playlist?")) return;
+        if (!confirm("Stop radio and clear all songs?")) return;
         await fetch(`${API_BASE}/playlist/clear`, { method: 'POST' });
-        alert("Radio cleared.");
+        refreshQueue();
     }
 
     document.getElementById('searchInput').onkeydown = e => { if(e.key === 'Enter') performSearch(); };
+
+    // Initialize queue on load
+    refreshQueue();
 </script>
 </body>
 </html>
