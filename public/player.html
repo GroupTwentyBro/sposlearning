@@ -730,12 +730,18 @@
     function updateStickyLyric(currentIdx, allLines) {
         if (!userWantsLyrics || currentIdx < 0) {
             stickyLyric.classList.remove('visible');
+            stickyClone = null;
             return;
         }
+
         const activeLine = allLines[currentIdx];
-        const screenTop = lyricsEl.getBoundingClientRect().top;
-        const lineTop = activeLine.getBoundingClientRect().top;
-        if (lineTop < screenTop) {
+        // Get position relative to the viewport
+        const lineRect = activeLine.getBoundingClientRect();
+
+        // If the top of the active line goes above a certain threshold (e.g., 100px from top)
+        // or effectively "scrolls off" the center/top area.
+        // Using 40px to account for the close button and padding.
+        if (lineRect.top < 40) {
             // Re-clone only when the active line changes
             if (stickyClone !== activeLine) {
                 stickyClone = activeLine;
@@ -743,20 +749,24 @@
                 const clone = activeLine.cloneNode(true);
                 stickyLyric.appendChild(clone);
             }
-            // Force opacity inline (overrides any CSS rule)
+
             const cloneLine = stickyLyric.querySelector('.lyric-line');
-            if (cloneLine) cloneLine.style.setProperty('--line-opacity', '1');
-            // Mirror --fill on every word every frame so animation is live
-            const origWords = activeLine.querySelectorAll('.word');
-            const cloneWords = stickyLyric.querySelectorAll('.word');
-            origWords.forEach((w, i) => {
-                if (cloneWords[i]) {
-                    cloneWords[i].style.setProperty('--fill', w.style.getPropertyValue('--fill'));
-                }
-            });
+            if (cloneLine) {
+                cloneLine.style.setProperty('--line-opacity', '1');
+
+                // Mirror the --fill property for word-by-word syncing
+                const origWords = activeLine.querySelectorAll('.word');
+                const cloneWords = cloneLine.querySelectorAll('.word');
+                origWords.forEach((w, i) => {
+                    if (cloneWords[i]) {
+                        cloneWords[i].style.setProperty('--fill', w.style.getPropertyValue('--fill'));
+                    }
+                });
+            }
             stickyLyric.classList.add('visible');
         } else {
             stickyLyric.classList.remove('visible');
+            stickyClone = null;
         }
     }
 
