@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        body { background: #000; color: #fff; font-family: 'Google Sans', sans-serif; padding: 40px; margin: 0; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid #222; padding-bottom: 20px; }
+
+        .search-box { display: flex; gap: 10px; background: #111; padding: 15px; border-radius: 12px; border: 1px solid #333; margin-bottom: 30px; }
+        input { background: none; border: none; color: #fff; flex: 1; font-size: 16px; outline: none; }
+
+        .result-card { display: flex; align-items: center; gap: 20px; background: #0a0a0a; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; transition: 0.2s; }
+        .result-card:hover { background: #111; }
+        .result-card img { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .info { flex: 1; }
+        .title { font-weight: 700; font-size: 16px; }
+        .artist { opacity: 0.5; font-size: 13px; margin-top: 4px; }
+
+        .btn { background: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .btn:hover { background: #eee; }
+        .btn-red { background: rgba(255,59,48,0.1); color: #ff3b30; border: 1px solid #ff3b30; }
+        .btn-red:hover { background: rgba(255,59,48,0.2); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Broadcast Manager</h1>
+        <button class="btn btn-red" onclick="clearPlaylist()">
+            <span class="material-symbols-rounded">delete_sweep</span> Clear Radio
+        </button>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search YouTube Music for songs...">
+        <button class="btn" onclick="performSearch()">Search</button>
+    </div>
+
+    <div id="results"></div>
+</div>
+
+<script>
+    const API_BASE = 'https://music.sposlearning.cz';
+
+    async function performSearch() {
+        const query = document.getElementById('searchInput').value;
+        if (!query) return;
+
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<p style="text-align:center; opacity:0.5;">Searching...</p>';
+
+        try {
+            const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}`);
+            const tracks = await res.json();
+            resultsDiv.innerHTML = '';
+
+            tracks.forEach(t => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <img src="${t.thumbnail}">
+                    <div class="info">
+                        <div class="title">${t.title}</div>
+                        <div class="artist">${t.artist}</div>
+                    </div>
+                    <button class="btn" onclick='addToRadio(${JSON.stringify(t).replace(/'/g, "&apos;")})'>
+                        <span class="material-symbols-rounded">add</span> Add to Radio
+                    </button>
+                `;
+                resultsDiv.appendChild(card);
+            });
+        } catch (err) {
+            resultsDiv.innerHTML = '<p style="color:#ff3b30">Search failed. Try again.</p>';
+        }
+    }
+
+    async function addToRadio(track) {
+        try {
+            const res = await fetch(`${API_BASE}/playlist/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(track)
+            });
+            if (res.ok) alert(`Added "${track.title}" to the broadcast queue!`);
+        } catch (err) { alert("Failed to add track."); }
+    }
+
+    async function clearPlaylist() {
+        if (!confirm("Are you sure you want to stop the radio and clear the playlist?")) return;
+        await fetch(`${API_BASE}/playlist/clear`, { method: 'POST' });
+        alert("Radio cleared.");
+    }
+
+    document.getElementById('searchInput').onkeydown = e => { if(e.key === 'Enter') performSearch(); };
+</script>
+</body>
+</html>
