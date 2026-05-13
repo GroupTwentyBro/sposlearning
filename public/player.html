@@ -735,26 +735,27 @@
         }
 
         const activeLine = allLines[currentIdx];
-        // Get position relative to the viewport
+        const containerRect = lyricsEl.getBoundingClientRect();
         const lineRect = activeLine.getBoundingClientRect();
 
-        // If the top of the active line goes above a certain threshold (e.g., 100px from top)
-        // or effectively "scrolls off" the center/top area.
-        // Using 40px to account for the close button and padding.
-        if (lineRect.top < 40) {
-            // Re-clone only when the active line changes
+        // The logic: If the active line's top is higher than the container's top
+        if (lineRect.top < containerRect.top + 20) {
+            // 1. Manage cloning
             if (stickyClone !== activeLine) {
                 stickyClone = activeLine;
                 stickyLyric.innerHTML = '';
                 const clone = activeLine.cloneNode(true);
+                // Ensure the clone is visible regardless of parent's relative opacity
+                clone.style.opacity = "1";
                 stickyLyric.appendChild(clone);
             }
 
+            // 2. Sync Animations (Mirror CSS Variables)
             const cloneLine = stickyLyric.querySelector('.lyric-line');
             if (cloneLine) {
                 cloneLine.style.setProperty('--line-opacity', '1');
 
-                // Mirror the --fill property for word-by-word syncing
+                // Mirror word-level --fill variables for TTML
                 const origWords = activeLine.querySelectorAll('.word');
                 const cloneWords = cloneLine.querySelectorAll('.word');
                 origWords.forEach((w, i) => {
@@ -815,8 +816,14 @@
                     });
                 }
             });
+            // Inside your sync() function, find the scrollIntoView part and wrap it:
             if (currentIdx >= 0 && allLines[currentIdx]) {
-                allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Only auto-scroll if the line isn't already "above" the view
+                // This prevents the "fighting" between scrolling and sticking
+                const lineRect = allLines[currentIdx].getBoundingClientRect();
+                if (lineRect.top > window.innerHeight / 2) {
+                    allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
             updateStickyLyric(currentIdx, allLines);
         } else {
