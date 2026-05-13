@@ -727,52 +727,37 @@
 
     let stickyClone = null;
 
-    function updateStickyLyric(allLines, currentTime) {
-        if (!userWantsLyrics) {
+    // stickyIdx: the last line whose start <= currentTime (regardless of end).
+    // This means a line that has already scrolled past — even if it's "ended" —
+    // stays pinned until the next line starts. currentIdx is only >= 0 while
+    // time is inside a line's [start, end] window (used for scroll-centering).
+    function updateStickyLyric(currentIdx, allLines, stickyIdx) {
+        if (!userWantsLyrics || stickyIdx < 0) {
             stickyLyric.classList.remove('visible');
             return;
         }
-
-        // Find the line that is currently playing based on time
-        let activeLine = null;
-        allLines.forEach(line => {
-            const start = parseFloat(line.dataset.start);
-            const end = parseFloat(line.dataset.end);
-            if (currentTime >= start && currentTime <= end) {
-                activeLine = line;
-            }
-        });
-
-        if (!activeLine) {
-            stickyLyric.classList.remove('visible');
-            stickyClone = null;
-            return;
-        }
-
-        const lineRect = activeLine.getBoundingClientRect();
-
-        // If the playing line's bottom has moved above the top of the screen (or near it)
-        if (lineRect.bottom < 100) {
+        const activeLine = allLines[stickyIdx];
+        const screenTop = lyricsEl.getBoundingClientRect().top;
+        const lineTop = activeLine.getBoundingClientRect().top;
+        if (lineTop < screenTop) {
+            // Re-clone only when the active line changes
             if (stickyClone !== activeLine) {
                 stickyClone = activeLine;
                 stickyLyric.innerHTML = '';
                 const clone = activeLine.cloneNode(true);
                 stickyLyric.appendChild(clone);
             }
-
+            // Force opacity inline (overrides any CSS rule)
             const cloneLine = stickyLyric.querySelector('.lyric-line');
-            if (cloneLine) {
-                cloneLine.style.setProperty('--line-opacity', '1');
-
-                // Sync the word-fill animations for the sticky version
-                const origWords = activeLine.querySelectorAll('.word');
-                const cloneWords = cloneLine.querySelectorAll('.word');
-                origWords.forEach((w, i) => {
-                    if (cloneWords[i]) {
-                        cloneWords[i].style.setProperty('--fill', w.style.getPropertyValue('--fill'));
-                    }
-                });
-            }
+            if (cloneLine) cloneLine.style.setProperty('--line-opacity', '1');
+            // Mirror --fill on every word every frame so animation is live
+            const origWords = activeLine.querySelectorAll('.word');
+            const cloneWords = stickyLyric.querySelectorAll('.word');
+            origWords.forEach((w, i) => {
+                if (cloneWords[i]) {
+                    cloneWords[i].style.setProperty('--fill', w.style.getPropertyValue('--fill'));
+                }
+            });
             stickyLyric.classList.add('visible');
         } else {
             stickyLyric.classList.remove('visible');
@@ -784,33 +769,45 @@
         if (videoAvailable && userWantsLyrics && !video.paused) {
             if (Math.abs(video.currentTime - time) > 0.3) video.currentTime = time;
         }
-
         const allLines = Array.from(document.querySelectorAll('.lyric-line'));
         if (allLines.length > 0 && userWantsLyrics) {
             const instrumental = isInstrumentalAt(time, allLines);
-
             if (instrumental) {
                 container.style.opacity = '0';
+                lBg.classList.remove('lyric-view-filtered');
                 stickyLyric.classList.remove('visible');
-                // ... rest of your instrumental logic ...
+                if (videoAvailable) {
+                    setScreenVisible(true);
+                    video.classList.add('unfiltered');
+                } else {
+                    setScreenVisible(false);
+                }
             } else {
+                setScreenVisible(true);
                 container.style.opacity = '1';
+                lBg.classList.add('lyric-view-filtered');
+                if (videoAvailable) {
+                    video.style.opacity = "1";
+                    video.classList.remove('unfiltered');
+                }
             }
 
+            // currentIdx: line whose [start, end] window contains current time (for highlighting/centering)
             let currentIdx = -1;
+            // stickyIdx: last line whose start <= current time (for sticky header)
+            let stickyIdx = -1;
+
             allLines.forEach((line, i) => {
-                const ls = parseFloat(line.dataset.start);
-                const le = parseFloat(line.dataset.end);
+                const ls = parseFloat(line.dataset.start), le = parseFloat(line.dataset.end);
+                if (time >= ls && time <= le) currentIdx = i;
+                if (time >= ls) stickyIdx = i;
+            });
 
-                // Highlight logic: Line is highlighted if time is within bounds
-                const isActive = (time >= ls && time <= le);
-                if (isActive) currentIdx = i;
-
-                const dist = currentIdx === -1 ? 99 : Math.abs(i - currentIdx);
-                const opacity = isActive ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.25 : 0.12;
+            allLines.forEach((line, i) => {
+                const dist = Math.abs(i - currentIdx);
+                const opacity = currentIdx === -1 ? 0.18 : i === currentIdx ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.25 : 0.12;
                 line.style.setProperty('--line-opacity', opacity);
 
-                // Word fill logic
                 if (!line.classList.contains('lrc-line')) {
                     line.querySelectorAll('.word').forEach(word => {
                         const ws = parseFloat(word.dataset.start), we = parseFloat(word.dataset.end);
@@ -819,17 +816,12 @@
                     });
                 }
             });
-
-            // Scroll Logic: Only scroll if the new active line is below the center
-            if (currentIdx >= 0) {
-                const activeLine = allLines[currentIdx];
-                const rect = activeLine.getBoundingClientRect();
-                if (rect.top > window.innerHeight / 2) {
-                    activeLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+            if (currentIdx >= 0 && allLines[currentIdx]) {
+                allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-
-            updateStickyLyric(allLines, time);
+            updateStickyLyric(currentIdx, allLines, stickyIdx);
+        } else {
+            stickyLyric.classList.remove('visible');
         }
         requestAnimationFrame(sync);
     }
