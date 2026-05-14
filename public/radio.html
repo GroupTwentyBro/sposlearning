@@ -53,7 +53,6 @@
             justify-content: center; padding: 0 16px; min-width: 0; text-align: left;
         }
 
-        /* Radio Branding */
         .live-badge {
             display: flex; align-items: center; gap: 8px;
             color: #ff3b30; font-weight: 800; font-size: 14px;
@@ -170,7 +169,6 @@
         #source-selector:hover { background: rgba(255,255,255,0.15); }
         #source-selector option { background: #111; color: white; }
 
-        /* Sticky lyric — same appearance as a real lyric line, pinned to top */
         #sticky-lyric {
             position: fixed;
             top: 0;
@@ -190,10 +188,36 @@
             opacity: 1;
             transform: translateY(0);
         }
-        /* Clone inherits .lyric-line exactly; margin reset only */
         #sticky-lyric .lyric-line {
             margin: 0 !important;
         }
+
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        #loading-overlay.hidden { opacity: 0; visibility: hidden; }
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #loading-text { font-weight: 600; font-size: 14px; letter-spacing: 0.5px; }
+
+        /* Error Banner */
+        #error-banner {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 300;
+            background: #ff3b30; color: white; padding: 12px 24px; border-radius: 30px;
+            font-weight: 600; font-size: 14px; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #error-banner.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -204,6 +228,7 @@
 </div>
 
 <div id="error-banner"></div>
+
 <div class="bg-blur" id="bg"></div>
 <canvas id="colorThief" style="display:none"></canvas>
 
@@ -245,7 +270,6 @@
     <span class="close-lyrics" onclick="toggleLyrics()">
         <span class="material-symbols-rounded" style="font-size: 36px;">close</span>
     </span>
-    <!-- Sticky floating lyric -->
     <div id="sticky-lyric"></div>
     <div id="lyrics-container"></div>
 </div>
@@ -317,7 +341,6 @@
                 stickyClone = null;
                 stickyLyric.classList.remove('visible');
 
-                // Update UI Meta
                 document.getElementById('title').textContent = state.current.title;
                 document.getElementById('meta').textContent = state.current.artist;
                 const thumb = state.current.thumbnail;
@@ -330,12 +353,20 @@
                 img.onload = () => extractColor(img);
                 img.src = thumb;
 
-                // Stream setup
                 audio.src = `${API_BASE}/stream/${currentTrackId}`;
                 totalDurationSeconds = state.current.duration;
                 document.getElementById('time-dur').textContent = formatTime(totalDurationSeconds);
 
-                // Fetch Lyrics
+                // Wait until audio metadata is loaded before setting currentTime & playing
+                audio.addEventListener('loadedmetadata', function handler() {
+                    audio.removeEventListener('loadedmetadata', handler);
+                    audio.currentTime = state.offset;
+                    audio.play().catch(() => {
+                        document.getElementById('loading-text').textContent = "Click to Join Broadcast";
+                        window.onclick = () => { audio.play(); window.onclick = null; loadingOverlay.classList.add('hidden'); };
+                    });
+                });
+
                 try {
                     const lRes = await fetch(`${API_BASE}/lyrics/${currentTrackId}`);
                     if (lRes.ok) {
@@ -347,7 +378,6 @@
                     }
                 } catch(e) { container.innerHTML = ''; }
 
-                // Fetch Video
                 videoAvailable = false;
                 video.style.opacity = "0";
                 const vUrl = `${API_BASE}/video/${currentTrackId}`;
@@ -358,24 +388,19 @@
                         if (userWantsLyrics && !audio.paused) video.play();
                     }
                 });
-            }
-
-            // Time Synchronization
-            if (Math.abs(audio.currentTime - state.offset) > 2.5) {
-                audio.currentTime = state.offset;
-                if (videoAvailable) video.currentTime = state.offset;
-            }
-
-            if (audio.paused) {
-                audio.play().catch(() => {
-                    document.getElementById('loading-text').textContent = "Click to Join Broadcast";
-                    window.onclick = () => { audio.play(); window.onclick = null; loadingOverlay.classList.add('hidden'); };
-                });
             } else {
-                loadingOverlay.classList.add('hidden');
+                // Syncing offset for already playing track
+                if (Math.abs(audio.currentTime - state.offset) > 2.5) {
+                    audio.currentTime = state.offset;
+                    if (videoAvailable) video.currentTime = state.offset;
+                }
+                if (audio.paused) {
+                    audio.play().catch(() => {});
+                } else {
+                    loadingOverlay.classList.add('hidden');
+                }
             }
 
-            // Next Up UI
             if (state.next) {
                 document.getElementById('next-card').style.opacity = "1";
                 document.getElementById('next-card').style.transform = "translateY(0)";
@@ -439,13 +464,11 @@
         const time = audio.currentTime;
         const duration = totalDurationSeconds || audio.duration;
 
-        // Progress Bar
         if (duration) {
             document.getElementById('progress-fill').style.width = (time / duration * 100) + '%';
             document.getElementById('time-cur').textContent = formatTime(time);
         }
 
-        // Lyrics Sync
         if (userWantsLyrics) {
             const allLines = Array.from(document.querySelectorAll('.lyric-line'));
             let currentIdx = -1, stickyIdx = -1;
@@ -455,12 +478,10 @@
                 if (time >= s && time <= e) currentIdx = i;
                 if (time >= s) stickyIdx = i;
 
-                // Line Opacity based on distance from current
                 const dist = Math.abs(i - currentIdx);
                 const opacity = currentIdx === -1 ? 0.18 : i === currentIdx ? 1 : dist === 1 ? 0.45 : 0.15;
                 line.style.setProperty('--line-opacity', opacity);
 
-                // Word Fill
                 line.querySelectorAll('.word').forEach(word => {
                     const ws = parseFloat(word.dataset.start), we = parseFloat(word.dataset.end);
                     const fill = time < ws ? 0 : time > we ? 100 : ((time - ws) / (we - ws)) * 100;
@@ -468,12 +489,10 @@
                 });
             });
 
-            // Scroll centering
             if (currentIdx >= 0 && allLines[currentIdx]) {
                 allLines[currentIdx].scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
 
-            // Sticky Logic
             if (stickyIdx >= 0) {
                 const active = allLines[stickyIdx];
                 const lineRect = active.getBoundingClientRect();
@@ -488,7 +507,6 @@
                     }
                     stickyLyric.classList.add('visible');
 
-                    // Keep words in sync on the clone
                     const cloneWords = stickyLyric.querySelectorAll('.word');
                     active.querySelectorAll('.word').forEach((w, i) => {
                         if (cloneWords[i]) cloneWords[i].style.setProperty('--fill', w.style.getPropertyValue('--fill'));
@@ -504,13 +522,12 @@
         requestAnimationFrame(sync);
     }
 
-    // Volume and Events
     document.getElementById('volume-slider').oninput = e => audio.volume = e.target.value;
     audio.onplay = () => { if(videoAvailable && userWantsLyrics) video.play(); };
     audio.onpause = () => { video.pause(); };
+    audio.onended = () => updateBroadcast();  // immediately fetch next state
 
-    // Lifecycle
-    setInterval(updateBroadcast, 8000);
+    setInterval(updateBroadcast, 3000);
     updateBroadcast();
     requestAnimationFrame(sync);
 </script>
