@@ -7,14 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
-        body { background: #000; color: #fff; font-family: 'Google Sans', sans-serif; padding: 20px; margin: 0; }
-        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 450px; gap: 30px; }
+        body { background: #000; color: #fff; font-family: 'Google Sans', sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 450px; gap: 30px; padding: 20px 20px 120px 20px; }
 
         .header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #222; }
         h1 { font-size: 22px; }
 
-        .search-section { height: calc(100vh - 150px); display: flex; flex-direction: column; }
-        .right-panel { height: calc(100vh - 150px); display: flex; flex-direction: column; }
+        .search-section { height: calc(100vh - 250px); display: flex; flex-direction: column; }
+        .right-panel { height: calc(100vh - 250px); display: flex; flex-direction: column; }
 
         .tabs { display: flex; gap: 0; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 10px; background: #111; border: 1px solid #333; color: #aaa; font-weight: 600; cursor: pointer; text-align: center; border-radius: 0; }
@@ -49,6 +49,29 @@
         .playlist-row .name { font-weight: 600; }
         .playlist-row .count { opacity: 0.5; font-size: 12px; }
         .row-actions { display: flex; gap: 6px; }
+
+        /* ── Player Bar ── */
+        .player-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.95); backdrop-filter: blur(20px);
+            border-top: 1px solid #222;
+            padding: 12px 24px;
+            display: flex; align-items: center; gap: 20px;
+            z-index: 1000;
+        }
+        .player-bar img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
+        .player-info { flex: 1; min-width: 0; }
+        .player-info .title { font-size: 14px; font-weight: 700; }
+        .player-info .artist { font-size: 12px; opacity: 0.5; margin-top: 2px; }
+        .controls { display: flex; align-items: center; gap: 16px; }
+        .controls button { background: none; border: none; color: #fff; cursor: pointer; padding: 4px; }
+        .progress-wrap { flex: 1; display: flex; align-items: center; gap: 10px; max-width: 400px; }
+        .progress-track { flex: 1; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; position: relative; cursor: pointer; }
+        .progress-fill { height: 100%; background: #fff; border-radius: 2px; width: 0%; }
+        .time-label { font-size: 11px; opacity: 0.5; min-width: 34px; }
+        .volume-wrap { display: flex; align-items: center; gap: 6px; margin-left: 10px; }
+        .volume-slider { width: 80px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; outline: none; -webkit-appearance: none; }
+        .volume-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: white; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -61,7 +84,6 @@
         </button>
     </div>
 
-    <!-- Left Side: Search -->
     <div class="search-section">
         <h2><span class="material-symbols-rounded">search</span> Search YouTube Music</h2>
         <div class="search-box">
@@ -71,14 +93,11 @@
         <div class="scroll-area" id="searchResults"></div>
     </div>
 
-    <!-- Right Side: Tabs -->
     <div class="right-panel">
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('queue')">Queue</button>
             <button class="tab-btn" onclick="switchTab('playlists')">Saved Playlists</button>
         </div>
-
-        <!-- Queue Tab -->
         <div class="tab-content active" id="tab-queue">
             <div class="section-header">
                 <h2 style="margin:0"><span class="material-symbols-rounded">queue_music</span> Live Queue</h2>
@@ -90,8 +109,6 @@
                 <p style="text-align:center; opacity:0.3; margin-top:20px;">Queue is empty</p>
             </div>
         </div>
-
-        <!-- Playlists Tab -->
         <div class="tab-content" id="tab-playlists">
             <div class="section-header">
                 <h2 style="margin:0"><span class="material-symbols-rounded">playlist_play</span> Saved Playlists</h2>
@@ -101,8 +118,39 @@
     </div>
 </div>
 
+<!-- Player Bar -->
+<div class="player-bar" id="playerBar">
+    <img id="playerArt" src="">
+    <div class="player-info">
+        <div class="title" id="playerTitle">No track playing</div>
+        <div class="artist" id="playerArtist"></div>
+    </div>
+    <div class="progress-wrap">
+        <span class="time-label" id="timeCur">0:00</span>
+        <div class="progress-track" id="progressTrack">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <span class="time-label" id="timeDur">0:00</span>
+    </div>
+    <div class="controls">
+        <button onclick="prevTrack()"><span class="material-symbols-rounded">skip_previous</span></button>
+        <button id="playPauseBtn" onclick="togglePlayPause()"><span class="material-symbols-rounded">pause</span></button>
+        <button onclick="nextTrack()"><span class="material-symbols-rounded">skip_next</span></button>
+    </div>
+    <div class="volume-wrap">
+        <span class="material-symbols-rounded" style="opacity:0.5; font-size:20px;">volume_up</span>
+        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+    </div>
+</div>
+
+<audio id="audio" crossorigin="anonymous" style="display:none;"></audio>
+
 <script>
     const API_BASE = 'https://music.sposlearning.cz';
+    const audio = document.getElementById('audio');
+    let currentTrackId = null;
+    let isPlaying = false;
+    let duration = 0;
 
     // ── Tab switching ──
     function switchTab(tab) {
@@ -113,7 +161,117 @@
         if (tab === 'playlists') loadSavedPlaylists();
     }
 
-    // ── Queue management (unchanged, but now with Save button) ──
+    // ── Playback Controls ──
+    function formatTime(s) {
+        if (!isFinite(s) || isNaN(s)) return '0:00';
+        return Math.floor(s / 60) + ':' + Math.floor(s % 60).toString().padStart(2, '0');
+    }
+
+    async function updatePlayerState() {
+        try {
+            const res = await fetch(`${API_BASE}/radio/state`);
+            const state = await res.json();
+            if (!state.active) {
+                document.getElementById('playerTitle').textContent = 'No track playing';
+                document.getElementById('playerArtist').textContent = '';
+                document.getElementById('playerArt').src = '';
+                audio.pause();
+                return;
+            }
+
+            // Update current track info
+            if (currentTrackId !== state.current.videoId) {
+                currentTrackId = state.current.videoId;
+                duration = state.current.duration || 0;
+                document.getElementById('playerTitle').textContent = state.current.title;
+                document.getElementById('playerArtist').textContent = state.current.artist;
+                document.getElementById('playerArt').src = state.current.thumbnail;
+                document.getElementById('timeDur').textContent = formatTime(duration);
+
+                audio.src = `${API_BASE}/stream/${state.current.videoId}`;
+                audio.load();
+                // Wait for metadata to sync time
+                audio.addEventListener('loadedmetadata', function handler() {
+                    audio.removeEventListener('loadedmetadata', handler);
+                    audio.currentTime = state.offset;
+                    if (isPlaying) audio.play();
+                });
+            } else {
+                // Sync time if drift > 2s
+                if (Math.abs(audio.currentTime - state.offset) > 2.5) {
+                    audio.currentTime = state.offset;
+                }
+            }
+
+            // Next track thumbnail
+            if (state.next) {
+                // optional: show next info somewhere
+            }
+        } catch (err) {
+            console.error('State fetch error:', err);
+        }
+    }
+
+    function updateProgress() {
+        const time = audio.currentTime;
+        const fill = duration ? (time / duration) * 100 : 0;
+        document.getElementById('progressFill').style.width = fill + '%';
+        document.getElementById('timeCur').textContent = formatTime(time);
+    }
+
+    // Seek bar click
+    document.getElementById('progressTrack').addEventListener('click', function(e) {
+        if (!duration) return;
+        const rect = this.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const ratio = x / rect.width;
+        audio.currentTime = ratio * duration;
+    });
+
+    // Volume
+    document.getElementById('volumeSlider').addEventListener('input', e => {
+        audio.volume = e.target.value;
+    });
+
+    // Play/Pause
+    function togglePlayPause() {
+        if (!currentTrackId) return;
+        if (audio.paused) {
+            audio.play();
+            isPlaying = true;
+            document.getElementById('playPauseBtn').innerHTML = '<span class="material-symbols-rounded">pause</span>';
+        } else {
+            audio.pause();
+            isPlaying = false;
+            document.getElementById('playPauseBtn').innerHTML = '<span class="material-symbols-rounded">play_arrow</span>';
+        }
+    }
+
+    // Next / Previous
+    async function nextTrack() {
+        try {
+            await fetch(`${API_BASE}/radio/skip/next`, { method: 'POST' });
+            updatePlayerState();
+            refreshQueue();
+        } catch (e) {}
+    }
+
+    async function prevTrack() {
+        try {
+            await fetch(`${API_BASE}/radio/skip/previous`, { method: 'POST' });
+            updatePlayerState();
+            refreshQueue();
+        } catch (e) {}
+    }
+
+    // Keep progress bar updated
+    setInterval(updateProgress, 500);
+
+    // Poll server state every 3s
+    setInterval(updatePlayerState, 3000);
+    updatePlayerState();
+
+    // ── Queue management ──
     async function refreshQueue() {
         try {
             const res = await fetch(`${API_BASE}/playlist`);
@@ -287,7 +445,6 @@
 
     document.getElementById('searchInput').onkeydown = e => { if(e.key === 'Enter') performSearch(); };
 
-    // Initialize
     refreshQueue();
     loadSavedPlaylists();
 </script>
