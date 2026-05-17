@@ -469,6 +469,13 @@
             document.getElementById('time-cur').textContent = formatTime(time);
         }
 
+        if (userWantsLyrics && videoAvailable && !video.paused) {
+            const diff = Math.abs(video.currentTime - time);
+            if (diff > 0.2) {
+                video.currentTime = time;
+            }
+        }
+
         if (userWantsLyrics) {
             const allLines = Array.from(document.querySelectorAll('.lyric-line'));
             let currentIdx = -1, stickyIdx = -1;
