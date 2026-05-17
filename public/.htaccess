@@ -31,6 +31,8 @@ RewriteRule ^ - [L]
 # 4. Handle Login & Admin Pages
 RewriteRule ^settings/?$ settings.html [L]
 RewriteRule ^login/?$ login.html [L]
+RewriteRule ^radio/?$ radio.html [L]
+RewriteRule ^radio/manage/?$ manager.html [L]
 RewriteRule ^admin/dashboard/?$ admin/dashboard.html [L]
 RewriteRule ^admin/feedback/?$ admin/feedback.html [L]
 RewriteRule ^admin/feedback/post/?$ admin/feedback/post.html [L]
