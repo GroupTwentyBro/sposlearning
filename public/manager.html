@@ -38,6 +38,8 @@
         .btn-red { background: rgba(255,59,48,0.1); color: #ff3b30; border: 1px solid #ff3b30; }
         .btn-red:hover { background: rgba(255,59,48,0.2); }
         .btn-small { padding: 5px 10px; font-size: 11px; }
+        .btn-next { background: rgba(255,255,255,0.08); color: #aaa; border: 1px solid rgba(255,255,255,0.1); padding: 6px 10px; border-radius: 30px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .btn-next:hover { background: rgba(255,255,255,0.15); color: #fff; }
 
         h2 { font-size: 18px; margin-bottom: 20px; opacity: 0.8; display: flex; align-items: center; gap: 10px; }
 
@@ -50,7 +52,7 @@
         .playlist-row .count { opacity: 0.5; font-size: 12px; }
         .row-actions { display: flex; gap: 6px; }
 
-        /* ── Player Bar ── */
+        /* ── Player Bar (unchanged) ── */
         .player-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(0,0,0,0.95); backdrop-filter: blur(20px);
@@ -118,7 +120,7 @@
     </div>
 </div>
 
-<!-- Player Bar -->
+<!-- Player Bar (unchanged) -->
 <div class="player-bar" id="playerBar">
     <img id="playerArt" src="">
     <div class="player-info">
@@ -179,7 +181,6 @@
                 return;
             }
 
-            // Update current track info
             if (currentTrackId !== state.current.videoId) {
                 currentTrackId = state.current.videoId;
                 duration = state.current.duration || 0;
@@ -190,22 +191,15 @@
 
                 audio.src = `${API_BASE}/stream/${state.current.videoId}`;
                 audio.load();
-                // Wait for metadata to sync time
                 audio.addEventListener('loadedmetadata', function handler() {
                     audio.removeEventListener('loadedmetadata', handler);
                     audio.currentTime = state.offset;
                     if (isPlaying) audio.play();
                 });
             } else {
-                // Sync time if drift > 2s
                 if (Math.abs(audio.currentTime - state.offset) > 2.5) {
                     audio.currentTime = state.offset;
                 }
-            }
-
-            // Next track thumbnail
-            if (state.next) {
-                // optional: show next info somewhere
             }
         } catch (err) {
             console.error('State fetch error:', err);
@@ -219,7 +213,6 @@
         document.getElementById('timeCur').textContent = formatTime(time);
     }
 
-    // Seek bar click
     document.getElementById('progressTrack').addEventListener('click', function(e) {
         if (!duration) return;
         const rect = this.getBoundingClientRect();
@@ -228,12 +221,10 @@
         audio.currentTime = ratio * duration;
     });
 
-    // Volume
     document.getElementById('volumeSlider').addEventListener('input', e => {
         audio.volume = e.target.value;
     });
 
-    // Play/Pause
     function togglePlayPause() {
         if (!currentTrackId) return;
         if (audio.paused) {
@@ -247,7 +238,6 @@
         }
     }
 
-    // Next / Previous
     async function nextTrack() {
         try {
             await fetch(`${API_BASE}/radio/skip/next`, { method: 'POST' });
@@ -264,10 +254,7 @@
         } catch (e) {}
     }
 
-    // Keep progress bar updated
     setInterval(updateProgress, 500);
-
-    // Poll server state every 3s
     setInterval(updatePlayerState, 3000);
     updatePlayerState();
 
@@ -327,6 +314,9 @@
                     <button class="btn" onclick='addToRadio(${JSON.stringify(t).replace(/'/g, "&apos;")})'>
                         <span class="material-symbols-rounded">add</span> Add
                     </button>
+                    <button class="btn-next" onclick='addToRadioNext(${JSON.stringify(t).replace(/'/g, "&apos;")})' title="Play Next">
+                        <span class="material-symbols-rounded" style="font-size:18px;">skip_next</span>
+                    </button>
                 `;
                 resultsDiv.appendChild(card);
             });
@@ -344,6 +334,17 @@
             });
             if (res.ok) refreshQueue();
         } catch (err) { alert("Failed to add track."); }
+    }
+
+    async function addToRadioNext(track) {
+        try {
+            const res = await fetch(`${API_BASE}/playlist/add/next`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(track)
+            });
+            if (res.ok) refreshQueue();
+        } catch (err) { alert("Failed to add track next."); }
     }
 
     async function removeFromQueue(id) {
