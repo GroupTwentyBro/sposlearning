@@ -149,10 +149,46 @@
 
 <script>
     const API_BASE = 'https://music.sposlearning.cz';
-    const audio = document.getElementById('audio');
+    const KRATOS_URL = 'https://auth.sposlearning.cz';
+    const BASE_URL  = 'https://sposlearning.cz';
+
+    const container    = document.querySelector('.container');
+    const playerBar    = document.getElementById('playerBar');
+    const audio        = document.getElementById('audio');
     let currentTrackId = null;
-    let isPlaying = false;
-    let duration = 0;
+    let isPlaying      = false;
+    let duration       = 0;
+
+    // ══════════ Admin guard ══════════
+    async function guardAdmin() {
+        try {
+            const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error('Not logged in');
+            const session = await res.json();
+            if (session.identity?.metadata_public?.admin !== true) throw new Error('Not admin');
+            // hide loading state if you add one
+        } catch (err) {
+            window.location.href = `${BASE_URL}/login`;
+            throw err;  // stop execution
+        }
+    }
+
+    // Logout helper (you can add a button if you want)
+    async function logout() {
+        try {
+            const res = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            const flow = await res.json();
+            window.location.href = flow.logout_url;
+        } catch (e) {
+            window.location.href = `${BASE_URL}/login`;
+        }
+    }
 
     // ── Tab switching ──
     function switchTab(tab) {
