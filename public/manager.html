@@ -482,8 +482,10 @@
 
     document.getElementById('searchInput').onkeydown = e => { if(e.key === 'Enter') performSearch(); };
 
-    refreshQueue();
-    loadSavedPlaylists();
+    guardAdmin().then(() => {
+        refreshQueue();
+        loadSavedPlaylists();
+    }).catch(() => {});
 </script>
 </body>
 </html>
