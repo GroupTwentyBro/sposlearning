@@ -169,14 +169,12 @@
             if (!res.ok) throw new Error('Not logged in');
             const session = await res.json();
             if (session.identity?.metadata_public?.admin !== true) throw new Error('Not admin');
-            // hide loading state if you add one
         } catch (err) {
             window.location.href = `${BASE_URL}/login`;
-            throw err;  // stop execution
+            throw err;
         }
     }
 
-    // Logout helper (you can add a button if you want)
     async function logout() {
         try {
             const res = await fetch(`${KRATOS_URL}/self-service/logout/browser`, {
@@ -294,6 +292,86 @@
     setInterval(updatePlayerState, 3000);
     updatePlayerState();
 
+    // ══════════ DRAG & DROP ══════════
+    let draggedItem = null;
+
+    function attachDragListeners(card) {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragend', handleDragEnd);
+        card.addEventListener('drop', handleDrop);
+    }
+
+    function handleDragStart(e) {
+        draggedItem = this;
+        this.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.id);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        // Reset all cards
+        document.querySelectorAll('#currentQueue .card').forEach(c => c.style.opacity = '1');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const target = e.currentTarget;
+        if (draggedItem && target !== draggedItem) {
+            const queueDiv = document.getElementById('currentQueue');
+            const cards = [...queueDiv.querySelectorAll('.card')];
+            const fromIndex = cards.indexOf(draggedItem);
+            const toIndex = cards.indexOf(target);
+
+            if (fromIndex < toIndex) {
+                target.parentNode.insertBefore(draggedItem, target.nextSibling);
+            } else {
+                target.parentNode.insertBefore(draggedItem, target);
+            }
+
+            // Collect new order
+            const newOrder = [];
+            document.querySelectorAll('#currentQueue .card').forEach(c => {
+                newOrder.push(c.dataset.id);
+            });
+
+            // Update index numbers visually
+            updateCardNumbers();
+
+            // Send to server
+            saveNewOrder(newOrder);
+        }
+    }
+
+    function updateCardNumbers() {
+        const cards = document.querySelectorAll('#currentQueue .card');
+        cards.forEach((card, i) => {
+            const numSpan = card.querySelector('div[style*="font-size:10px"]');
+            if (numSpan) numSpan.textContent = i + 1;
+        });
+    }
+
+    async function saveNewOrder(order) {
+        try {
+            await fetch(`${API_BASE}/playlist/reorder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order })
+            });
+        } catch (err) {
+            console.error('Reorder failed:', err);
+            // Optionally refresh to undo
+            refreshQueue();
+        }
+    }
+
     // ── Queue management ──
     async function refreshQueue() {
         try {
@@ -310,6 +388,7 @@
             queue.forEach((t, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                card.dataset.id = t._id;
                 card.innerHTML = `
                     <div style="font-size:10px; opacity:0.3; width:15px;">${index + 1}</div>
                     <img src="${t.thumbnail}">
@@ -321,6 +400,7 @@
                         <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
                     </button>
                 `;
+                attachDragListeners(card);
                 queueDiv.appendChild(card);
             });
         } catch (err) { console.error("Failed to fetch queue"); }
