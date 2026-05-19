@@ -429,6 +429,7 @@
                     <div class="info">
                         <div class="title">${t.title}</div>
                         <div class="artist">${t.artist}</div>
+                        <div style="font-size:10px; opacity:0.25; margin-top:2px;">${t.videoId}</div>
                     </div>
                     <button class="btn-icon btn-red" onclick="removeFromQueue('${t._id}')" title="Remove">
                         <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
@@ -460,6 +461,7 @@
                     <div class="info">
                         <div class="title">${t.title}</div>
                         <div class="artist">${t.artist}</div>
+                        <div style="font-size:10px; opacity:0.25; margin-top:2px;">${t.videoId}</div>
                     </div>
                     <button class="btn" onclick='addToRadio(${JSON.stringify(t).replace(/'/g, "&apos;")})'>
                         <span class="material-symbols-rounded">add</span> Add
@@ -603,6 +605,7 @@
                 <div class="info">
                     <div class="title">${t.title}</div>
                     <div class="artist">${t.artist}</div>
+                    <div style="font-size:10px; opacity:0.25; margin-top:2px;">${t.videoId}</div>
                 </div>
                 <button class="btn-icon btn-red" onclick="removeFromPlaylist('${t.videoId}')" title="Remove">
                     <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
