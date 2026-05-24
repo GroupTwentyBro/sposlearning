@@ -419,23 +419,31 @@
             lineDiv.className = 'lyric-line';
             let sTime = Infinity, eTime = -Infinity;
 
-            Array.from(p.childNodes).forEach(node => {
-                if (node.nodeType === 1 && node.tagName.toLowerCase() === 'span') {
-                    const start = parseT(node.getAttribute('begin')), end = parseT(node.getAttribute('end'));
-                    sTime = Math.min(sTime, start); eTime = Math.max(eTime, end);
+            // Collect all leaf spans with timing (skip bg-vocal wrappers)
+            const allSpans = Array.from(p.querySelectorAll('span[begin]'));
 
-                    const word = document.createElement('span');
-                    word.className = 'word';
-                    word.textContent = node.textContent;
-                    word.dataset.text = node.textContent;
-                    word.dataset.start = start;
-                    word.dataset.end = end;
-                    lineDiv.appendChild(word);
-                } else if (node.nodeType === 3) {
-                    lineDiv.appendChild(document.createTextNode(node.textContent));
-                }
+            allSpans.forEach(node => {
+                // Skip background vocal spans (role="x-bg" parent)
+                const parent = node.parentElement;
+                if (parent && parent.getAttribute('ttm:role') === 'x-bg') return;
+
+                const start = parseT(node.getAttribute('begin'));
+                const end = parseT(node.getAttribute('end'));
+                sTime = Math.min(sTime, start);
+                eTime = Math.max(eTime, end);
+
+                const word = document.createElement('span');
+                word.className = 'word';
+                word.textContent = node.textContent;
+                word.dataset.text = node.textContent;
+                word.dataset.start = start;
+                word.dataset.end = end;
+                lineDiv.appendChild(word);
             });
-            lineDiv.dataset.start = sTime; lineDiv.dataset.end = eTime;
+
+            if (sTime === Infinity) continue; // skip empty lines
+            lineDiv.dataset.start = sTime;
+            lineDiv.dataset.end = eTime;
             container.appendChild(lineDiv);
         }
     }
