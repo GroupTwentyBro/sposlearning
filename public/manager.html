@@ -52,7 +52,11 @@
         .playlist-row .count { opacity: 0.5; font-size: 12px; }
         .row-actions { display: flex; gap: 6px; }
 
-        /* ── Player Bar (unchanged) ── */
+        /* Editor */
+        .editor-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .editor-header h2 { margin: 0; }
+
+        /* Player Bar (unchanged) */
         .player-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: rgba(0,0,0,0.95); backdrop-filter: blur(20px);
@@ -86,6 +90,7 @@
         </button>
     </div>
 
+    <!-- Left Side: Search -->
     <div class="search-section">
         <h2><span class="material-symbols-rounded">search</span> Search YouTube Music</h2>
         <div class="search-box">
@@ -95,11 +100,14 @@
         <div class="scroll-area" id="searchResults"></div>
     </div>
 
+    <!-- Right Side: Tabs -->
     <div class="right-panel">
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('queue')">Queue</button>
             <button class="tab-btn" onclick="switchTab('playlists')">Saved Playlists</button>
         </div>
+
+        <!-- Queue Tab -->
         <div class="tab-content active" id="tab-queue">
             <div class="section-header">
                 <h2 style="margin:0"><span class="material-symbols-rounded">queue_music</span> Live Queue</h2>
@@ -111,11 +119,23 @@
                 <p style="text-align:center; opacity:0.3; margin-top:20px;">Queue is empty</p>
             </div>
         </div>
+
+        <!-- Playlists Tab -->
         <div class="tab-content" id="tab-playlists">
             <div class="section-header">
                 <h2 style="margin:0"><span class="material-symbols-rounded">playlist_play</span> Saved Playlists</h2>
+                <button class="btn btn-small" onclick="createNewPlaylist()">+ New</button>
             </div>
             <div class="scroll-area" id="savedPlaylistsList"></div>
+        </div>
+
+        <!-- Playlist Editor (hidden by default) -->
+        <div class="tab-content" id="tab-editor">
+            <div class="editor-header">
+                <h2 id="editorTitle"></h2>
+                <button class="btn btn-small" onclick="closeEditor()">Done</button>
+            </div>
+            <div class="scroll-area" id="editorTrackList"></div>
         </div>
     </div>
 </div>
@@ -149,21 +169,55 @@
 
 <script>
     const API_BASE = 'https://music.sposlearning.cz';
-    const audio = document.getElementById('audio');
+    const KRATOS_URL = 'https://auth.sposlearning.cz';
+    const BASE_URL  = 'https://sposlearning.cz';
+
+    const container    = document.querySelector('.container');
+    const playerBar    = document.getElementById('playerBar');
+    const audio        = document.getElementById('audio');
     let currentTrackId = null;
-    let isPlaying = false;
-    let duration = 0;
+    let isPlaying      = false;
+    let duration       = 0;
+
+    // Current editing context
+    let editingPlaylistId = null;
+
+    // ══════════ Admin guard ══════════
+    async function guardAdmin() {
+        try {
+            const res = await fetch(`${KRATOS_URL}/sessions/whoami`, {
+                credentials: 'include',
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error('Not logged in');
+            const session = await res.json();
+            if (session.identity?.metadata_public?.admin !== true) throw new Error('Not admin');
+        } catch (err) {
+            window.location.href = `${BASE_URL}/login`;
+            throw err;
+        }
+    }
 
     // ── Tab switching ──
     function switchTab(tab) {
+        if (editingPlaylistId && tab !== 'editor') closeEditor();
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        document.querySelector(`.tab-btn:nth-child(${tab === 'queue' ? 1 : 2})`).classList.add('active');
-        document.getElementById(`tab-${tab}`).classList.add('active');
-        if (tab === 'playlists') loadSavedPlaylists();
+        if (tab === 'queue') {
+            document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('tab-queue').classList.add('active');
+            refreshQueue();
+        } else if (tab === 'playlists') {
+            document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('tab-playlists').classList.add('active');
+            loadSavedPlaylists();
+        } else if (tab === 'editor') {
+            // keep queue tab highlighted? we'll show editor separately
+            document.getElementById('tab-editor').classList.add('active');
+        }
     }
 
-    // ── Playback Controls ──
+    // ── Playback Controls (unchanged) ──
     function formatTime(s) {
         if (!isFinite(s) || isNaN(s)) return '0:00';
         return Math.floor(s / 60) + ':' + Math.floor(s % 60).toString().padStart(2, '0');
@@ -258,7 +312,101 @@
     setInterval(updatePlayerState, 3000);
     updatePlayerState();
 
-    // ── Queue management ──
+    // ══════════ DRAG & DROP (for both queue and editor) ══════════
+    let draggedItem = null;
+
+    function attachDragListeners(card) {
+        card.setAttribute('draggable', 'true');
+        card.addEventListener('dragstart', handleDragStart);
+        card.addEventListener('dragover', handleDragOver);
+        card.addEventListener('dragend', handleDragEnd);
+        card.addEventListener('drop', handleDrop);
+    }
+
+    function handleDragStart(e) {
+        draggedItem = this;
+        this.style.opacity = '0.4';
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.dataset.id);
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleDragEnd(e) {
+        this.style.opacity = '1';
+        document.querySelectorAll('.card[draggable]').forEach(c => c.style.opacity = '1');
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        const target = e.currentTarget;
+        if (draggedItem && target !== draggedItem) {
+            const parent = target.parentNode;
+            const cards = [...parent.querySelectorAll('.card')];
+            const fromIndex = cards.indexOf(draggedItem);
+            const toIndex = cards.indexOf(target);
+
+            if (fromIndex < toIndex) {
+                parent.insertBefore(draggedItem, target.nextSibling);
+            } else {
+                parent.insertBefore(draggedItem, target);
+            }
+
+            // Update numbers if queue
+            if (parent.id === 'currentQueue') {
+                updateQueueNumbers();
+                saveQueueOrder();
+            } else if (parent.id === 'editorTrackList') {
+                updateEditorNumbers();
+                saveEditorOrder();
+            }
+        }
+    }
+
+    // ── Queue drag helpers ──
+    function updateQueueNumbers() {
+        const cards = document.querySelectorAll('#currentQueue .card');
+        cards.forEach((card, i) => {
+            const numSpan = card.querySelector('div[style*="font-size:10px"]');
+            if (numSpan) numSpan.textContent = i + 1;
+        });
+    }
+
+    async function saveQueueOrder() {
+        const order = [...document.querySelectorAll('#currentQueue .card')].map(c => c.dataset.id);
+        try {
+            await fetch(`${API_BASE}/playlist/reorder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order })
+            });
+        } catch (e) { refreshQueue(); }
+    }
+
+    // ── Editor drag helpers ──
+    function updateEditorNumbers() {
+        const cards = document.querySelectorAll('#editorTrackList .card');
+        cards.forEach((card, i) => {
+            const numSpan = card.querySelector('div[style*="font-size:10px"]');
+            if (numSpan) numSpan.textContent = i + 1;
+        });
+    }
+
+    async function saveEditorOrder() {
+        const order = [...document.querySelectorAll('#editorTrackList .card')].map(c => c.dataset.videoId);
+        try {
+            await fetch(`${API_BASE}/playlist/${editingPlaylistId}/reorder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order })
+            });
+        } catch (e) { loadEditor(); }
+    }
+
+    // ── Queue management (unchanged) ──
     async function refreshQueue() {
         try {
             const res = await fetch(`${API_BASE}/playlist`);
@@ -274,17 +422,20 @@
             queue.forEach((t, index) => {
                 const card = document.createElement('div');
                 card.className = 'card';
+                card.dataset.id = t._id;
                 card.innerHTML = `
                     <div style="font-size:10px; opacity:0.3; width:15px;">${index + 1}</div>
                     <img src="${t.thumbnail}">
                     <div class="info">
                         <div class="title">${t.title}</div>
                         <div class="artist">${t.artist}</div>
+                        <div style="font-size:10px; opacity:0.25; margin-top:2px;">${t.videoId}</div>
                     </div>
                     <button class="btn-icon btn-red" onclick="removeFromQueue('${t._id}')" title="Remove">
                         <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
                     </button>
                 `;
+                attachDragListeners(card);
                 queueDiv.appendChild(card);
             });
         } catch (err) { console.error("Failed to fetch queue"); }
@@ -310,6 +461,7 @@
                     <div class="info">
                         <div class="title">${t.title}</div>
                         <div class="artist">${t.artist}</div>
+                        <div style="font-size:10px; opacity:0.25; margin-top:2px;">${t.videoId}</div>
                     </div>
                     <button class="btn" onclick='addToRadio(${JSON.stringify(t).replace(/'/g, "&apos;")})'>
                         <span class="material-symbols-rounded">add</span> Add
@@ -317,6 +469,7 @@
                     <button class="btn-next" onclick='addToRadioNext(${JSON.stringify(t).replace(/'/g, "&apos;")})' title="Play Next">
                         <span class="material-symbols-rounded" style="font-size:18px;">skip_next</span>
                     </button>
+                    ${editingPlaylistId ? `<button class="btn-next" onclick='addToPlaylist(${JSON.stringify(t).replace(/'/g, "&apos;")})' title="Add to playlist"><span class="material-symbols-rounded" style="font-size:18px;">playlist_add</span></button>` : ''}
                 `;
                 resultsDiv.appendChild(card);
             });
@@ -378,18 +531,114 @@
                     </div>
                     <div class="row-actions">
                         <button class="btn btn-small" onclick="loadPlaylist('${p._id}')">Load</button>
-                        <button class="btn-icon" onclick="renamePlaylist('${p._id}')" title="Rename">
-                            <span class="material-symbols-rounded" style="font-size:18px;">edit</span>
-                        </button>
-                        <button class="btn-icon btn-red" onclick="deletePlaylist('${p._id}')" title="Delete">
-                            <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
-                        </button>
+                        <button class="btn-icon" onclick="openEditor('${p._id}')" title="Edit"><span class="material-symbols-rounded" style="font-size:18px;">edit</span></button>
+                        <button class="btn-icon" onclick="renamePlaylist('${p._id}')" title="Rename"><span class="material-symbols-rounded" style="font-size:18px;">drive_file_rename_outline</span></button>
+                        <button class="btn-icon btn-red" onclick="deletePlaylist('${p._id}')" title="Delete"><span class="material-symbols-rounded" style="font-size:18px;">delete</span></button>
                     </div>
                 </div>
             `).join('');
         } catch (err) {
             container.innerHTML = '<p style="color:#ff3b30">Failed to load playlists</p>';
         }
+    }
+
+    async function createNewPlaylist() {
+        const name = prompt('New playlist name:');
+        if (!name) return;
+        try {
+            const res = await fetch(`${API_BASE}/playlist/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                openEditor(data._id);
+            } else {
+                alert('Failed to create playlist');
+            }
+        } catch (err) { alert("Create failed"); }
+    }
+
+    async function openEditor(playlistId) {
+        editingPlaylistId = playlistId;
+        // Show editor tab, hide others
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        document.getElementById('tab-editor').classList.add('active');
+        await loadEditor();
+        // Refresh search results so they show "Add to playlist" button
+        performSearch();
+    }
+
+    async function loadEditor() {
+        if (!editingPlaylistId) return;
+        const res = await fetch(`${API_BASE}/playlist/${editingPlaylistId}`);
+        // Actually we don't have endpoint to get a single playlist; we can fetch all playlists and find by id.
+        // Simpler: add GET /playlist/:id endpoint. Let's add it quickly.
+        // For now we'll fetch all and filter. But better to add an endpoint.
+        const playlistsRes = await fetch(`${API_BASE}/playlists`);
+        const playlists = await playlistsRes.json();
+        const playlist = playlists.find(p => p._id === editingPlaylistId);
+        if (!playlist) return closeEditor();
+
+        document.getElementById('editorTitle').textContent = 'Editing: ' + playlist.name;
+        const trackDiv = document.getElementById('editorTrackList');
+        trackDiv.innerHTML = '';
+
+        // Fetch full playlist details (tracks) – we need endpoint GET /playlist/:id
+        // We'll add that endpoint in server: GET /playlist/:id returning full object.
+        // Placeholder: fetch full playlist.
+        const fullRes = await fetch(`${API_BASE}/playlist/${editingPlaylistId}/full`); // we'll create this
+        const full = await fullRes.json();
+        if (!full.tracks || full.tracks.length === 0) {
+            trackDiv.innerHTML = '<p style="text-align:center; opacity:0.3; margin-top:20px;">Empty playlist</p>';
+            return;
+        }
+
+        full.tracks.forEach((t, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.videoId = t.videoId;
+            card.innerHTML = `
+                <div style="font-size:10px; opacity:0.3; width:15px;">${index + 1}</div>
+                <img src="${t.thumbnail}">
+                <div class="info">
+                    <div class="title">${t.title}</div>
+                    <div class="artist">${t.artist}</div>
+                    <div style="font-size:10px; opacity:0.25; margin-top:2px;">${t.videoId}</div>
+                </div>
+                <button class="btn-icon btn-red" onclick="removeFromPlaylist('${t.videoId}')" title="Remove">
+                    <span class="material-symbols-rounded" style="font-size:18px;">delete</span>
+                </button>
+            `;
+            attachDragListeners(card);
+            trackDiv.appendChild(card);
+        });
+    }
+
+    async function addToPlaylist(track) {
+        if (!editingPlaylistId) return;
+        try {
+            const res = await fetch(`${API_BASE}/playlist/${editingPlaylistId}/track`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(track)
+            });
+            if (res.ok) loadEditor();
+        } catch (err) { alert("Failed to add track to playlist."); }
+    }
+
+    async function removeFromPlaylist(videoId) {
+        if (!editingPlaylistId) return;
+        try {
+            const res = await fetch(`${API_BASE}/playlist/${editingPlaylistId}/track/${videoId}`, { method: 'DELETE' });
+            if (res.ok) loadEditor();
+        } catch (err) { alert("Failed to remove track."); }
+    }
+
+    function closeEditor() {
+        editingPlaylistId = null;
+        switchTab('playlists');
     }
 
     async function saveAsPlaylist() {
@@ -446,8 +695,10 @@
 
     document.getElementById('searchInput').onkeydown = e => { if(e.key === 'Enter') performSearch(); };
 
-    refreshQueue();
-    loadSavedPlaylists();
+    guardAdmin().then(() => {
+        refreshQueue();
+        loadSavedPlaylists();
+    }).catch(() => {});
 </script>
 </body>
 </html>
