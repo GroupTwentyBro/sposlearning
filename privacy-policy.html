@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
+    <title>Privacy Policy – SPOŠLearning</title>
+    <meta name="description"
+        content="SPOŠLearning's privacy policy — what data we collect, how we use it, and your rights as a user.">
+
+    <link rel="stylesheet" href="/global.css">
+    <link rel="stylesheet" href="/navbar.css">
+    <link rel="stylesheet" href="/privacy-policy.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <script type="module" src="/js/index.js"></script>
+</head>
+
+<body>
+
+    <div id="nav">
+        <div id="nav-left">
+            <div id="nav-icon">
+                <span class="icon">book_2</span>
+            </div>
+            <div id="nav-grade-select-container">
+                <button id="nav-grade-select">
+                    <span id="grade-text">1st Grade</span>
+                    <span class="icon" id="grade-select-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="grade-menu" class="hidden">
+                    <button id="first-button" data-grade="1">1st Grade</button>
+                    <button id="second-button" data-grade="2">2nd Grade</button>
+                    <button id="third-button" data-grade="3">3rd Grade</button>
+                    <button id="fourth-button" data-grade="4">4th Grade</button>
+                </div>
+            </div>
+            <div id="breadcrumbs">
+                <div class="crumb-item">
+                    <a href="/">Home</a>
+                    <span class="separator icon">chevron_right</span>
+                </div>
+                <div class="crumb-item current-crumb">
+                    <span class="current">Privacy Policy</span>
+                </div>
+            </div>
+        </div>
+        <div id="search">
+            <div id="search-box">
+                <div id="search-icon">
+                    <span class="icon">search</span>
+                </div>
+                <div id="search-input-div">
+                    <input id="search-input" type="text" placeholder="Search pages, topics & notes...">
+                </div>
+            </div>
+            <div id="search-results-container" class="hidden"></div>
+        </div>
+        <div id="nav-right">
+            <button id="login-button" class="nd">
+                <span class="icon">login</span> Login
+            </button>
+            <div id="nav-profile" class="nd">
+                <button id="account-button">
+                    <span class="icon">person</span>
+                    <span id="account-button-name">Name</span>
+                    <span class="icon" id="account-button-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="account-menu" class="hidden">
+                    <button id="dashboard-button" class="nd">Dashboard</button>
+                    <button id="settings-button">Settings</button>
+                    <button id="feedback-button">Send Feedback</button>
+                    <hr>
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="policy-layout">
+
+        <!-- Table of Contents Sidebar -->
+        <aside id="policy-toc">
+            <div id="policy-toc-inner">
+                <div class="toc-header">
+                    <span class="icon">toc</span>
+                    Contents
+                </div>
+                <nav id="toc-nav">
+                    <a href="#section-intro" class="toc-link active">Introduction</a>
+                    <a href="#section-1" class="toc-link">1. What We Collect</a>
+                    <a href="#section-2" class="toc-link">2. How We Use It</a>
+                    <a href="#section-3" class="toc-link">3. Third-Party Sign-In</a>
+                    <a href="#section-4" class="toc-link">4. Storage &amp; Security</a>
+                    <a href="#section-5" class="toc-link">5. Cookies</a>
+                    <a href="#section-6" class="toc-link">6. Your Rights (GDPR)</a>
+                    <a href="#section-7" class="toc-link">7. Account Management</a>
+                    <a href="#section-8" class="toc-link">8. Contact Us</a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main id="policy-main">
+            <div id="policy-hero">
+                <div id="policy-hero-icon">
+                    <span class="icon">shield_lock</span>
+                </div>
+                <div id="policy-hero-text">
+                    <h1 id="policy-title">Privacy Policy</h1>
+                    <p id="policy-meta">
+                        <span class="meta-chip">
+                            <span class="icon">update</span>
+                            Last updated: August 20, 2026
+                        </span>
+                        <span class="meta-chip">
+                            <span class="icon">location_on</span>
+                            Czech Republic &middot; EU (GDPR)
+                        </span>
+                    </p>
+                </div>
+                <button id="print-pdf-btn" onclick="window.print()">
+                    <span class="icon">picture_as_pdf</span>
+                    Save as PDF
+                </button>
+            </div>
+
+            <div class="policy-notice">
+                <span class="icon policy-notice-icon">info</span>
+                <p>We believe privacy should be simple and transparent. This policy explains exactly what we collect,
+                    why we collect it, and what you can do about it &mdash; in plain language.</p>
+            </div>
+
+            <!-- Introduction -->
+            <section class="policy-section" id="section-intro">
+                <h2 class="section-heading">Introduction</h2>
+                <p>SPOŠLearning ("we", "us", "our") is a study platform for students at SPOŠ. This Privacy Policy
+                    describes how we handle personal data when you use our website (<strong>sposlearning.cz</strong>).
+                    We are committed to protecting your privacy and processing your data only where strictly necessary
+                    to run the site.</p>
+                <p>Because our users are primarily students in the European Union, we operate in compliance with the
+                    <strong>General Data Protection Regulation (GDPR)</strong>. The data controller responsible for your
+                    data is the SPOŠLearning team, reachable at <a
+                        href="mailto:tadeasnosek@sposlearning.cz">tadeasnosek@sposlearning.cz</a>.
+                </p>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 1 -->
+            <section class="policy-section" id="section-1">
+                <h2 class="section-heading">
+                    <span class="section-number">1</span>
+                    What Information We Collect
+                </h2>
+                <p>We believe in collecting only what is necessary to run SPOŠLearning. When you use our site, we may
+                    collect:</p>
+
+                <div class="data-cards">
+                    <div class="data-card">
+                        <div class="data-card-icon" style="background: rgba(99, 179, 237, 0.12);">
+                            <span class="icon" style="color: #63b3ed;">person</span>
+                        </div>
+                        <div class="data-card-body">
+                            <h3>Account Information</h3>
+                            <p>Your display name, email address, and a securely hashed version of your password when you
+                                register for an account.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-icon" style="background: rgba(168, 85, 247, 0.12);">
+                            <span class="icon" style="color: #c084fc;">fingerprint</span>
+                        </div>
+                        <div class="data-card-body">
+                            <h3>Two-Factor Authentication (2FA) Data</h3>
+                            <p>If you enable 2FA, we store the necessary data to verify your identity. This includes:
+                            </p>
+                            <ul>
+                                <li><strong>Passkeys:</strong> Public key credentials only. We never store or have
+                                    access to your biometric data &mdash; that remains securely on your device.</li>
+                                <li><strong>TOTP (Authenticator Apps):</strong> A secure shared secret key.</li>
+                                <li><strong>Email OTP:</strong> We use your registered email address to send one-time
+                                    codes.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-icon" style="background: rgba(246, 173, 85, 0.12);">
+                            <span class="icon" style="color: #f6ad55;">network_ping</span>
+                        </div>
+                        <div class="data-card-body">
+                            <h3>Log Data &amp; IP Addresses</h3>
+                            <p>We temporarily log IP addresses for security purposes, such as preventing malicious
+                                attacks or spam. If you are logged in, your IP address is temporarily associated with
+                                your session to keep your account secure.</p>
+                        </div>
+                    </div>
+
+                    <div class="data-card">
+                        <div class="data-card-icon" style="background: rgba(72, 187, 120, 0.12);">
+                            <span class="icon" style="color: #68d391;">cookie</span>
+                        </div>
+                        <div class="data-card-body">
+                            <h3>Cookies</h3>
+                            <p>We store small text files on your device to keep you logged in and remember your
+                                preferences. See <a href="#section-5">Section 5</a> for full details.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="policy-callout callout-blue">
+                    <span class="icon callout-icon">policy</span>
+                    <div>
+                        <strong>Legal basis (GDPR Art. 6):</strong> Processing is based on <em>performance of a
+                            contract</em> (Art. 6(1)(b)) &mdash; providing the account and authentication service you
+                        signed up for &mdash; and <em>legitimate interests</em> (Art. 6(1)(f)) for security logging.
+                    </div>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 2 -->
+            <section class="policy-section" id="section-2">
+                <h2 class="section-heading">
+                    <span class="section-number">2</span>
+                    How We Use Your Information
+                </h2>
+                <p>We use the information we collect strictly to operate and maintain the site. Specifically:</p>
+                <ul class="policy-list">
+                    <li>
+                        <span class="icon list-icon">check_circle</span>
+                        To create and manage your account.
+                    </li>
+                    <li>
+                        <span class="icon list-icon">check_circle</span>
+                        To allow you to log in securely and to support enhanced security features like Two-Factor
+                        Authentication (2FA).
+                    </li>
+                    <li>
+                        <span class="icon list-icon">check_circle</span>
+                        To remember your display preferences (e.g. dark or light mode).
+                    </li>
+                    <li>
+                        <span class="icon list-icon">check_circle</span>
+                        To protect the site from abuse, spam, or security threats.
+                    </li>
+                </ul>
+                <p><strong>We do not sell, rent, trade, or share your personal information with third parties for
+                        marketing or advertising purposes.</strong></p>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 3 -->
+            <section class="policy-section" id="section-3">
+                <h2 class="section-heading">
+                    <span class="section-number">3</span>
+                    Third-Party Sign-In (Google &amp; Microsoft)
+                </h2>
+                <p>You may sign in to SPOŠLearning using your existing Google or Microsoft account. When you choose to
+                    do so:</p>
+                <ul class="policy-list">
+                    <li>
+                        <span class="icon list-icon">arrow_forward</span>
+                        You are redirected to Google's or Microsoft's own sign-in page. We never see your Google or
+                        Microsoft password.
+                    </li>
+                    <li>
+                        <span class="icon list-icon">arrow_forward</span>
+                        Upon successful authentication, the third-party provider shares limited profile information with
+                        us &mdash; typically your <strong>name</strong> and <strong>email address</strong> &mdash; which
+                        we use to create or identify your SPOŠLearning account.
+                    </li>
+                    <li>
+                        <span class="icon list-icon">arrow_forward</span>
+                        We do not receive or store any other data from your Google or Microsoft account (e.g. contacts,
+                        calendar, files).
+                    </li>
+                </ul>
+                <p>Your use of Google or Microsoft sign-in is also subject to their respective privacy policies:</p>
+                <div class="external-links-row">
+                    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer"
+                        class="external-policy-link">
+                        <span class="icon">open_in_new</span>
+                        Google Privacy Policy
+                    </a>
+                    <a href="https://privacy.microsoft.com/privacystatement" target="_blank" rel="noopener noreferrer"
+                        class="external-policy-link">
+                        <span class="icon">open_in_new</span>
+                        Microsoft Privacy Statement
+                    </a>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 4 -->
+            <section class="policy-section" id="section-4">
+                <h2 class="section-heading">
+                    <span class="section-number">4</span>
+                    How We Store and Protect Your Data
+                </h2>
+                <p>Your security is important to us. We take the following measures to protect your data:</p>
+                <ul class="policy-list">
+                    <li>
+                        <span class="icon list-icon">lock</span>
+                        <strong>Passwords are never stored in plain text.</strong> They are hashed using a strong,
+                        industry-standard algorithm before being stored.
+                    </li>
+                    <li>
+                        <span class="icon list-icon">lock</span>
+                        Connections to our site are encrypted via <strong>HTTPS/TLS</strong>.
+                    </li>
+                    <li>
+                        <span class="icon list-icon">lock</span>
+                        We do not sell, rent, or trade your personal information to third parties.
+                    </li>
+                </ul>
+                <div class="policy-callout callout-yellow">
+                    <span class="icon callout-icon">schedule</span>
+                    <div>
+                        <strong>Data retention:</strong> Security log data (including IP addresses) is retained only
+                        temporarily and is deleted once it is no longer needed for its security purpose. Account data is
+                        retained for as long as your account exists. Upon account deletion, all associated personal data
+                        is permanently removed.
+                    </div>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 5 -->
+            <section class="policy-section" id="section-5">
+                <h2 class="section-heading">
+                    <span class="section-number">5</span>
+                    Cookies
+                </h2>
+                <p>We use "functional" cookies solely to operate the site and improve your experience. We use cookies
+                    to:</p>
+                <ul class="policy-list">
+                    <li>
+                        <span class="icon list-icon">check_circle</span>
+                        Store a secure login token so you remain logged in as you navigate the site.
+                    </li>
+                    <li>
+                        <span class="icon list-icon">check_circle</span>
+                        Remember your site appearance preferences (such as dark mode or layout choices).
+                    </li>
+                </ul>
+
+                <div class="cookie-table-wrapper">
+                    <table class="cookie-table">
+                        <thead>
+                            <tr>
+                                <th>Cookie</th>
+                                <th>Purpose</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>session_token</code></td>
+                                <td>Keeps you logged in securely</td>
+                                <td><span class="cookie-badge badge-functional">Functional</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>spos_theme</code></td>
+                                <td>Remembers your light/dark mode preference</td>
+                                <td><span class="cookie-badge badge-functional">Functional</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>spos_grade</code></td>
+                                <td>Remembers your selected grade level</td>
+                                <td><span class="cookie-badge badge-functional">Functional</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="policy-callout callout-green">
+                    <span class="icon callout-icon">block</span>
+                    <div>
+                        <strong>No tracking cookies.</strong> We do not use any third-party tracking, analytics, or
+                        advertising cookies. Because our cookies are strictly necessary for the site to function, they
+                        are set automatically when you use the site.
+                    </div>
+                </div>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 6 -->
+            <section class="policy-section" id="section-6">
+                <h2 class="section-heading">
+                    <span class="section-number">6</span>
+                    Your Rights (GDPR)
+                </h2>
+                <p>As a user in the European Union, you have the following rights under the GDPR regarding your personal
+                    data:</p>
+
+                <div class="rights-grid">
+                    <div class="right-item">
+                        <span class="icon right-icon">visibility</span>
+                        <div>
+                            <strong>Right of Access</strong>
+                            <p>You can request a copy of the personal data we hold about you.</p>
+                        </div>
+                    </div>
+                    <div class="right-item">
+                        <span class="icon right-icon">edit</span>
+                        <div>
+                            <strong>Right to Rectification</strong>
+                            <p>You can correct inaccurate data (e.g. your display name) directly in your account
+                                settings.</p>
+                        </div>
+                    </div>
+                    <div class="right-item">
+                        <span class="icon right-icon">delete</span>
+                        <div>
+                            <strong>Right to Erasure</strong>
+                            <p>You can request the permanent deletion of your account and all associated data.</p>
+                        </div>
+                    </div>
+                    <div class="right-item">
+                        <span class="icon right-icon">pause_circle</span>
+                        <div>
+                            <strong>Right to Restriction</strong>
+                            <p>You can request that we restrict processing of your data in certain circumstances.</p>
+                        </div>
+                    </div>
+                    <div class="right-item">
+                        <span class="icon right-icon">gavel</span>
+                        <div>
+                            <strong>Right to Object</strong>
+                            <p>You can object to processing based on legitimate interests.</p>
+                        </div>
+                    </div>
+                    <div class="right-item">
+                        <span class="icon right-icon">flag</span>
+                        <div>
+                            <strong>Right to Lodge a Complaint</strong>
+                            <p>You have the right to lodge a complaint with the Czech supervisory authority, the <a
+                                    href="https://www.uoou.cz" target="_blank" rel="noopener noreferrer">&#218;&#345;ad
+                                    pro ochranu osobn&#237;ch &#250;daj&#367; (&#218;OO&#218;)</a>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p>To exercise any of these rights, please contact us at <a
+                        href="mailto:tadeasnosek@sposlearning.cz">tadeasnosek@sposlearning.cz</a>. We will respond
+                    within 30 days.</p>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 7 -->
+            <section class="policy-section" id="section-7">
+                <h2 class="section-heading">
+                    <span class="section-number">7</span>
+                    Account Management
+                </h2>
+                <p>You have direct control over your personal data through your account settings:</p>
+                <ul class="policy-list">
+                    <li>
+                        <span class="icon list-icon">manage_accounts</span>
+                        <div>
+                            <strong>Updating your info:</strong> You can change your display name and manage your 2FA
+                            settings at any time directly in your <a href="/account/settings">account settings</a>.
+                            <br><em style="color: var(--text-tertiary); font-size: 0.9em;">Note: Currently, we do not
+                                support changing the email address associated with your account.</em>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="icon list-icon">delete_forever</span>
+                        <div>
+                            <strong>Deleting your account:</strong> To permanently delete your account and all
+                            associated data, please email us at <a
+                                href="mailto:tadeasnosek@sposlearning.cz">tadeasnosek@sposlearning.cz</a> using the
+                            email address linked to your account. All personal data will be permanently removed.
+                        </div>
+                    </li>
+                </ul>
+            </section>
+
+            <hr class="section-divider">
+
+            <!-- Section 8 -->
+            <section class="policy-section" id="section-8">
+                <h2 class="section-heading">
+                    <span class="section-number">8</span>
+                    Contact Us
+                </h2>
+                <p>If you have any questions about this policy or your data, or if you wish to exercise your GDPR
+                    rights, you can reach us at:</p>
+                <a href="mailto:tadeasnosek@sposlearning.cz" class="contact-card">
+                    <span class="icon">mail</span>
+                    <div>
+                        <strong>tadeasnosek@sposlearning.cz</strong>
+                        <span>SPOŠLearning data inquiries</span>
+                    </div>
+                    <span class="icon contact-arrow">arrow_forward</span>
+                </a>
+                <p class="policy-footer-note">We aim to respond to all privacy-related inquiries within 30 days.</p>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Highlight active TOC link on scroll
+        (function () {
+            const links = document.querySelectorAll('.toc-link');
+            const sections = Array.from(document.querySelectorAll('.policy-section, #section-intro'));
+
+            function onScroll() {
+                let current = '';
+                sections.forEach(section => {
+                    const rect = section.getBoundingClientRect();
+                    if (rect.top <= 100) current = section.id;
+                });
+                links.forEach(link => {
+                    link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+                });
+            }
+
+            window.addEventListener('scroll', onScroll, { passive: true });
+            onScroll();
+        })();
+    </script>
+
+</body>
+
+</html>

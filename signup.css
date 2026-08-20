@@ -326,6 +326,24 @@ input::placeholder {
     opacity: 1;
 }
 
+#privacy-note {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+#privacy-note a {
+    color: hsl(204, 100%, 65%);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+#privacy-note a:hover {
+    color: var(--text-primary);
+}
+
 #verify-label {
     font-size: 2rem;
     font-weight: 600;
