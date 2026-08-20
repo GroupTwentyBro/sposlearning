@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
+    <title>Settings – SPOŠLearning</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <link rel="stylesheet" href="/navbar.css" />
+    <link href="/account/settings.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <script type="module" src="/js/index.js"></script>
+</head>
+
+<body>
+
+    <div id="nav">
+        <div id="nav-left">
+            <div id="nav-icon"><span class="icon">book_2</span></div>
+            <div id="nav-grade-select-container">
+                <button id="nav-grade-select">
+                    <span id="grade-text">1st Grade</span>
+                    <span class="icon" id="grade-select-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="grade-menu" class="hidden">
+                    <button id="first-button" data-grade="1">1st Grade</button>
+                    <button id="second-button" data-grade="2">2nd Grade</button>
+                    <button id="third-button" data-grade="3">3rd Grade</button>
+                    <button id="fourth-button" data-grade="4">4th Grade</button>
+                </div>
+            </div>
+            <div id="breadcrumbs">
+                <div class="crumb-item"><a href="/">Home</a><span class="separator">/</span></div>
+                <div class="crumb-item current-crumb"><span class="current">Settings</span></div>
+            </div>
+        </div>
+        <div id="search">
+            <div id="search-box">
+                <div id="search-icon"><span class="icon">search</span></div>
+                <div id="search-input-div" style="flex:1;"><input id="search-input" type="text" placeholder="Search" />
+                </div>
+            </div>
+            <div id="search-results-container" class="hidden"></div>
+        </div>
+        <div id="nav-right">
+            <button id="login-button" class="nd"><span class="icon">login</span> Login</button>
+            <div id="nav-profile" class="nd">
+                <button id="account-button">
+                    <span class="icon">person</span>
+                    <span id="account-button-name">Name</span>
+                    <span class="icon" id="account-button-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="account-menu" class="hidden">
+                    <button id="dashboard-button" class="nd">Dashboard</button>
+                    <button id="logs-button" class="nd">Audit Logs</button>
+                    <button id="settings-button">Settings</button>
+                    <button id="feedback-button">Send Feedback</button>
+                    <hr />
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <main class="settings-container">
+
+        <header class="settings-header">
+            <h1>User Settings</h1>
+            <p class="subtitle">Manage your application preferences, default grade, and account security.</p>
+        </header>
+
+        <div class="settings-layout">
+
+            <nav class="settings-sidebar">
+                <button class="tab-btn active" data-tab="general">
+                    <span class="icon">tune</span>
+                    <div class="tab-info">
+                        <span class="tab-title">General</span>
+                        <span class="tab-sub">Grade, theme & display</span>
+                    </div>
+                </button>
+
+                <button class="tab-btn" data-tab="account">
+                    <span class="icon">manage_accounts</span>
+                    <div class="tab-info">
+                        <span class="tab-title">Account & Security</span>
+                        <span class="tab-sub">Profile, password & roles</span>
+                    </div>
+                </button>
+            </nav>
+
+            <div class="settings-content">
+
+                <section id="tab-general" class="tab-panel active">
+                    <h2>General Preferences</h2>
+                    <p class="panel-desc">Customize how SPOŠLearning behaves across your browser sessions.</p>
+
+                    <div class="settings-group">
+                        <div class="setting-row">
+                            <div class="setting-meta">
+                                <label for="setting-default-grade">Default Preferred Grade</label>
+                                <span class="setting-desc">Sets the default study grade stored in your browser
+                                    cookies.</span>
+                            </div>
+                            <select id="setting-default-grade" class="setting-select">
+                                <option value="0">All Grades (Show Everything)</option>
+                                <option value="1">1st Grade</option>
+                                <option value="2">2nd Grade</option>
+                                <option value="3">3rd Grade</option>
+                                <option value="4">4th Grade</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-meta">
+                                <label for="setting-theme">Appearance Theme</label>
+                                <span class="setting-desc">Switch between dark mode (default) and light mode.</span>
+                            </div>
+                            <select id="setting-theme" class="setting-select">
+                                <option value="dark" selected>Dark Mode</option>
+                                <option value="light">Light Mode</option>
+                            </select>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-meta">
+                                <label for="setting-search-autofocus">Focus Search Bar on Open</label>
+                                <span class="setting-desc">Automatically focus the navigation search box when
+                                    browsing.</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="setting-search-autofocus" checked />
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="panel-actions">
+                        <button id="save-general-btn" class="btn btn-primary"><span class="icon">save</span> Save
+                            Preferences</button>
+                    </div>
+                </section>
+
+                <section id="tab-account" class="tab-panel">
+                    <h2>Account & Security</h2>
+                    <p class="panel-desc">Manage your personal profile information, security credentials, and linked
+                        third-party accounts.</p>
+
+                    <div class="profile-card">
+                        <div class="avatar-circle"><span class="icon"
+                                style="font-size: 2.2rem; color: #60a5fa;">person</span></div>
+                        <div class="profile-meta">
+                            <h3 id="profile-name">User Name</h3>
+                            <span id="profile-email" class="profile-email">user@example.com</span>
+                            <div class="profile-badges" id="profile-badges">
+                                <span class="badge badge-role">User</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="sub-heading" style="margin-top: 24px;">Personal Information</h3>
+                    <form id="settings-profile-form" class="settings-form" style="margin-bottom: 32px;">
+                        <div class="form-field">
+                            <label for="input-profile-name">Display Name</label>
+                            <input type="text" id="input-profile-name" class="setting-input"
+                                placeholder="Your Full Name" required />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="input-profile-email">Email Address</label>
+                            <input type="email" id="input-profile-email" class="setting-input" readonly
+                                style="opacity: 0.7; cursor: not-allowed;" />
+                        </div>
+
+                        <div id="profile-status-msg" class="hidden"></div>
+
+                        <div class="panel-actions">
+                            <button type="submit" id="save-profile-btn" class="btn btn-primary"><span
+                                    class="icon">person_add</span> Save Profile</button>
+                        </div>
+                    </form>
+
+
+                    <h3 class="sub-heading">Update Password</h3>
+                    <form id="settings-change-pwd-form" class="settings-form">
+                        <div class="form-field">
+                            <label for="pwd-current">Current Password</label>
+                            <input type="password" id="pwd-current" class="setting-input"
+                                placeholder="Enter current password" required />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="pwd-new">New Password</label>
+                            <input type="password" id="pwd-new" class="setting-input"
+                                placeholder="New password (min 8 characters)" required minlength="8" />
+                        </div>
+
+                        <div class="form-field">
+                            <label for="pwd-confirm">Confirm New Password</label>
+                            <input type="password" id="pwd-confirm" class="setting-input"
+                                placeholder="Confirm new password" required minlength="8" />
+                        </div>
+
+                        <div id="pwd-status-msg" class="hidden"></div>
+
+                        <div class="panel-actions">
+                            <button type="submit" id="save-pwd-btn" class="btn btn-primary"><span
+                                    class="icon">lock_reset</span> Change Password</button>
+                        </div>
+                    </form>
+
+                    <h3 class="sub-heading" style="margin-top: 32px;">Multi-Factor Authentication & Passkeys</h3>
+                    <p class="section-desc"
+                        style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 16px;">
+                        Add additional security to your account using Authenticator apps, Email codes, or Passkeys.
+                    </p>
+
+                    <div class="mfa-list"
+                        style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px;">
+
+                        <div class="idp-card"
+                            style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--surface-1); border: 1px solid var(--border-color); border-radius: 12px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div
+                                    style="width: 38px; height: 38px; border-radius: 10px; background: rgba(59, 130, 246, 0.12); display: flex; align-items: center; justify-content: center;">
+                                    <span class="icon" style="color: #60a5fa; font-size: 1.4rem;">qr_code_2</span>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.95rem;">Authenticator App (TOTP)</div>
+                                    <span id="totp-status-desc"
+                                        style="font-size: 0.8rem; color: var(--text-secondary);">Google Authenticator,
+                                        1Password, Microsoft Authenticator</span>
+                                </div>
+                            </div>
+                            <div id="totp-action-container">
+                                <button type="button" id="btn-setup-totp" class="btn btn-primary"
+                                    style="font-size: 0.82rem; padding: 6px 14px;"><span class="icon"
+                                        style="font-size: 1rem;">add</span> Enable 2FA</button>
+                            </div>
+                        </div>
+
+                        <div class="idp-card"
+                            style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--surface-1); border: 1px solid var(--border-color); border-radius: 12px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div
+                                    style="width: 38px; height: 38px; border-radius: 10px; background: rgba(16, 185, 129, 0.12); display: flex; align-items: center; justify-content: center;">
+                                    <span class="icon" style="color: #34d399; font-size: 1.4rem;">mark_email_read</span>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.95rem;">Email OTP Code</div>
+                                    <span id="email-mfa-status-desc"
+                                        style="font-size: 0.8rem; color: var(--text-secondary);">Receive a 6-digit
+                                        verification code via email</span>
+                                </div>
+                            </div>
+                            <div id="email-mfa-action-container">
+                                <button type="button" id="btn-setup-email-mfa" class="btn btn-primary"
+                                    style="font-size: 0.82rem; padding: 6px 14px;"><span class="icon"
+                                        style="font-size: 1rem;">mail</span> Enable Email 2FA</button>
+                            </div>
+                        </div>
+
+                        <div class="idp-card"
+                            style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: var(--surface-1); border: 1px solid var(--border-color); border-radius: 12px;">
+                            <div style="display: flex; align-items: center; gap: 14px;">
+                                <div
+                                    style="width: 38px; height: 38px; border-radius: 10px; background: rgba(168, 85, 247, 0.12); display: flex; align-items: center; justify-content: center;">
+                                    <span class="icon" style="color: #c084fc; font-size: 1.4rem;">fingerprint</span>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.95rem;">Passkeys & Hardware Keys</div>
+                                    <span style="font-size: 0.8rem; color: var(--text-secondary);">Sign in with Windows
+                                        Hello, a password manager, or a hardware security key.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <button type="button" id="btn-register-passkey" class="btn btn-primary"
+                                    style="font-size: 0.82rem; padding: 6px 14px;"><span class="icon"
+                                        style="font-size: 1rem;">vpn_key</span> Add Passkey</button>
+                            </div>
+                        </div>
+
+                        <div id="passkeys-list-container"></div>
+
+                    </div>
+
+                </section>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <div id="totp-modal" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: var(--surface-1); border: 1px solid var(--border-color); border-radius: 16px; width: 90%; max-width: 440px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); color: var(--text-primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 1.2rem;">Set Up Authenticator App</h3>
+                <button id="close-totp-modal"
+                    style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 1.2rem;">✕</button>
+            </div>
+
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;">
+                1. Scan this QR code with Google Authenticator, 1Password, or Microsoft Authenticator:
+            </p>
+
+            <div style="text-align: center; margin-bottom: 16px;">
+                <img id="totp-qr-img" src="" alt="QR Code"
+                    style="width: 180px; height: 180px; border-radius: 12px; border: 4px solid white; background: white;" />
+                <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 8px;">Secret: <code
+                        id="totp-secret-text" style="font-family: monospace; color: var(--accent-primary);"></code>
+                </div>
+            </div>
+
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 12px;">
+                2. Enter the 6-digit code from your app to complete setup:
+            </p>
+
+            <form id="verify-totp-form">
+                <input type="text" id="totp-code-input" class="setting-input" placeholder="000000" maxlength="6"
+                    style="letter-spacing: 4px; font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 12px;"
+                    required />
+                <div id="totp-modal-status" class="hidden" style="margin-bottom: 12px; font-size: 0.85rem;"></div>
+                <button type="submit" id="btn-confirm-totp" class="btn btn-primary"
+                    style="width: 100%; height: 42px;">Verify & Enable 2FA</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="email-mfa-modal" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000;">
+        <div
+            style="background: var(--surface-1); border: 1px solid var(--border-color); border-radius: 16px; width: 90%; max-width: 440px; padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); color: var(--text-primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="margin: 0; font-size: 1.2rem;">Enable Email 2FA</h3>
+                <button id="close-email-mfa-modal"
+                    style="background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 1.2rem;">✕</button>
+            </div>
+
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px;">
+                We sent a 6-digit verification code to your email address. Enter it below to enable Email 2FA:
+            </p>
+
+            <form id="verify-email-mfa-form">
+                <input type="text" id="email-mfa-code-input" class="setting-input" placeholder="123456" maxlength="6"
+                    style="letter-spacing: 4px; font-size: 1.2rem; font-weight: 700; text-align: center; margin-bottom: 12px;"
+                    required />
+                <div id="email-mfa-modal-status" class="hidden" style="margin-bottom: 12px; font-size: 0.85rem;"></div>
+                <button type="submit" id="btn-confirm-email-mfa" class="btn btn-primary"
+                    style="width: 100%; height: 42px;">Verify & Enable Email 2FA</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="/account/js/settings.js"></script>
+</body>
+
+</html>

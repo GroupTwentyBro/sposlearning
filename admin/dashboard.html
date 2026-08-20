@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard – SPOŠLearning</title>
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <link rel="stylesheet" href="/navbar.css" />
+    <link href="/admin/dashboard.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <script type="module" src="/js/index.js"></script>
+</head>
+
+<body>
+
+<div id="nav">
+        <div id="nav-left">
+            <div id="nav-icon"><span class="icon">book_2</span></div>
+            <div id="nav-grade-select-container">
+                <button id="nav-grade-select">
+                    <span id="grade-text">1st Grade</span>
+                    <span class="icon" id="grade-select-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="grade-menu" class="hidden">
+                    <button id="first-button" data-grade="1">1st Grade</button>
+                    <button id="second-button" data-grade="2">2nd Grade</button>
+                    <button id="third-button" data-grade="3">3rd Grade</button>
+                    <button id="fourth-button" data-grade="4">4th Grade</button>
+                </div>
+            </div>
+            <div id="breadcrumbs">
+                <div class="crumb-item"><a href="/">Home</a><span class="separator">/</span></div>
+                <div class="crumb-item current-crumb"><span class="current">Dashboard</span></div>
+            </div>
+        </div>
+        <div id="search">
+            <div id="search-box">
+                <div id="search-icon"><span class="icon">search</span></div>
+                <div id="search-input-div" style="flex:1;"><input id="search-input" type="text" placeholder="Search pages..." /></div>
+            </div>
+            <div id="search-results-container" class="hidden"></div>
+        </div>
+        <div id="nav-right">
+            <button id="login-button" class="nd"><span class="icon">login</span> Login</button>
+            <div id="nav-profile" class="nd">
+                <button id="account-button">
+                    <span class="icon">person</span>
+                    <span id="account-button-name">Name</span>
+                    <span class="icon" id="account-button-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="account-menu" class="hidden">
+                    <button id="dashboard-button" class="nd">Dashboard</button>
+                    <button id="logs-button" class="nd">Audit Logs</button>
+                    <button id="settings-button">Settings</button>
+                    <button id="feedback-button">Send Feedback</button>
+                    <hr />
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<main class="dashboard-container">
+
+    <header class="dashboard-header">
+            <div>
+                <h1>Admin Control Center</h1>
+                <p class="subtitle">Overview, content creation, feedback management, and system monitoring.</p>
+            </div>
+            <div class="header-actions">
+                <a href="/admin/add-page" class="btn btn-primary"><span class="icon">add_circle</span> Create New Page</a>
+            </div>
+        </header>
+
+    <div class="kpi-grid">
+            <div class="kpi-card" id="kpi-pages">
+                <div class="kpi-icon pages"><span class="icon">article</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Total Articles</span>
+                    <span class="kpi-val" id="dash-stat-pages">--</span>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-feedback">
+                <div class="kpi-icon feedback"><span class="icon">mark_chat_unread</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Open Feedback</span>
+                    <span class="kpi-val" id="dash-stat-feedback">--</span>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-logs">
+                <div class="kpi-icon logs"><span class="icon">receipt_long</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">System Logs</span>
+                    <span class="kpi-val" id="dash-stat-logs">--</span>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-auth">
+                <div class="kpi-icon auth"><span class="icon">manage_accounts</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Keycloak SSO</span>
+                    <span class="kpi-val" id="dash-stat-keycloak">Active</span>
+                </div>
+            </div>
+        </div>
+
+    <h2 class="section-title">Quick Action Launchers</h2>
+        <div class="launcher-grid">
+            <a href="/admin/add-page" class="launcher-card card-blue">
+                <div class="launcher-icon"><span class="icon">post_add</span></div>
+                <div class="launcher-content">
+                    <h3>Create New Page</h3>
+                    <p>Publish new educational articles, hints, and study materials.</p>
+                </div>
+                <div class="launcher-arrow"><span class="icon">arrow_forward</span></div>
+            </a>
+
+            <a href="/admin/feedback" class="launcher-card card-amber">
+                <div class="launcher-icon"><span class="icon">rate_review</span></div>
+                <div class="launcher-content">
+                    <h3>Feedback Inbox</h3>
+                    <p>Review user bug reports, feature suggestions, and status.</p>
+                </div>
+                <div class="launcher-arrow"><span class="icon">arrow_forward</span></div>
+            </a>
+
+            <a href="/admin/logs" class="launcher-card card-purple">
+                <div class="launcher-icon"><span class="icon">history</span></div>
+                <div class="launcher-content">
+                    <h3>Audit & Activity Logs</h3>
+                    <p>Inspect real-time system events, user logins, and edit history.</p>
+                </div>
+                <div class="launcher-arrow"><span class="icon">arrow_forward</span></div>
+            </a>
+
+            <a href="https://auth.sposlearning.cz/admin/sposlearning/console/" target="_blank" rel="noopener" class="launcher-card card-emerald">
+                <div class="launcher-icon"><span class="icon">group</span></div>
+                <div class="launcher-content">
+                    <h3>User Management</h3>
+                    <p>Manage Keycloak user accounts, credentials, and realm roles.</p>
+                </div>
+                <div class="launcher-arrow"><span class="icon">open_in_new</span></div>
+            </a>
+        </div>
+
+    <div class="overview-grid">
+
+        <div class="widget-card">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="icon text-amber">inbox</span>
+                        <h3>Recent Feedback</h3>
+                    </div>
+                    <a href="/admin/feedback" class="widget-link">View All <span class="icon">chevron_right</span></a>
+                </div>
+                <div class="widget-body" id="recent-feedback-list">
+                    <div class="loading-spinner"><span class="icon spinner">sync</span> Loading feedback...</div>
+                </div>
+            </div>
+
+        <div class="widget-card">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="icon text-purple">list_alt</span>
+                        <h3>Recent Audit Activity</h3>
+                    </div>
+                    <a href="/admin/logs" class="widget-link">View Logs <span class="icon">chevron_right</span></a>
+                </div>
+                <div class="widget-body" id="recent-logs-list">
+                    <div class="loading-spinner"><span class="icon spinner">sync</span> Loading activity feed...</div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+<script type="module" src="/admin/js/dashboard.js"></script>
+</body>
+
+</html>

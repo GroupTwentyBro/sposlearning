@@ -1,0 +1,106 @@
+:root {
+    --main-bg: #121212;
+    --surface-1: #1E1E1E;
+    --surface-2: #282828;
+    --surface-3: #333333;
+    --border-color: #2A2A2A;
+    --text-primary: #FFF;
+}
+
+[data-theme="light"] {
+    --main-bg: #f8fafc;
+    --surface-1: #ffffff;
+    --surface-2: #f1f5f9;
+    --surface-3: #e2e8f0;
+    --border-color: #cbd5e1;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #94a3b8;
+    --accent-primary: hsl(204, 100%, 42%);
+    --accent-secondary: hsl(320, 100%, 42%);
+}
+
+.icon {
+    font-family: "Material Symbols Rounded" !important;
+    font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+    color: var(--text-primary);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+button,
+select,
+input,
+textarea,
+span,
+label,
+div {
+    color: var(--text-primary);
+    font-family: "Inter", sans-serif;
+}
+
+#search {
+    flex: 2;
+    position: relative;
+}
+
+#search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    background-color: var(--surface-1, #1E1E1E);
+    border: 1px solid var(--border-color, #2A2A2A);
+    height: 40px;
+    border-radius: 10px;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+#search-box:focus-within {
+    border-color: var(--accent-primary, #0099ff);
+    background-color: var(--surface-2, #282828);
+    box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.15);
+}
+
+#search-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+}
+
+#search-input-div {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+#search-input {
+    flex: 1;
+    width: 100%;
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-primary, #ffffff) !important;
+    outline: none !important;
+    font-size: 0.95rem !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+}
+
+#search-input::placeholder {
+    color: var(--text-tertiary, rgba(255, 255, 255, 0.5));
+}
+
+.hidden {
+    display: none !important;
+}
+
+.nd {
+    display: none !important;
+}

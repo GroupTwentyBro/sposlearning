@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
+    <title>SPOŠLearning – Studijní portál</title>
+
+    <link rel="stylesheet" href="/navbar.css">
+    <link rel="stylesheet" href="main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <script type="module" src="/js/index.js"></script>
+</head>
+
+<body>
+
+<div id="nav">
+        <div id="nav-left">
+            <div id="nav-icon">
+                <span class="icon">book_2</span>
+            </div>
+            <div id="nav-grade-select-container">
+                <button id="nav-grade-select">
+                    <span id="grade-text">1st Grade</span>
+                    <span class="icon" id="grade-select-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="grade-menu" class="hidden">
+                    <button id="first-button" data-grade="1">1st Grade</button>
+                    <button id="second-button" data-grade="2">2nd Grade</button>
+                    <button id="third-button" data-grade="3">3rd Grade</button>
+                    <button id="fourth-button" data-grade="4">4th Grade</button>
+                </div>
+            </div>
+        </div>
+        <div id="search">
+            <div id="search-box">
+                <div id="search-icon">
+                    <span class="icon">search</span>
+                </div>
+                <div id="search-input-div">
+                    <input id="search-input" type="text" placeholder="Search pages, topics & notes...">
+                </div>
+            </div>
+            <div id="search-results-container" class="hidden"></div>
+        </div>
+        <div id="nav-right">
+            <button id="login-button" class="nd">
+                <span class="icon">login</span> Login
+            </button>
+            <div id="nav-profile" class="nd">
+                <button id="account-button">
+                    <span class="icon">person</span>
+                    <span id="account-button-name">Name</span>
+                    <span class="icon" id="account-button-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="account-menu" class="hidden">
+                    <button id="dashboard-button" class="nd">Dashboard</button>
+                    <button id="settings-button">Settings</button>
+                    <button id="feedback-button">Send Feedback</button>
+                    <hr>
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<main class="home-container">
+
+    <div class="announcement-banner">
+            <div class="banner-icon">
+                <span class="icon">info</span>
+            </div>
+            <div class="banner-text">
+                Hledáme kontributory na SPOŠLearning. Pokud chcete dělat články na SPOŠLearning a mít za to nějaké
+                výhody, <br>pište na e-mail <a
+                    href="mailto:tadeasnosek@sposlearning.cz">tadeasnosek@sposlearning.cz</a>.
+            </div>
+        </div>
+
+    <section class="hero-section">
+            <h1 class="hero-title">Vítej na SPOŠLearningu!</h1>
+            <p class="hero-subtitle">
+                SPOŠLearning je platforma, která ukládá všechny zápisy a procvičování na jedno místo. Hledáš zápisy z
+                češtiny? Jsou tu. Vysvětlení <code class="inline-code">&lt;h1&gt;</code> HTML tagu? Máme to. Řešení
+                úkolů z programování? Samozřejmě že tu jsou. Jednoduše řečeno, je tu všechno, co se učíme.
+            </p>
+        </section>
+
+    <section class="features-grid">
+        <div class="info-card">
+                <div class="card-icon-badge">
+                    <span class="icon">search_insights</span>
+                </div>
+                <h2>Proč používat SPOŠLearning?</h2>
+                <p>
+                    Důvod, proč jsme udělali SPOŠLearning, je ten, že na Discordu bylo všechno dost nepřehledné. Většina
+                    zápisů byla v pohodě, ale některé byly diskutabilní. Na SPOŠLearningu se snažíme vše dělat přehledně
+                    a kvalitně.
+                </p>
+            </div>
+
+        <div class="info-card">
+                <div class="card-icon-badge">
+                    <span class="icon">post_add</span>
+                </div>
+                <h2>Můžu přidávat i já?</h2>
+                <p>
+                    Do budoucna bychom chtěli udělat systém, kde každý bude moci přidávat cokoliv, ale administrátoři to
+                    pak budou muset schválit. Momentálně to funguje tak, že pokud chcete přidávat, ozvěte se na email
+                    uvedený v kartě výše.
+                </p>
+            </div>
+        </section>
+
+    <div class="tip-section">
+            <span>Podpořit nás můžete</span>
+            <a href="https://ko-fi.com/group20" target="_blank" rel="noopener noreferrer" class="tip-link">zde</a>
+        </div>
+
+    </main>
+
+</body>
+
+</html>

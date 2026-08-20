@@ -3,9 +3,9 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
-    <title>Add Page – SPOŠLearning</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Page – SPOŠLearning</title>
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,7 +52,7 @@
             </div>
             <div id="breadcrumbs">
                 <div class="crumb-item"><a href="/">Home</a><span class="separator">/</span></div>
-                <div class="crumb-item current-crumb"><span class="current">Add Page</span></div>
+                <div class="crumb-item current-crumb"><span class="current">Edit Page</span></div>
             </div>
         </div>
         <div id="search">
@@ -64,11 +64,11 @@
             <div id="search-results-container" class="hidden"></div>
         </div>
         <div id="nav-right">
-            <button id="login-button" class="nd"><span class="icon">login</span>Login</button>
-            <div id="nav-profile">
+            <button id="login-button" class="nd"><span class="icon">login</span> Login</button>
+            <div id="nav-profile" class="nd">
                 <button id="account-button">
                     <span class="icon">person</span>
-                    <span id="account-button-name">Admin</span>
+                    <span id="account-button-name">Name</span>
                     <span class="icon" id="account-button-drop-icon">arrow_drop_down</span>
                 </button>
                 <div id="account-menu" class="hidden">
@@ -83,12 +83,11 @@
     </div>
 
 <div id="editor-wrapper">
-
     <div id="metadata-panel">
         <div id="toc-section" class="panel-section">
                 <div class="toc-header">
                     <h3>Table of Contents</h3>
-                    <button id="toc-refresh-btn" class="btn-icon-small" title="Refresh from document">
+                    <button id="toc-refresh-btn" class="btn btn-icon-small" title="Refresh from document">
                         <span class="icon">refresh</span>
                     </button>
                 </div>
@@ -97,25 +96,24 @@
                 </div>
             </div>
 
-            <div class="panel-divider"></div>
+        <div class="panel-divider"></div>
 
         <div id="metadata-section" class="panel-section">
                 <div class="metadata-section">
                     <div class="form-group">
-                        <label for="article-title">Article Title</label>
-                        <input type="text" id="article-title" class="form-input"
-                            placeholder="e.g., Introduction to Arrays" required />
+                        <label for="article-title">Page Title</label>
+                        <input type="text" id="article-title" class="form-input" placeholder="e.g., Introduction to Arrays" required />
                     </div>
+
                     <div class="form-group">
-                        <label for="article-path">Path</label>
-                        <input type="text" id="article-path" class="form-input" placeholder="e.g., /prg/arrays/"
-                            required />
-                        <small>Start and end with a slash</small>
+                        <label for="article-path">URL Path</label>
+                        <input type="text" id="article-path" class="form-input" placeholder="e.g., first-grade/arrays" required />
+                        <small>Must be unique across all pages</small>
                     </div>
+
                     <div class="form-group">
                         <label for="article-grade">Target Grade</label>
-                        <select id="article-grade"
-                            style="width:100%; height:40px; border-radius:10px; padding:0 12px; background:var(--surface-1); border:1px solid var(--border-color); color:var(--text-primary); outline:none;">
+                        <select id="article-grade" style="width:100%; height:40px; border-radius:10px; padding:0 12px; background:var(--surface-1); border:1px solid var(--border-color); color:var(--text-primary); outline:none;">
                             <option value="0">All Grades (0)</option>
                             <option value="1">1st Grade (1)</option>
                             <option value="2">2nd Grade (2)</option>
@@ -123,23 +121,28 @@
                             <option value="4">4th Grade (4)</option>
                         </select>
                     </div>
+
                     <div class="form-group checkbox">
                         <input type="checkbox" id="article-admin" class="checkbox-input" />
-                        <label for="article-admin" class="checkbox-label">Admin only</label>
+                        <label for="article-admin" class="checkbox-label">Admin-only page</label>
                     </div>
-                </div>
-                <div class="metadata-actions">
-                    <button id="save-draft-btn" class="btn btn-secondary">
-                        <span class="icon">edit_note</span> Save Draft
-                    </button>
-                    <button id="publish-btn" class="btn btn-primary">
-                        <span class="icon">publish</span> Publish Page
-                    </button>
+
+                    <div class="form-actions" style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="save-draft-btn" class="btn btn-secondary">
+                            <span class="icon">edit_note</span> Save Draft
+                        </button>
+                        <button id="publish-btn" class="btn btn-primary">
+                            <span class="icon">save</span> Save Changes
+                        </button>
+                        <button id="delete-page-btn" class="btn btn-danger" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); margin-top: 4px;">
+                            <span class="icon">delete</span> Delete Page
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
-    <div id="toolbar" class="toolbar">
+    <div class="toolbar">
             <div class="toolbar-group">
                 <button class="toolbar-btn" id="btn-h1" title="Heading 1"><span class="icon">format_h1</span></button>
                 <button class="toolbar-btn" id="btn-h2" title="Heading 2"><span class="icon">format_h2</span></button>
@@ -148,25 +151,20 @@
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">
                 <button class="toolbar-btn" id="btn-bold" title="Bold"><span class="icon">format_bold</span></button>
-                <button class="toolbar-btn" id="btn-italic" title="Italic"><span
-                        class="icon">format_italic</span></button>
+                <button class="toolbar-btn" id="btn-italic" title="Italic"><span class="icon">format_italic</span></button>
                 <button class="toolbar-btn" id="btn-code" title="Inline Code"><span class="icon">code</span></button>
                 <button class="toolbar-btn" id="btn-link" title="Link"><span class="icon">link</span></button>
             </div>
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">
-                <button class="toolbar-btn" id="btn-ul" title="Unordered List"><span
-                        class="icon">format_list_bulleted</span></button>
-                <button class="toolbar-btn" id="btn-ol" title="Ordered List"><span
-                        class="icon">format_list_numbered</span></button>
-                <button class="toolbar-btn" id="btn-codeblock" title="Code Block"><span
-                        class="icon">terminal</span></button>
+                <button class="toolbar-btn" id="btn-ul" title="Unordered List"><span class="icon">format_list_bulleted</span></button>
+                <button class="toolbar-btn" id="btn-ol" title="Ordered List"><span class="icon">format_list_numbered</span></button>
+                <button class="toolbar-btn" id="btn-codeblock" title="Code Block"><span class="icon">terminal</span></button>
             </div>
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">
                 <button class="toolbar-btn" id="btn-image" title="Image"><span class="icon">image</span></button>
-                <button class="toolbar-btn" id="btn-toc" title="Add TOC Marker"><span
-                        class="icon">bookmark</span></button>
+                <button class="toolbar-btn" id="btn-toc" title="Add TOC Marker"><span class="icon">bookmark</span></button>
             </div>
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">
@@ -176,14 +174,13 @@
             </div>
             <div class="toolbar-divider"></div>
             <div class="toolbar-group">
-                <button class="toolbar-btn" id="btn-toc-manager" title="Manage TOC"><span
-                        class="icon">toc</span></button>
+                <button class="toolbar-btn" id="btn-toc-manager" title="Manage TOC"><span class="icon">toc</span></button>
             </div>
         </div>
 
     <div id="editor-container">
         <div id="editor-panel" class="panel">
-                <textarea id="editor" placeholder="Start writing your article in Markdown…"></textarea>
+                <textarea id="editor" placeholder="Start writing or editing your page in Markdown…"></textarea>
             </div>
 
         <div id="preview-panel" class="panel hidden">
@@ -194,7 +191,6 @@
                 <span class="icon" id="toggle-view-icon">preview</span>
             </button>
         </div>
-
     </div>
 
 <div id="image-modal" class="modal hidden">
@@ -204,27 +200,25 @@
                 <button class="modal-close" id="image-modal-close"><span class="icon">close</span></button>
             </div>
             <div class="modal-body">
-                <div class="upload-zone" id="upload-zone">
+                <div id="upload-zone" class="upload-zone">
                     <span class="icon">cloud_upload</span>
-                    <p>Drop image here or click to select</p>
-                    <input type="file" id="image-input" class="hidden" accept="image/*" />
+                    <p>Click to select or drag and drop image here</p>
+                    <input type="file" id="image-input" accept="image/*" style="display: none;" />
                 </div>
                 <div id="image-preview" class="hidden">
                     <img id="preview-img" src="" alt="Preview" />
                 </div>
-                <div class="image-settings">
-                    <div class="setting-group">
-                        <label for="img-alt">Alt Text</label>
-                        <input type="text" id="img-alt" class="form-input" placeholder="Description of image" />
-                    </div>
-                    <div class="setting-group">
-                        <label for="img-width">Width (% of content)</label>
-                        <input type="number" id="img-width" class="form-input" value="100" min="10" max="100" />
-                    </div>
-                    <div class="setting-group">
-                        <label for="img-height">Height (auto or px)</label>
-                        <input type="text" id="img-height" class="form-input" placeholder="auto or 300px" />
-                    </div>
+                <div class="setting-group">
+                    <label for="img-alt">Alt Text</label>
+                    <input type="text" id="img-alt" class="form-input" placeholder="Image description" />
+                </div>
+                <div class="setting-group">
+                    <label for="img-width">Width (%)</label>
+                    <input type="number" id="img-width" class="form-input" value="100" min="10" max="100" />
+                </div>
+                <div class="setting-group">
+                    <label for="img-height">Height</label>
+                    <input type="text" id="img-height" class="form-input" value="auto" placeholder="e.g., auto or 200px" />
                 </div>
             </div>
             <div class="modal-footer">
@@ -243,7 +237,7 @@
             <div class="modal-body">
                 <div class="setting-group">
                     <label for="link-text">Link Text</label>
-                    <input type="text" id="link-text" class="form-input" placeholder="Click here" />
+                    <input type="text" id="link-text" class="form-input" placeholder="e.g., Click here" />
                 </div>
                 <div class="setting-group">
                     <label for="link-url">URL</label>
@@ -260,14 +254,13 @@
 <div id="discl-modal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Insert Disclaimer</h3>
+                <h3>Insert Disclaimer / Callout</h3>
                 <button class="modal-close" id="discl-modal-close"><span class="icon">close</span></button>
             </div>
             <div class="modal-body">
                 <div class="setting-group">
-                    <label for="discl-type">Type</label>
+                    <label for="discl-type">Callout Type</label>
                     <select id="discl-type" class="form-input">
-                        <option value="">Default</option>
                         <option value="important">Important (Red)</option>
                         <option value="important-green">Success (Green)</option>
                         <option value="warning">Warning (Yellow)</option>
@@ -276,8 +269,7 @@
                 </div>
                 <div class="setting-group">
                     <label for="discl-text">Text</label>
-                    <textarea id="discl-text" class="form-input" placeholder="Your disclaimer text here"
-                        rows="4"></textarea>
+                    <textarea id="discl-text" class="form-input" placeholder="Your disclaimer text here" rows="4"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
@@ -289,7 +281,7 @@
 
 <div id="notification" class="notification hidden"></div>
 
-<script type="module" src="/admin/js/add-page.js"></script>
+<script type="module" src="/admin/js/edit-page.js"></script>
 
 </body>
 

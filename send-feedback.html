@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
+    <title>Title</title>
+    <link rel="stylesheet" href="./send-feedback.css">
+    <link rel="stylesheet" href="./global.css">
+</head>
+
+<body>
+    <div id="feedback-container">
+        <div id="feedback-label">Send Feedback</div>
+        <div id="title-feedback-container">
+            <label for="title-feedback" id="title-feedback-label">Title</label>
+            <input type="text" id="title-feedback">
+            <div id="title-error-message" class="hidden"></div>
+        </div>
+
+        <div id="password-feedback-container">
+            <label for="password-feedback" id="password-feedback-label">Password</label>
+            <input type="password" id="password-feedback">
+            <div id="password-feedback-requirements" class="hidden">
+                <div class="requirement-entry"></div>
+                <div class="requirement-entry"></div>
+                <div class="requirement-entry"></div>
+                <div class="requirement-entry"></div>
+            </div>
+        </div>
+        <div id="send-container">
+            <button id="send-btn">Send Feedback</button>
+        </div>
+    </div>
+</body>
+
+</html>

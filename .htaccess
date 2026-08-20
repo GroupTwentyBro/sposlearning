@@ -1,0 +1,26 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    RewriteCond %{THE_REQUEST} ^GET\ /(.+)\.html\ HTTP
+    RewriteRule ^(.+)\.html$ /$1 [R=301,L]
+
+    RewriteRule ^/?$ index.html [QSA,L]
+
+    RewriteRule ^(login|signup|index)/?$ $1.html [QSA,L]
+    RewriteRule ^(account/settings|settings)/?$ account/settings.html [QSA,L]
+    RewriteRule ^account/reset-password/?$ account/reset-password.html [QSA,L]
+    RewriteRule ^admin/?(dashboard)?$ admin/dashboard.html [QSA,L]
+    RewriteRule ^admin/add-page/?$ admin/add-page.html [QSA,L]
+    RewriteRule ^admin/edit-page/?$ admin/edit-page.html [QSA,L]
+    RewriteRule ^admin/feedback/?$ admin/feedback.html [QSA,L]
+    RewriteRule ^admin/logs/?$ admin/logs.html [QSA,L]
+
+    RewriteRule ^home/?$ index.html [QSA,L]
+
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    RewriteRule ^.+$ page.html [QSA,L]
+</IfModule>

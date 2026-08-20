@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg">
+    <title>Sign Up – SPOŠLearning</title>
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="signup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,0,-25" />
+    <script type="module" src="/js/signup.js"></script>
+</head>
+
+<body>
+    <div id="signup-container">
+        <div id="signup-step">
+            <div id="signup-label">Create an account</div>
+            <p id="signup-subtitle">Sign up to have a better experience</p>
+
+            <div id="username-signup-container">
+                <label for="username-signup">Display Name</label>
+                <input type="text" id="username-signup" placeholder="Hacker123">
+            </div>
+
+            <div id="email-signup-container">
+                <label for="email-signup">Email</label>
+                <input type="email" id="email-signup" placeholder="you@example.com">
+            </div>
+
+            <div id="password-signup-container">
+                <label for="password-signup">Password</label>
+                <input type="password" id="password-signup" placeholder="Enter your password">
+            </div>
+
+            <div id="password-requirements" class="hidden">
+                <div class="requirement" data-rule="length">At least 8 characters</div>
+                <div class="requirement" data-rule="uppercase">One uppercase letter</div>
+                <div class="requirement" data-rule="lowercase">One lowercase letter</div>
+                <div class="requirement" data-rule="number">One number</div>
+                <div class="requirement" data-rule="special">One special character</div>
+            </div>
+
+            <div id="signup-error-message" class="hidden"></div>
+
+            <div id="signup-btn-container">
+                <button id="sign-up">Sign up</button>
+            </div>
+
+            <div id="extra-links">
+                <a href="/login.html">Already have an account? Sign in</a>
+            </div>
+        </div>
+
+        <div id="verify-step" class="hidden">
+            <div id="verify-label">Verify your email</div>
+            <p id="verify-subtitle">We sent a 6‑digit code to <strong id="verify-email-display"></strong></p>
+
+            <div id="code-verify-container">
+                <label for="verify-code">Verification Code</label>
+                <input type="text" id="verify-code" placeholder="123456" maxlength="6" inputmode="numeric">
+            </div>
+
+            <div id="verify-error-message" class="hidden"></div>
+
+            <div id="verify-btn-container">
+                <button id="verify-button">Verify</button>
+            </div>
+
+            <div id="extra-links-verify">
+                <a href="/login.html">Back to sign in</a>
+                <a href="#" id="resend-link">Resend code</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

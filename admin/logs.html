@@ -1,50 +1,213 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logs - SPOŠLearning</title>
-  <link rel="icon" type="image/x-icon" href="/media/logo.svg">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-  <link id="theme-link" href="/style/theme-dark.css" rel="stylesheet">
-  <script src="/js/theming.js" type="module"></script>
-  <link href="/style/variables-global.css" rel="stylesheet">
-  <link rel="stylesheet" href="/style/base.css">
-  <link rel="stylesheet" href="/style/components.css">
-  <link rel="stylesheet" href="/style/custom-el.css">
-  <link rel="stylesheet" href="/style/mobile.css">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audit & Activity Logs – SPOŠLearning Admin</title>
+    <link rel="icon" type="image/x-icon" href="/media/logo.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <link rel="stylesheet" href="/navbar.css" />
+    <link href="/admin/logs.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.js"></script>
+    <script type="module" src="/js/index.js"></script>
 </head>
+
 <body>
 
-<div class="dot-container">
-  <div class="dot"></div>
-</div>
-
-<div id="secure-container">
-  <div class="container-fluid mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="text-white">Systémové logy</h2>
-      <a href="/" class="btn btn-outline-light">Dashboard</a>
+<div id="nav">
+        <div id="nav-left">
+            <div id="nav-icon"><span class="icon">book_2</span></div>
+            <div id="nav-grade-select-container">
+                <button id="nav-grade-select">
+                    <span id="grade-text">1st Grade</span>
+                    <span class="icon" id="grade-select-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="grade-menu" class="hidden">
+                    <button id="first-button" data-grade="1">1st Grade</button>
+                    <button id="second-button" data-grade="2">2nd Grade</button>
+                    <button id="third-button" data-grade="3">3rd Grade</button>
+                    <button id="fourth-button" data-grade="4">4th Grade</button>
+                </div>
+            </div>
+            <div id="breadcrumbs">
+                <div class="crumb-item"><a href="/">Home</a><span class="separator">/</span></div>
+                <div class="crumb-item current-crumb"><span class="current">Audit Logs</span></div>
+            </div>
+        </div>
+        <div id="search">
+            <div id="search-box">
+                <div id="search-icon"><span class="icon">search</span></div>
+                <div id="search-input-div" style="flex:1;"><input id="search-input" type="text"
+                        placeholder="Search pages..." /></div>
+            </div>
+            <div id="search-results-container" class="hidden"></div>
+        </div>
+        <div id="nav-right">
+            <button id="login-button" class="nd"><span class="icon">login</span> Login</button>
+            <div id="nav-profile" class="nd">
+                <button id="account-button">
+                    <span class="icon">person</span>
+                    <span id="account-button-name">Name</span>
+                    <span class="icon" id="account-button-drop-icon">arrow_drop_down</span>
+                </button>
+                <div id="account-menu" class="hidden">
+                    <button id="dashboard-button" class="nd">Dashboard</button>
+                    <button id="logs-button" class="nd">Audit Logs</button>
+                    <button id="settings-button">Settings</button>
+                    <button id="feedback-button">Send Feedback</button>
+                    <hr />
+                    <button id="logout-button">Logout</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="table-responsive">
-      <table class="data-table">
-        <thead>
-        <tr>
-          <th>Timestamp & IP</th>
-          <th>Type</th>
-          <th>User</th>
-          <th>Action & Details</th>
-        </tr>
-        </thead>
-        <tbody id="logs-tbody">
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
-<script src="/logs.js" type="module"></script>
-<script src="/js/notice.js"></script>
+<main class="logs-container">
+
+    <header class="logs-header">
+            <div>
+                <h1>System Activity Logs</h1>
+                <p class="subtitle">Monitor logins, article management, feedback actions, and page view traffic.</p>
+            </div>
+            <div class="header-actions">
+                <a href="/admin/feedback" class="btn btn-secondary"><span class="icon">inbox</span> Feedback Inbox</a>
+                <button id="refresh-logs-btn" class="btn btn-primary"><span class="icon">refresh</span> Refresh
+                    Logs</button>
+            </div>
+        </header>
+
+    <div class="kpi-grid">
+            <div class="kpi-card" id="kpi-total">
+                <div class="kpi-icon total"><span class="icon">view_list</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Total Events</span>
+                    <span class="kpi-val" id="stat-total">0</span>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-auth">
+                <div class="kpi-icon auth"><span class="icon">lock</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Auth Events</span>
+                    <span class="kpi-val" id="stat-auth">0</span>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-pages">
+                <div class="kpi-icon pages"><span class="icon">article</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Page Actions</span>
+                    <span class="kpi-val" id="stat-pages">0</span>
+                </div>
+            </div>
+            <div class="kpi-card" id="kpi-feedback">
+                <div class="kpi-icon feedback"><span class="icon">rate_review</span></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Feedback Actions</span>
+                    <span class="kpi-val" id="stat-feedback">0</span>
+                </div>
+            </div>
+        </div>
+
+    <div class="filter-card">
+            <div class="filter-row">
+                <div class="search-field">
+                    <span class="icon">search</span>
+                    <input type="text" id="log-search-input"
+                        placeholder="Search logs by email, IP, path, or details..." />
+                </div>
+                <div class="filter-group">
+                    <label for="category-filter">Category</label>
+                    <select id="category-filter">
+                        <option value="all">All Categories</option>
+                        <option value="auth">Auth & Accounts</option>
+                        <option value="pages">Page Management</option>
+                        <option value="feedback">Feedback</option>
+                        <option value="views">Page Views</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="action-filter">Action</label>
+                    <select id="action-filter">
+                        <option value="all">All Actions</option>
+                        <option value="LOGIN">LOGIN</option>
+                        <option value="REGISTER_SUCCESS">REGISTER_SUCCESS</option>
+                        <option value="REGISTER_FAILED">REGISTER_FAILED</option>
+                        <option value="PAGE_ADD">PAGE_ADD</option>
+                        <option value="PAGE_EDIT">PAGE_EDIT</option>
+                        <option value="PAGE_DELETE">PAGE_DELETE</option>
+                        <option value="FEEDBACK_ADD">FEEDBACK_ADD</option>
+                        <option value="FEEDBACK_EDIT">FEEDBACK_EDIT</option>
+                        <option value="FEEDBACK_DELETE">FEEDBACK_DELETE</option>
+                        <option value="PAGE_VIEW">PAGE_VIEW</option>
+                    </select>
+                </div>
+                <div class="toggle-group">
+                    <label class="switch">
+                        <input type="checkbox" id="hide-views-toggle" checked />
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Hide Page Views</span>
+                </div>
+            </div>
+        </div>
+
+    <div class="table-card">
+            <div id="logs-loading" class="logs-loading hidden">
+                <span class="icon spinner">sync</span> Loading audit logs...
+            </div>
+            <div id="logs-empty" class="logs-empty hidden">
+                <span class="icon">info</span> No logs found matching the selected filters.
+            </div>
+
+            <table id="logs-table" class="logs-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Category</th>
+                        <th>Action</th>
+                        <th>User Email</th>
+                        <th>IP Address</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="logs-table-body">
+                </tbody>
+            </table>
+
+        <div class="pagination-bar">
+                <span class="pagination-info" id="pagination-info">Showing 0 of 0 logs</span>
+                <div class="pagination-controls">
+                    <button id="prev-page-btn" class="btn-sm" disabled><span class="icon">chevron_left</span>
+                        Prev</button>
+                    <span id="page-indicator" class="page-indicator">Page 1</span>
+                    <button id="next-page-btn" class="btn-sm" disabled>Next <span
+                            class="icon">chevron_right</span></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+<div id="details-modal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Event Log Details</h2>
+                <button id="close-details-btn" class="icon-btn"><span class="icon">close</span></button>
+            </div>
+            <div class="modal-body">
+                <pre id="json-details-content" class="json-code"></pre>
+            </div>
+        </div>
+    </div>
+
+<script type="module" src="/admin/js/logs.js"></script>
 </body>
+
 </html>
