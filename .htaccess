@@ -7,7 +7,7 @@
 
     RewriteRule ^/?$ index.html [QSA,L]
 
-    RewriteRule ^(login|signup|index)/?$ $1.html [QSA,L]
+    RewriteRule ^(login|signup|index|privacy-policy)/?$ $1.html [QSA,L]
     RewriteRule ^(account/settings|settings)/?$ account/settings.html [QSA,L]
     RewriteRule ^account/reset-password/?$ account/reset-password.html [QSA,L]
     RewriteRule ^admin/?(dashboard)?$ admin/dashboard.html [QSA,L]
