@@ -1,5 +1,5 @@
 import { initAuth, login, logout, getUser, getAccessToken } from '/js/auth.js';
-import { getPages, getFilteredPages, getGradeCookie, setGradeCookie, getGradeName } from "/js/search.js";
+import { getPages, getFilteredPages, getGradeCookie, setGradeCookie, getGradeName, applyGradeFromUrl } from "/js/search.js";
 import { initFeedbackModal, openFeedbackModal } from "/js/feedback-modal.js";
 import { applyTheme } from "/js/theme.js";
 
@@ -188,6 +188,7 @@ function escapeHtml(text) {
     return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
+applyGradeFromUrl();
 correctNavBar();
 getPages();
 initGradeSelector();

@@ -5,6 +5,24 @@ const API_URL = CONFIG.API_URL;
 let pages = null;
 let fuse = null;
 
+/**
+ * If the URL contains a valid ?grade=N parameter (1–4), persist it to the
+ * cookie and return it.  Otherwise just return the current cookie value.
+ * Call this once on page load before any grade-dependent UI is rendered.
+ */
+export function applyGradeFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('grade');
+    if (raw !== null) {
+        const num = parseInt(raw, 10);
+        if (num >= 1 && num <= 4) {
+            setGradeCookie(num);
+            return num;
+        }
+    }
+    return getGradeCookie();
+}
+
 export function getGradeCookie() {
     const match = document.cookie.match(/(?:^|; )selected_grade=([^;]*)/);
     return match ? parseInt(match[1], 10) : 1;
