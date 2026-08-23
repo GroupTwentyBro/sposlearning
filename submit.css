@@ -1,0 +1,81 @@
+/* submit.css — overrides & additions on top of add-page.css */
+
+/* Info banner shown above the editor */
+.submit-info-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.12) 0%, rgba(99, 102, 241, 0.05) 100%);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+    font-size: 0.88rem;
+    color: var(--text-secondary, rgba(255,255,255,0.7));
+}
+
+.submit-info-banner .icon {
+    font-size: 1.3rem;
+    color: #818cf8;
+    flex-shrink: 0;
+}
+
+.submit-info-banner a {
+    color: #818cf8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.submit-info-banner strong {
+    color: var(--text-primary);
+}
+
+/* Edit-mode banner variant */
+.submit-info-banner.edit-mode {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border-bottom-color: rgba(245, 158, 11, 0.25);
+}
+
+.submit-info-banner.edit-mode .icon {
+    color: #fbbf24;
+}
+
+.submit-info-banner.edit-mode a {
+    color: #fbbf24;
+}
+
+/* Admin note panel shown on edit of needs_changes submission */
+#admin-note-panel {
+    margin: 0 20px 0 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+#admin-note-panel .icon {
+    color: #f87171;
+    font-size: 1.2rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+#admin-note-panel .note-body {
+    flex: 1;
+}
+
+#admin-note-panel .note-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #f87171;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+#admin-note-panel .note-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary, rgba(255,255,255,0.7));
+    line-height: 1.5;
+}

@@ -6,6 +6,7 @@ const API_URL = CONFIG.API_URL;
 const statPages = document.getElementById('dash-stat-pages');
 const statFeedback = document.getElementById('dash-stat-feedback');
 const statLogs = document.getElementById('dash-stat-logs');
+const statSubmissions = document.getElementById('dash-stat-submissions');
 const recentFeedbackList = document.getElementById('recent-feedback-list');
 const recentLogsList = document.getElementById('recent-logs-list');
 
@@ -35,10 +36,11 @@ async function loadDashboardData() {
         const token = await getAccessToken();
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        const [pagesRes, feedbackRes, logsRes] = await Promise.all([
+        const [pagesRes, feedbackRes, logsRes, subsRes] = await Promise.all([
             fetch(`${API_URL}/pages`),
             fetch(`${API_URL}/feedback`, { headers }),
-            fetch(`${API_URL}/logs?limit=5&hideViews=true`, { headers })
+            fetch(`${API_URL}/logs?limit=5&hideViews=true`, { headers }),
+            fetch(`${API_URL}/submissions?status=pending`, { headers })
         ]);
 
         if (pagesRes.ok) {
@@ -57,8 +59,12 @@ async function loadDashboardData() {
         if (logsRes.ok) {
             const logsData = await logsRes.json();
             if (statLogs) statLogs.textContent = logsData.total || 0;
-
             renderRecentLogs(logsData.logs || []);
+        }
+
+        if (subsRes.ok) {
+            const subsData = await subsRes.json();
+            if (statSubmissions) statSubmissions.textContent = Array.isArray(subsData) ? subsData.length : 0;
         }
 
     } catch (err) {

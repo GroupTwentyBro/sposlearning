@@ -15,6 +15,10 @@
     RewriteRule ^admin/edit-page/?$ admin/edit-page.html [QSA,L]
     RewriteRule ^admin/feedback/?$ admin/feedback.html [QSA,L]
     RewriteRule ^admin/logs/?$ admin/logs.html [QSA,L]
+    RewriteRule ^admin/submissions/?$ admin/submissions.html [QSA,L]
+
+    RewriteRule ^submit/?$ submit.html [QSA,L]
+    RewriteRule ^account/submissions/?$ account/submissions.html [QSA,L]
 
     RewriteRule ^home/?$ index.html [QSA,L]
 

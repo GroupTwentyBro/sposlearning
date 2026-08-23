@@ -65,6 +65,13 @@ async function correctNavBar() {
         });
     }
 
+    const submissionsButton = document.getElementById("submissions-button");
+    if (submissionsButton) {
+        submissionsButton.addEventListener("click", () => {
+            window.location.href = "/account/submissions";
+        });
+    }
+
     const logoutButton = document.getElementById("logout-button");
     if (logoutButton) {
         logoutButton.addEventListener("click", () => {
