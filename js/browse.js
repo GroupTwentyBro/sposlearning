@@ -81,13 +81,36 @@ function buildTree(pages) {
     return root;
 }
 
-// Recursively count pages in a node
+// Recursively count pages in a node (including its index page)
 function countPagesInNode(node) {
-    let n = (node._pages || []).length;
+    let n = (node._pages || []).length + (node._indexPage ? 1 : 0);
     for (const key of Object.keys(node._children || {})) {
         n += countPagesInNode(node._children[key]);
     }
     return n;
+}
+
+/**
+ * Post-process the tree: if a page in node._pages has the same last path segment
+ * as a key in node._children, attach it as _indexPage on that folder instead.
+ * This merges e.g. the /fyz file into the FYZ folder header.
+ */
+function mergeIndexPages(node) {
+    const remaining = [];
+    for (const page of (node._pages || [])) {
+        const segs = page.path.split('/').filter(Boolean);
+        const lastSeg = segs[segs.length - 1];
+        if (lastSeg && node._children[lastSeg] && !node._children[lastSeg]._indexPage) {
+            // Attach as the folder's index page
+            node._children[lastSeg]._indexPage = page;
+        } else {
+            remaining.push(page);
+        }
+    }
+    node._pages = remaining;
+    for (const key of Object.keys(node._children || {})) {
+        mergeIndexPages(node._children[key]);
+    }
 }
 
 // ─── DOM rendering ────────────────────────────────────────────────────────────
@@ -122,6 +145,7 @@ function render() {
     }
 
     const treeData = buildTree(visible);
+    mergeIndexPages(treeData);  // merge /x pages into the x/ folder when both exist
 
     tree.innerHTML = '';
     renderChildren(treeData, tree, 0, term);
@@ -146,7 +170,8 @@ function renderChildren(node, parent, depth, term) {
 }
 
 function makeFolderEl(name, node, depth, term) {
-    const total = countPagesInNode(node);
+    const total     = countPagesInNode(node);
+    const indexPage = node._indexPage || null;
 
     const folderEl = document.createElement('div');
     folderEl.className = `tree-folder${term ? ' open' : ''}`;
@@ -157,11 +182,17 @@ function makeFolderEl(name, node, depth, term) {
     const displayName = prettifySegment(name);
     const labelHtml   = term ? highlight(escapeHtml(displayName), term) : escapeHtml(displayName);
 
+    // If this folder has an index page, make the name a navigable link
+    const nameEl = indexPage
+        ? `<a class="folder-name folder-name-link" href="/${escapeHtml(indexPage.path)}" title="${escapeHtml(indexPage.title)}">${labelHtml}</a>`
+        : `<span class="folder-name">${labelHtml}</span>`;
+
     folderEl.innerHTML = `
         <div class="tree-folder-header">
             <span class="icon folder-toggle-icon">chevron_right</span>
             <span class="icon folder-icon">folder</span>
-            <span class="folder-name">${labelHtml}</span>
+            ${indexPage ? '<span class="icon folder-file-badge" title="Also has an overview page">description</span>' : ''}
+            ${nameEl}
             <span class="folder-count">${total}</span>
         </div>
         <div class="tree-folder-children" role="group"></div>
@@ -170,6 +201,9 @@ function makeFolderEl(name, node, depth, term) {
     const header   = folderEl.querySelector('.tree-folder-header');
     const children = folderEl.querySelector('.tree-folder-children');
     const fIcon    = folderEl.querySelector('.folder-icon');
+
+    // Prevent the index-page link from also triggering the fold toggle
+    folderEl.querySelector('.folder-name-link')?.addEventListener('click', e => e.stopPropagation());
 
     header.addEventListener('click', () => {
         const isOpen = folderEl.classList.toggle('open');

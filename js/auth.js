@@ -87,10 +87,11 @@ export function login(provider) {
 export function logout() {
     deleteCookie('kc_access');
     deleteCookie('kc_refresh');
+    const redirectUri = window.location.origin + '/';
     if (keycloak) {
-        keycloak.logout({ redirectUri: 'https://dev.sposlearning.cz/' });
+        keycloak.logout({ redirectUri });
     } else {
-        window.location.href = 'https://dev.sposlearning.cz/';
+        window.location.href = redirectUri;
     }
 }
 
