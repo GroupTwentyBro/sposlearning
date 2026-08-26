@@ -8,7 +8,7 @@ on:
 jobs:
   web-deploy:
     name: FTP Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Get latest code
       uses: actions/checkout@v4
