@@ -196,6 +196,8 @@
                         <button class="tb-btn" data-before="```\n" data-after="\n```" title="Code block"><span class="icon">terminal</span></button>
                         <div class="tb-divider"></div>
                         <button id="modal-toggle-preview" class="tb-btn" title="Toggle preview"><span class="icon" id="modal-preview-icon">preview</span></button>
+                        <div class="tb-divider"></div>
+                        <button id="modal-fullscreen-btn" class="tb-btn" title="Open in fullscreen editor"><span class="icon">open_in_full</span></button>
                     </div>
                     <textarea id="modal-editor" class="review-editor" rows="18" placeholder="Article content in Markdown…"></textarea>
                     <div id="modal-preview-pane" class="modal-preview-pane hidden"></div>
@@ -220,13 +222,17 @@
 
                     <div class="decision-actions">
                         <button id="btn-approve" class="btn btn-approve">
-                            <span class="icon">check_circle</span> Approve & Publish
+                            <span class="icon">check_circle</span> Approve &amp; Publish
                         </button>
                         <button id="btn-changes" class="btn btn-changes">
                             <span class="icon">edit_note</span> Request Changes
                         </button>
                         <button id="btn-reject" class="btn btn-reject">
                             <span class="icon">cancel</span> Reject
+                        </button>
+                        <hr style="border-color: var(--border-color, #2a2a2a); margin: 6px 0;" />
+                        <button id="btn-delete-sub" class="btn btn-delete-sub">
+                            <span class="icon">delete_forever</span> Delete Submission
                         </button>
                     </div>
 

@@ -44,6 +44,8 @@ body { background: var(--main-bg, #121212); min-height: 100vh; }
 .btn-approve   { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); width: 100%; justify-content: center; }
 .btn-changes   { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); width: 100%; justify-content: center; }
 .btn-reject    { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25);  width: 100%; justify-content: center; }
+.btn-delete-sub { background: transparent; color: rgba(239,68,68,0.55); border: 1px solid rgba(239,68,68,0.15); width: 100%; justify-content: center; font-size: 0.82rem; }
+.btn-delete-sub:hover { background: rgba(239,68,68,0.1); color: #f87171; border-color: rgba(239,68,68,0.3); }
 
 /* ─── KPI bar ────────────────────────────────────────────────────────────── */
 .kpi-container {
@@ -361,3 +363,28 @@ body { background: var(--main-bg, #121212); min-height: 100vh; }
 }
 .notification.error { background: #ef4444; }
 @keyframes slideUp { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+/* ─── CodeMirror dark theme override ────────────────────────────────────── */
+.CodeMirror {
+    background: var(--surface-2, #1c1c1c) !important;
+    color: #e8eaf6 !important;
+    border-radius: 0 0 8px 8px;
+    height: auto;
+    min-height: 300px;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    border: none;
+}
+.CodeMirror-scroll { padding: 4px 0; }
+.CodeMirror-cursor { border-left: 2px solid var(--accent-primary, #0099ff) !important; }
+.CodeMirror-selected { background: rgba(0, 153, 255, 0.2) !important; }
+.CodeMirror-line { padding: 0 10px; }
+.CodeMirror-gutters { background: var(--surface-1, #1a1a1a) !important; border-right: 1px solid var(--border-color, #2a2a2a) !important; }
+.CodeMirror-linenumber { color: rgba(255,255,255,0.25) !important; }
+.cm-header { color: #82b1ff !important; font-weight: 700; }
+.cm-strong { color: #f8f8f2 !important; font-weight: 700; }
+.cm-em { color: #f8f8f2 !important; font-style: italic; }
+.cm-link { color: #80cbc4 !important; }
+.cm-string { color: #a5d6a7 !important; }
+.cm-comment { color: #546e7a !important; }
+.cm-keyword { color: #c792ea !important; }

@@ -63,6 +63,18 @@ async function submitReview(id, payload) {
     return res.json();
 }
 
+async function deleteSubmission(id) {
+    const headers = await getAuthHeaders();
+    const res = await fetch(`${API_URL}/submissions/${id}`, {
+        method: 'DELETE', headers, credentials: 'include'
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Delete failed');
+    }
+    return res.json();
+}
+
 // ─── KPIs ──────────────────────────────────────────────────────────────────
 
 function updateKPIs() {
@@ -255,6 +267,31 @@ function setupControls() {
     document.getElementById('modal-close-btn').addEventListener('click', closeModal);
     document.getElementById('review-modal').addEventListener('click', e => {
         if (e.target === document.getElementById('review-modal')) closeModal();
+    });
+
+    // Fullscreen editor
+    document.getElementById('modal-fullscreen-btn')?.addEventListener('click', () => {
+        if (!selectedSub) return;
+        window.location.href = `/admin/edit-page?sid=${encodeURIComponent(selectedSub.id)}`;
+    });
+
+    // Admin delete
+    document.getElementById('btn-delete-sub')?.addEventListener('click', async () => {
+        if (!selectedSub) return;
+        const confirmed = confirm(`Permanently delete submission "${selectedSub.title}"?\n\nThis cannot be undone.`);
+        if (!confirmed) return;
+        const id = selectedSub.id;
+        const btn = document.getElementById('btn-delete-sub');
+        btn.disabled = true;
+        try {
+            await deleteSubmission(id);
+            showNotification('Submission deleted');
+            closeModal();
+            await fetchSubmissions();
+        } catch (err) {
+            showNotification(`Error: ${err.message}`, 'error');
+            btn.disabled = false;
+        }
     });
 
     // Decision buttons

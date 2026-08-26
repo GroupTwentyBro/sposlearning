@@ -54,9 +54,46 @@ async function checkAuth() {
 
 async function loadPageFromDB() {
     const urlParams = new URLSearchParams(window.location.search);
-    const idParam = urlParams.get('id');
+    const idParam   = urlParams.get('id');
     const pathParam = urlParams.get('path');
+    const sidParam  = urlParams.get('sid');   // submission id
 
+    // ── Load from a submission ──────────────────────────────────────────────
+    if (sidParam) {
+        try {
+            const token = await getAccessToken().catch(() => null);
+            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`${API_URL}/submissions/${encodeURIComponent(sidParam)}`, { headers });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const sub = await res.json();
+
+            const titleEl = document.getElementById('article-title');
+            const pathEl  = document.getElementById('article-path');
+            const gradeEl = document.getElementById('article-grade');
+
+            if (titleEl) titleEl.value = sub.title || '';
+            if (pathEl)  pathEl.value  = (sub.suggested_path || '').replace(/^\/|\/$/g, '');
+            if (gradeEl) gradeEl.value = sub.grade ?? 1;
+
+            originalPath = sub.suggested_path || '';
+
+            if (sub.content) setEditorContent(sub.content);
+
+            showNotification(`Loaded submission from ${sub.submitted_by}`);
+
+            // Show a banner so it's obvious this is a submission review
+            const banner = document.createElement('div');
+            banner.style.cssText = 'background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:0.85rem;color:#a5b4fc;display:flex;align-items:center;gap:8px;';
+            banner.innerHTML = `<span class="icon" style="font-size:1rem;">rate_review</span> Editing submission by <strong>${sub.submitted_by}</strong> &mdash; save changes then go back to <a href="/admin/submissions" style="color:#818cf8;">Submission Review</a> to approve.`;
+            document.querySelector('.editor-container, #editor-panel, main')?.prepend(banner);
+        } catch (e) {
+            console.error('Failed to load submission:', e);
+            showNotification(`Error loading submission: ${e.message}`, 'error');
+        }
+        return;
+    }
+
+    // ── Load from pages table ───────────────────────────────────────────────
     if (!idParam && !pathParam) {
         showNotification('No page specified in URL parameters', 'error');
         return;
