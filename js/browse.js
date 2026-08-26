@@ -3,8 +3,8 @@ import { getPages, getGradeCookie, getGradeName } from "/js/search.js";
 
 const API_URL = CONFIG.API_URL;
 
-let allPages    = [];   // full unfiltered list (already grade-filtered)
-let filterTerm  = '';
+let allPages   = [];   // grade-filtered flat list
+let filterTerm = '';
 
 // ─── Grade-aware label ────────────────────────────────────────────────────────
 
@@ -12,22 +12,18 @@ function updateGradeSubtitle() {
     const grade = getGradeCookie();
     const el = document.getElementById('grade-subtitle');
     if (!el) return;
-    if (grade === 0) {
-        el.textContent = 'Showing pages for all grades';
-    } else {
-        el.textContent = `Showing pages for ${getGradeName(grade)}`;
-    }
+    el.textContent = grade === 0
+        ? 'Showing pages for all grades'
+        : `Showing pages for ${getGradeName(grade)}`;
 }
 
 // ─── Data loading ─────────────────────────────────────────────────────────────
 
 async function loadPages() {
-    await getPages();   // populates the shared pages cache in search.js
+    await getPages(); // warm up the shared fuse cache in search.js
 
-    // Fetch raw list directly so we can apply our own grade filter
     const res  = await fetch(`${API_URL}/pages`);
     const data = await res.json();
-
     const grade = getGradeCookie();
 
     allPages = data
@@ -50,43 +46,46 @@ async function loadPages() {
 // ─── Tree builder ─────────────────────────────────────────────────────────────
 
 /**
- * Convert a flat list of pages with path strings into a nested object tree.
- * e.g. "prg/arrays/basics" → { prg: { arrays: { basics: [pages…] } } }
+ * Converts a flat page list into a nested tree.
+ * ALL path segments except the last are folders.
+ * The LAST segment is the page itself — it lives in its parent's _pages array.
+ *
+ * e.g. "osy/linux/zakladni-prikazy" →
+ *   root._children.osy._children.linux._pages = [{ title: "Základní příkazy", ... }]
  */
 function buildTree(pages) {
-    const root = {};
+    const root = { _pages: [], _children: {} };
 
     pages.forEach(page => {
         const segments = page.path.split('/').filter(Boolean);
-        // All segments except the last are folder names;
-        // the last segment is the "leaf" label (but we use the page title for display).
-        // If there's only one segment (or zero), put it in a synthetic root folder "_root".
-        if (segments.length === 0) return;
+
+        if (segments.length === 0) {
+            root._pages.push(page);
+            return;
+        }
 
         let node = root;
-        // Traverse / create folder nodes for all-but-last segments
+        // Navigate/create folders for every segment except the last
         for (let i = 0; i < segments.length - 1; i++) {
             const seg = segments[i];
-            if (!node[seg]) node[seg] = { _pages: [], _children: {} };
-            node = node[seg]._children;
+            if (!node._children[seg]) {
+                node._children[seg] = { _pages: [], _children: {} };
+            }
+            node = node._children[seg];
         }
-        // Last segment is just the "leaf" folder name; page lives there
-        const leaf = segments[segments.length - 1];
-        if (!node[leaf]) node[leaf] = { _pages: [], _children: {} };
-        node[leaf]._pages.push(page);
+
+        // The page itself is the leaf — add to the parent's _pages
+        node._pages.push(page);
     });
 
     return root;
 }
 
-// Count total pages recursively inside a node
-function countPages(node) {
+// Recursively count pages in a node
+function countPagesInNode(node) {
     let n = (node._pages || []).length;
-    for (const key of Object.keys(node).filter(k => k !== '_pages' && k !== '_children')) {
-        n += countPages(node[key]);
-    }
     for (const key of Object.keys(node._children || {})) {
-        n += countPages(node._children[key]);
+        n += countPagesInNode(node._children[key]);
     }
     return n;
 }
@@ -96,20 +95,19 @@ function countPages(node) {
 function render() {
     updateGradeSubtitle();
 
-    const tree = document.getElementById('browse-tree');
-    const statsEl = document.getElementById('browse-stats');
+    const tree      = document.getElementById('browse-tree');
+    const statsEl   = document.getElementById('browse-stats');
     const statsText = document.getElementById('browse-stats-text');
 
     const term = filterTerm.toLowerCase().trim();
 
-    // Filter pages by search term (title or path)
     const visible = term
         ? allPages.filter(p =>
             p.title.toLowerCase().includes(term) ||
             p.path.toLowerCase().includes(term))
         : allPages;
 
-    // Stats
+    // Stats bar
     statsEl.classList.remove('hidden');
     statsText.textContent = term
         ? `${visible.length} of ${allPages.length} pages match "${filterTerm}"`
@@ -126,41 +124,24 @@ function render() {
     const treeData = buildTree(visible);
 
     tree.innerHTML = '';
-    renderNode(treeData, tree, 0, term, true);
+    renderChildren(treeData, tree, 0, term);
 }
 
 /**
- * Render a tree node (folder or page) recursively.
- * @param {object} node   - The current tree node object
+ * Render a node's direct children (sub-folders + leaf pages) into a DOM parent.
+ * @param {object}  node   - Tree node with _pages and _children
  * @param {Element} parent - DOM element to append into
- * @param {number} depth  - Nesting depth (0 = top-level)
- * @param {string} term   - Current filter term (for highlighting)
- * @param {boolean} isRoot - Whether we're rendering the root (no wrapper folder)
+ * @param {number}  depth  - Nesting depth (0 = top level)
+ * @param {string}  term   - Current filter term (for auto-expand + highlight)
  */
-function renderNode(node, parent, depth, term, isRoot = false) {
-    const folderKeys = Object.keys(node).filter(k => k !== '_pages' && k !== '_children');
+function renderChildren(node, parent, depth, term) {
+    const folderKeys = Object.keys(node._children || {}).sort();
+    const pages      = node._pages || [];
 
-    if (isRoot) {
-        // Top-level: just iterate all folder keys, each becomes a top-level folder card
-        folderKeys.sort().forEach(key => {
-            const child = node[key];
-            const folderEl = makeFolderEl(key, child, depth, term);
-            parent.appendChild(folderEl);
-        });
-        return;
-    }
-
-    // Non-root node: render _pages first, then sub-folders
-    (node._pages || []).forEach(page => {
-        parent.appendChild(makePageEl(page, term));
-    });
-
-    // Sub-folders inside _children
-    const childKeys = Object.keys(node._children || {}).sort();
-    childKeys.forEach(key => {
-        const child = node._children[key];
-        const folderEl = makeFolderEl(key, child, depth, term);
-        parent.appendChild(folderEl);
+    // Leaf pages first, then sub-folders
+    pages.forEach(page => parent.appendChild(makeFileEl(page, depth, term)));
+    folderKeys.forEach(key => {
+        parent.appendChild(makeFolderEl(key, node._children[key], depth, term));
     });
 }
 
@@ -169,18 +150,18 @@ function makeFolderEl(name, node, depth, term) {
 
     const folderEl = document.createElement('div');
     folderEl.className = `tree-folder${term ? ' open' : ''}`;
-    folderEl.setAttribute('data-depth', depth);
+    folderEl.dataset.depth = depth;
     folderEl.setAttribute('role', 'treeitem');
     folderEl.setAttribute('aria-expanded', term ? 'true' : 'false');
 
     const displayName = prettifySegment(name);
-    const highlightedName = term ? highlight(displayName, term) : escapeHtml(displayName);
+    const labelHtml   = term ? highlight(escapeHtml(displayName), term) : escapeHtml(displayName);
 
     folderEl.innerHTML = `
         <div class="tree-folder-header">
             <span class="icon folder-toggle-icon">chevron_right</span>
             <span class="icon folder-icon">folder</span>
-            <span class="folder-name">${highlightedName}</span>
+            <span class="folder-name">${labelHtml}</span>
             <span class="folder-count">${total}</span>
         </div>
         <div class="tree-folder-children" role="group"></div>
@@ -188,83 +169,63 @@ function makeFolderEl(name, node, depth, term) {
 
     const header   = folderEl.querySelector('.tree-folder-header');
     const children = folderEl.querySelector('.tree-folder-children');
-    const icon     = folderEl.querySelector('.folder-icon');
+    const fIcon    = folderEl.querySelector('.folder-icon');
 
-    // Click to toggle
     header.addEventListener('click', () => {
         const isOpen = folderEl.classList.toggle('open');
-        folderEl.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        icon.textContent = isOpen ? 'folder_open' : 'folder';
+        folderEl.setAttribute('aria-expanded', String(isOpen));
+        fIcon.textContent = isOpen ? 'folder_open' : 'folder';
     });
 
-    // Populate children
-    renderNode(node, children, depth + 1, term, false);
+    renderChildren(node, children, depth + 1, term);
 
     return folderEl;
 }
 
-function makePageEl(page, term) {
+/**
+ * A page leaf — looks like a folder header row but uses a file icon, no arrow, and is a link.
+ */
+function makeFileEl(page, depth, term) {
     const a = document.createElement('a');
-    a.className = 'tree-page';
-    a.href = `/${page.path}`;
+    a.className = 'tree-file';
+    a.href  = `/${page.path}`;
+    a.title = `/${page.path}`;
     a.setAttribute('role', 'treeitem');
-    a.title = page.path;
+    a.dataset.depth = depth;
 
-    const displayTitle = term ? highlight(escapeHtml(page.title), term) : escapeHtml(page.title);
+    const titleHtml = term
+        ? highlight(escapeHtml(page.title), term)
+        : escapeHtml(page.title);
 
-    // Show the last path segment as a hint (helpful when title is generic)
-    const pathHint = page.path.split('/').pop() || '';
-    const displayHint = term ? highlight(escapeHtml(pathHint), term) : escapeHtml(pathHint);
+    // Depth-keyed colours mirror folder icon colours
+    const fileColors = ['#818cf8', '#38bdf8', '#34d399', '#fbbf24', '#f87171'];
+    const color = fileColors[Math.min(depth, fileColors.length - 1)];
 
     a.innerHTML = `
-        <span class="page-dot"></span>
-        <span class="page-title">${displayTitle}</span>
-        <span class="page-path-hint">${displayHint}</span>
+        <span class="file-arrow-spacer"></span>
+        <span class="icon file-icon" style="color:${color}">description</span>
+        <span class="file-title">${titleHtml}</span>
     `;
     return a;
-}
-
-// Count pages recursively inside a plain node (with _pages and _children)
-function countPagesInNode(node) {
-    let n = (node._pages || []).length;
-    for (const key of Object.keys(node._children || {})) {
-        n += countPagesInNode(node._children[key]);
-    }
-    return n;
 }
 
 // ─── Expand / collapse all ────────────────────────────────────────────────────
 
 function setAllFolders(open) {
     document.querySelectorAll('.tree-folder').forEach(el => {
-        if (open) {
-            el.classList.add('open');
-            el.setAttribute('aria-expanded', 'true');
-            const icon = el.querySelector('.folder-icon');
-            if (icon) icon.textContent = 'folder_open';
-        } else {
-            el.classList.remove('open');
-            el.setAttribute('aria-expanded', 'false');
-            const icon = el.querySelector('.folder-icon');
-            if (icon) icon.textContent = 'folder';
-        }
+        el.classList.toggle('open', open);
+        el.setAttribute('aria-expanded', String(open));
+        const icon = el.querySelector('.folder-icon');
+        if (icon) icon.textContent = open ? 'folder_open' : 'folder';
     });
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Turn a raw path segment into a human-friendly label.
- * e.g. "prg" → "PRG", "pocitacove-site" → "Počítačové sítě" (just capitalise for now)
- */
 function prettifySegment(seg) {
     if (!seg) return seg;
-    // All-caps short codes (likely subject abbreviations: prg, mat, cj…)
     if (seg.length <= 4) return seg.toUpperCase();
-    // Otherwise: replace hyphens with spaces, title-case
-    return seg
-        .replace(/-/g, ' ')
-        .replace(/\b\w/g, c => c.toUpperCase());
+    return seg.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function escapeHtml(text) {
@@ -275,30 +236,23 @@ function escapeHtml(text) {
 
 function highlight(html, term) {
     if (!term) return html;
-    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return html.replace(new RegExp(`(${escaped})`, 'gi'), '<mark class="hl">$1</mark>');
+    const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return html.replace(new RegExp(`(${esc})`, 'gi'), '<mark class="hl">$1</mark>');
 }
 
-// ─── Grade change listener ────────────────────────────────────────────────────
+// ─── Grade change watcher ─────────────────────────────────────────────────────
 
-// When the user switches grade via the navbar dropdown, reload the page list.
-// We do this by listening for cookie changes — simplest is a small polling check
-// or we can hook into the grade buttons directly.
 function watchGradeChanges() {
-    let lastGrade = getGradeCookie();
+    let last = getGradeCookie();
     setInterval(() => {
         const current = getGradeCookie();
-        if (current !== lastGrade) {
-            lastGrade = current;
-            loadPages();
-        }
+        if (current !== last) { last = current; loadPages(); }
     }, 400);
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 async function init() {
-    // Filter input
     const filterInput = document.getElementById('browse-filter');
     const clearBtn    = document.getElementById('browse-filter-clear');
 

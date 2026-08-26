@@ -217,57 +217,40 @@ body { background: var(--main-bg, #121212); min-height: 100vh; }
     border-radius: 10px;
 }
 
-/* ─ Leaf page rows ─ */
-.tree-page {
+/* ─ Leaf page rows (file-style, same height as folder headers) ─ */
+.tree-file {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px 16px 9px calc(var(--tree-indent) + 16px);
+    padding: 11px 16px;
     text-decoration: none;
-    border-radius: 0;
     transition: background 0.15s;
-    position: relative;
+    cursor: pointer;
 }
-.tree-page::before {
-    content: '';
-    position: absolute;
-    left: calc(var(--tree-indent) + 4px);
-    top: 50%;
-    width: 8px;
-    height: 1px;
-    background: var(--border-color, #2A2A2A);
-}
-.tree-page:hover { background: rgba(255,255,255,0.04); }
-.tree-page:hover .page-title { color: var(--accent-primary, #0099ff); }
+.tree-file:hover { background: rgba(255,255,255,0.04); }
+.tree-file:hover .file-title { color: var(--accent-primary, #0099ff); }
 
-.page-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: var(--text-tertiary);
+/* Spacer that aligns with the folder's chevron arrow */
+.file-arrow-spacer {
+    width: 1.1rem;
     flex-shrink: 0;
-    transition: background 0.15s;
+    display: inline-block;
 }
-.tree-page:hover .page-dot { background: var(--accent-primary, #0099ff); }
 
-.page-title {
-    font-size: 0.88rem;
+.file-icon {
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.file-title {
+    font-size: 0.92rem;
+    font-weight: 500;
     color: var(--text-secondary);
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     transition: color 0.15s;
-}
-
-.page-path-hint {
-    font-size: 0.73rem;
-    color: var(--text-tertiary);
-    font-family: 'Fira Code', 'Courier New', monospace;
-    flex-shrink: 0;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 /* ─── Filter highlight ──────────────────────────────────────────────────────── */
