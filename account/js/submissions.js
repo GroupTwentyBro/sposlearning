@@ -169,9 +169,9 @@ function setupDeleteModal() {
     document.getElementById('delete-cancel-btn').addEventListener('click', closeDeleteModal);
     document.getElementById('delete-confirm-btn').addEventListener('click', async () => {
         if (!pendingDeleteId) return;
+        const idToDelete = pendingDeleteId;  // capture before closeDeleteModal nulls it
         closeDeleteModal();
-        await deleteSubmission(pendingDeleteId);
-        pendingDeleteId = null;
+        await deleteSubmission(idToDelete);
     });
     document.getElementById('delete-modal').addEventListener('click', e => {
         if (e.target === document.getElementById('delete-modal')) closeDeleteModal();
