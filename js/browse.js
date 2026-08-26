@@ -179,7 +179,7 @@ function makeFolderEl(name, node, depth, term) {
     folderEl.setAttribute('role', 'treeitem');
     folderEl.setAttribute('aria-expanded', term ? 'true' : 'false');
 
-    const displayName = prettifySegment(name);
+    const displayName = indexPage ? indexPage.title : prettifySegment(name);
     const labelHtml   = term ? highlight(escapeHtml(displayName), term) : escapeHtml(displayName);
 
     // If this folder has an index page, make the name a navigable link
