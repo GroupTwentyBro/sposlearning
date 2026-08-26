@@ -21,6 +21,7 @@
     RewriteRule ^account/submissions/?$ account/submissions.html [QSA,L]
 
     RewriteRule ^home/?$ index.html [QSA,L]
+    RewriteRule ^browse/?$ browse.html [QSA,L]
 
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
