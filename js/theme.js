@@ -40,88 +40,13 @@ function initMikuVideo() {
         `;
     }
 
-    // Inject styles dynamically to ensure they work even if global.css is not present
+    // Inject the miku-theme.css stylesheet
     if (!document.getElementById("miku-theme-styles")) {
-        const style = document.createElement("style");
-        style.id = "miku-theme-styles";
-        style.textContent = `
-            [data-theme="miku"] {
-                --main-bg: rgba(10, 30, 35, 0.4) !important;
-                --surface-1: rgba(10, 30, 35, 0.85) !important;
-                --surface-2: rgba(10, 30, 35, 0.9) !important;
-                --surface-3: rgba(10, 30, 35, 0.95) !important;
-                --border-color: hsl(177, 70%, 35%) !important;
-                --text-primary: #FFF !important;
-                --text-secondary: hsl(177, 30%, 75%) !important;
-                --text-tertiary: rgba(255, 255, 255, 0.5) !important;
-                --accent-primary: hsl(177, 70%, 50%) !important;
-                --accent-secondary: hsl(328, 85%, 53%) !important;
-            }
-            body {
-                background: transparent !important;
-            }
-            .video-background {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                z-index: -1 !important;
-                overflow: hidden !important;
-                display: flex !important;
-                pointer-events: none !important;
-            }
-            .video-background video {
-                flex: 1 !important;
-                min-width: 33.33% !important;
-                height: 100% !important;
-                object-fit: cover !important;
-            }
-            .video-background::after {
-                content: "" !important;
-                position: absolute !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                background: linear-gradient(
-                    135deg,
-                    rgba(0, 178, 169, 0.3),
-                    rgba(225, 40, 133, 0.2)
-                ) !important;
-                box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.5) !important;
-            }
-            .miku-sound-toggle {
-                position: fixed !important;
-                bottom: 30px !important;
-                right: 30px !important;
-                width: 50px !important;
-                height: 50px !important;
-                border-radius: 50% !important;
-                background: linear-gradient(
-                    135deg,
-                    var(--accent-primary),
-                    var(--accent-secondary)
-                ) !important;
-                border: 2px solid var(--accent-secondary) !important;
-                color: white !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                cursor: pointer !important;
-                z-index: 1000 !important;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-                transition: all 0.3s ease !important;
-            }
-            .miku-sound-toggle:hover {
-                transform: scale(1.1) !important;
-                box-shadow: 0 6px 20px rgba(225, 40, 133, 0.6) !important;
-            }
-            .miku-sound-toggle span {
-                font-size: 24px !important;
-            }
-        `;
-        document.head.appendChild(style);
+        const link = document.createElement("link");
+        link.id = "miku-theme-styles";
+        link.rel = "stylesheet";
+        link.href = "/miku-theme.css";
+        document.head.appendChild(link);
     }
 
     document.body.insertBefore(videoDiv, document.body.firstChild);
