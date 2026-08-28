@@ -34,6 +34,16 @@
     box-sizing: border-box;
 }
 
+html, body {
+    min-height: 100vh;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
 button,
 select,
 input,
