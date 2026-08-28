@@ -104,3 +104,23 @@ div {
 .nd {
     display: none !important;
 }
+
+.site-footer {
+    text-align: center;
+    padding: 24px 0;
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.site-footer a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.site-footer a:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
