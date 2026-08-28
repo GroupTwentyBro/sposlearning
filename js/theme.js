@@ -60,6 +60,76 @@ function initMikuVideo() {
         synchronizeVideos();
         createSoundToggle();
     }, 100);
+    
+    // Process words to Miku
+    mikuifyText();
+}
+
+const originalTextNodes = new Map();
+
+function mikuifyText() {
+    if (originalTextNodes.size > 0) return; // Already applied
+
+    const walker = document.createTreeWalker(
+        document.body,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode: function(node) {
+                const parent = node.parentNode;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                
+                const tag = parent.tagName;
+                if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'CODE' || tag === 'PRE') {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                if (parent.classList && (parent.classList.contains('icon') || parent.classList.contains('material-symbols-outlined'))) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                if (node.nodeValue.trim() === '') {
+                    return NodeFilter.FILTER_SKIP;
+                }
+                return NodeFilter.FILTER_ACCEPT;
+            }
+        }
+    );
+
+    let node;
+    const nodesToProcess = [];
+    while ((node = walker.nextNode())) {
+        nodesToProcess.push(node);
+    }
+
+    nodesToProcess.forEach(node => {
+        const originalText = node.nodeValue;
+        let changed = false;
+        
+        // Split by whitespace while preserving it
+        const words = originalText.split(/(\s+)/);
+        const newWords = words.map(word => {
+            // If it's a word (not just whitespace/empty)
+            if (word.trim().length > 0) {
+                // 1 in 10 chance (random 1 to 10, if 1)
+                if (Math.floor(Math.random() * 10) + 1 === 1) {
+                    changed = true;
+                    // Preserve original casing of "Miku"? Just use "Miku"
+                    return "Miku";
+                }
+            }
+            return word;
+        });
+
+        if (changed) {
+            originalTextNodes.set(node, originalText);
+            node.nodeValue = newWords.join('');
+        }
+    });
+}
+
+function demikuifyText() {
+    originalTextNodes.forEach((originalText, node) => {
+        node.nodeValue = originalText;
+    });
+    originalTextNodes.clear();
 }
 
 function synchronizeVideos() {
@@ -131,6 +201,7 @@ function removeMikuVideo() {
     if (injectedStyles) {
         injectedStyles.remove();
     }
+    demikuifyText();
 }
 
 export function applyTheme(theme = getThemeCookie()) {
