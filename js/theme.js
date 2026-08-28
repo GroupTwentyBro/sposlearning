@@ -8,6 +8,8 @@ export function setThemeCookie(theme) {
     applyTheme(theme);
 }
 
+window.setThemeCookie = setThemeCookie;
+
 let mikuAudioEnabled = false;
 
 function initMikuVideo() {
