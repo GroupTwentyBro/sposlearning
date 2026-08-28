@@ -43,6 +43,7 @@ body {
     flex: 1;
     color: var(--text-primary);
     font-family: "Emls Sans", sans-serif;
+    min-height: 100vh;
 }
 
 button,
@@ -279,7 +280,7 @@ span {
 .site-footer {
     text-align: center;
     padding: 24px 0;
-    margin-top: 40px;
+    margin-top: auto;
     border-top: 1px solid var(--border-color);
     font-size: 0.85rem;
     color: var(--text-secondary);
