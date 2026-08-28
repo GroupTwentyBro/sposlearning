@@ -66,12 +66,53 @@ function initMikuVideo() {
 }
 
 const originalTextNodes = new Map();
+let mikuObserver = null;
 
 function mikuifyText() {
-    if (originalTextNodes.size > 0) return; // Already applied
+    processForMiku(document.body);
+
+    if (!mikuObserver) {
+        mikuObserver = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
+                        processForMiku(node);
+                    }
+                });
+            });
+        });
+        mikuObserver.observe(document.body, { childList: true, subtree: true });
+    }
+}
+
+function demikuifyText() {
+    if (mikuObserver) {
+        mikuObserver.disconnect();
+        mikuObserver = null;
+    }
+    originalTextNodes.forEach((originalText, node) => {
+        if (node.parentNode) {
+            node.nodeValue = originalText;
+        }
+    });
+    originalTextNodes.clear();
+}
+
+function processForMiku(rootNode) {
+    if (rootNode.nodeType === Node.TEXT_NODE) {
+        processTextNode(rootNode);
+        return;
+    }
+    if (rootNode.nodeType !== Node.ELEMENT_NODE && rootNode.nodeType !== Node.DOCUMENT_FRAGMENT_NODE) return;
+
+    if (rootNode.tagName) {
+        const tag = rootNode.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'CODE' || tag === 'PRE') return;
+        if (rootNode.classList && (rootNode.classList.contains('icon') || rootNode.classList.contains('material-symbols-outlined'))) return;
+    }
 
     const walker = document.createTreeWalker(
-        document.body,
+        rootNode,
         NodeFilter.SHOW_TEXT,
         {
             acceptNode: function(node) {
@@ -99,37 +140,37 @@ function mikuifyText() {
         nodesToProcess.push(node);
     }
 
-    nodesToProcess.forEach(node => {
-        const originalText = node.nodeValue;
-        let changed = false;
-        
-        // Split by whitespace while preserving it
-        const words = originalText.split(/(\s+)/);
-        const newWords = words.map(word => {
-            // If it's a word (not just whitespace/empty)
-            if (word.trim().length > 0) {
-                // 1 in 10 chance (random 1 to 10, if 1)
-                if (Math.floor(Math.random() * 10) + 1 === 1) {
-                    changed = true;
-                    // Preserve original casing of "Miku"? Just use "Miku"
-                    return "Miku";
-                }
-            }
-            return word;
-        });
-
-        if (changed) {
-            originalTextNodes.set(node, originalText);
-            node.nodeValue = newWords.join('');
-        }
-    });
+    nodesToProcess.forEach(processTextNode);
 }
 
-function demikuifyText() {
-    originalTextNodes.forEach((originalText, node) => {
-        node.nodeValue = originalText;
+function processTextNode(node) {
+    if (originalTextNodes.has(node)) return;
+
+    const parent = node.parentNode;
+    if (!parent) return;
+    const tag = parent.tagName;
+    if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT' || tag === 'CODE' || tag === 'PRE') return;
+    if (parent.classList && (parent.classList.contains('icon') || parent.classList.contains('material-symbols-outlined'))) return;
+    if (node.nodeValue.trim() === '') return;
+
+    const originalText = node.nodeValue;
+    let changed = false;
+    
+    const words = originalText.split(/(\s+)/);
+    const newWords = words.map(word => {
+        if (word.trim().length > 0) {
+            if (Math.floor(Math.random() * 10) + 1 === 1) {
+                changed = true;
+                return "Miku";
+            }
+        }
+        return word;
     });
-    originalTextNodes.clear();
+
+    if (changed) {
+        originalTextNodes.set(node, originalText);
+        node.nodeValue = newWords.join('');
+    }
 }
 
 function synchronizeVideos() {
