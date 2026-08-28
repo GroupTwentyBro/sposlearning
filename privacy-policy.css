@@ -1015,3 +1015,112 @@ body {
         color: #555;
     }
 }
+
+/* ─── Personal vs Non-personal split ─────────────────────────────────────── */
+.data-type-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 20px 0 28px;
+}
+
+.data-type-col {
+    padding: 18px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #2A2A2A);
+}
+
+.data-type-col.personal {
+    background: rgba(99, 179, 237, 0.06);
+    border-color: rgba(99, 179, 237, 0.2);
+}
+
+.data-type-col.non-personal {
+    background: rgba(72, 187, 120, 0.06);
+    border-color: rgba(72, 187, 120, 0.2);
+}
+
+.data-type-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+.data-type-col.personal .data-type-header .icon { color: #63b3ed; font-size: 1.1rem; }
+.data-type-col.non-personal .data-type-header .icon { color: #68d391; font-size: 1.1rem; }
+
+.data-type-col p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0 0 10px;
+    line-height: 1.5;
+}
+
+.data-type-col ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.data-type-col.personal ul li::marker { color: #63b3ed; }
+.data-type-col.non-personal ul li::marker { color: #68d391; }
+
+@media (max-width: 600px) {
+    .data-type-split { grid-template-columns: 1fr; }
+}
+
+/* ─── Data Controller card ────────────────────────────────────────────────── */
+.controller-card {
+    margin-top: 18px;
+    border: 1px solid rgba(0, 153, 255, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0, 153, 255, 0.05);
+}
+
+.controller-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 16px;
+    background: rgba(0, 153, 255, 0.08);
+    border-bottom: 1px solid rgba(0, 153, 255, 0.15);
+    font-size: 0.9rem;
+    color: var(--accent-primary, #0099ff);
+}
+
+.controller-card-header .icon { font-size: 1.1rem; }
+
+.controller-card-body {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.controller-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.controller-icon {
+    font-size: 1rem !important;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+}
+
+.controller-row a {
+    color: var(--accent-primary, #0099ff);
+    text-decoration: none;
+}
+
+.controller-row a:hover { text-decoration: underline; }
