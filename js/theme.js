@@ -45,7 +45,7 @@ function initMikuVideo() {
         const link = document.createElement("link");
         link.id = "miku-theme-styles";
         link.rel = "stylesheet";
-        link.href = "/miku-theme.css";
+        link.href = "/themes/miku-theme.css";
         document.head.appendChild(link);
     }
 
@@ -250,7 +250,7 @@ function initMikeTheme() {
         const link = document.createElement("link");
         link.id = "mike-theme-styles";
         link.rel = "stylesheet";
-        link.href = "/mike-theme.css";
+        link.href = "/themes/mike-theme.css";
         document.head.appendChild(link);
     }
 }
