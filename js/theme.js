@@ -245,16 +245,40 @@ function removeMikuVideo() {
     demikuifyText();
 }
 
+function initMikeTheme() {
+    if (!document.getElementById("mike-theme-styles")) {
+        const link = document.createElement("link");
+        link.id = "mike-theme-styles";
+        link.rel = "stylesheet";
+        link.href = "/mike-theme.css";
+        document.head.appendChild(link);
+    }
+}
+
+function removeMikeTheme() {
+    const link = document.getElementById("mike-theme-styles");
+    if (link) {
+        link.remove();
+    }
+}
+
 export function applyTheme(theme = getThemeCookie()) {
     if (theme === 'light') {
         document.documentElement.setAttribute('data-theme', 'light');
         removeMikuVideo();
+        removeMikeTheme();
     } else if (theme === 'miku') {
         document.documentElement.setAttribute('data-theme', 'miku');
+        removeMikeTheme();
         initMikuVideo();
+    } else if (theme === 'mike') {
+        document.documentElement.setAttribute('data-theme', 'mike');
+        removeMikuVideo();
+        initMikeTheme();
     } else {
         document.documentElement.removeAttribute('data-theme');
         removeMikuVideo();
+        removeMikeTheme();
     }
 }
 
