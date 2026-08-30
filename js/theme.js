@@ -19,7 +19,7 @@ function getMikuModeCookie() {
 
 function getMikuProofreadCookie() {
     const match = document.cookie.match(/(?:^|; )spos_miku_proofread=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : 'true';
+    return match ? decodeURIComponent(match[1]) : 'false';
 }
 
 function initMikuVideo() {

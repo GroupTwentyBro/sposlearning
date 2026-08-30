@@ -101,7 +101,7 @@ function setMikuModeCookie(mode) {
 
 function getMikuProofreadCookie() {
     const match = document.cookie.match(/(?:^|; )spos_miku_proofread=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : 'true';
+    return match ? decodeURIComponent(match[1]) : 'false';
 }
 
 function setMikuProofreadCookie(enabled) {
@@ -109,7 +109,7 @@ function setMikuProofreadCookie(enabled) {
 }
 
 let currentMikuMode = 'default';
-let currentMikuProofread = 'true';
+let currentMikuProofread = 'false';
 
 function initGeneralSettings() {
     const currentGrade = getGradeCookie();
@@ -170,9 +170,9 @@ function initGeneralSettings() {
             setGradeCookie(selectedGrade);
 
             const selectedTheme = themeSelect ? themeSelect.value : 'dark';
-            setThemeCookie(selectedTheme);
             setMikuModeCookie(currentMikuMode);
             setMikuProofreadCookie(currentMikuProofread);
+            setThemeCookie(selectedTheme);
 
             saveGeneralBtn.innerHTML = `<span class="icon">check</span> Saved!`;
             setTimeout(() => {
