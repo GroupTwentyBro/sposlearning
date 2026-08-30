@@ -131,7 +131,7 @@ async function loadContent() {
         }
         if (metaEditedBy) metaEditedBy.textContent = pageData.lastEditedBy || '-';
         if (metaEditedDate) {
-            metaEditedDate.textContent = pageData.updatedAt ? new Date(pageData.updatedAt).toLocaleString() : '-';
+            metaEditedDate.textContent = pageData.lastEditedAt ? new Date(pageData.lastEditedAt).toLocaleString() : '-';
         }
         
         if (metadataSidebar) metadataSidebar.classList.remove('hidden');
