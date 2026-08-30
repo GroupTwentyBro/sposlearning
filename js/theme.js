@@ -12,8 +12,15 @@ window.setThemeCookie = setThemeCookie;
 
 let mikuAudioEnabled = false;
 
+function getMikuModeCookie() {
+    const match = document.cookie.match(/(?:^|; )spos_miku_mode=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : 'default';
+}
+
 function initMikuVideo() {
     if (document.querySelector(".video-background")) return;
+
+    const mode = getMikuModeCookie();
 
     const videoDiv = document.createElement("div");
     videoDiv.className = "video-background";
@@ -49,13 +56,32 @@ function initMikuVideo() {
         document.head.appendChild(link);
     }
 
+    if (mode !== 'default') {
+        const audio = document.createElement("audio");
+        audio.className = "miku-audio";
+        audio.id = "miku-main-audio";
+        audio.autoplay = true;
+        audio.loop = true;
+        audio.src = `/media/mikutheme-${mode}-audio.opus`;
+        videoDiv.appendChild(audio);
+    }
+
     document.body.insertBefore(videoDiv, document.body.firstChild);
     
     setTimeout(() => {
         const mainVideo = document.getElementById("miku-main-video");
+        const mainAudio = document.getElementById("miku-main-audio");
+        
         if (mainVideo) {
-            mainVideo.muted = !mikuAudioEnabled;
-            mainVideo.play().catch(() => {});
+            if (mainAudio) {
+                mainVideo.muted = true;
+                mainAudio.muted = !mikuAudioEnabled;
+                mainAudio.play().catch(() => {});
+                mainVideo.play().catch(() => {});
+            } else {
+                mainVideo.muted = !mikuAudioEnabled;
+                mainVideo.play().catch(() => {});
+            }
         }
         synchronizeVideos();
         createSoundToggle();
@@ -175,6 +201,7 @@ function processTextNode(node) {
 
 function synchronizeVideos() {
     const videos = document.querySelectorAll(".miku-video");
+    const audio = document.getElementById("miku-main-audio");
     if (videos.length === 0) return;
     const mainVideo = videos[0];
 
@@ -185,6 +212,10 @@ function synchronizeVideos() {
                 video.play().catch(() => {});
             }
         });
+        if (audio) {
+            audio.currentTime = mainVideo.currentTime;
+            audio.play().catch(() => {});
+        }
     });
 
     mainVideo.addEventListener("timeupdate", () => {
@@ -196,6 +227,9 @@ function synchronizeVideos() {
                 video.currentTime = mainVideo.currentTime;
             }
         });
+        if (audio && Math.abs(audio.currentTime - mainVideo.currentTime) > 0.3) {
+            audio.currentTime = mainVideo.currentTime;
+        }
     });
 }
 
@@ -216,7 +250,10 @@ function createSoundToggle() {
     toggleBtn.addEventListener("click", () => {
         mikuAudioEnabled = !mikuAudioEnabled;
         const mainVideo = document.getElementById("miku-main-video");
-        if (mainVideo) {
+        const mainAudio = document.getElementById("miku-main-audio");
+        if (mainAudio) {
+            mainAudio.muted = !mikuAudioEnabled;
+        } else if (mainVideo) {
             mainVideo.muted = !mikuAudioEnabled;
         }
         toggleBtn.querySelector("span").textContent = mikuAudioEnabled ? "volume_up" : "volume_off";

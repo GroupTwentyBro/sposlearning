@@ -128,7 +128,46 @@
                             <select id="setting-theme" class="setting-select">
                                 <option value="dark" selected>Dark Mode</option>
                                 <option value="light">Light Mode</option>
+                                <option value="miku">Miku Theme</option>
+                                <option value="mike">Mike Theme</option>
                             </select>
+                        </div>
+
+                        <div id="miku-settings-group" class="hidden" style="margin-top: 16px; padding: 16px; background: var(--surface-2); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 24px;">
+                            <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.05rem;">Miku Extras</h3>
+                            
+                            <div class="setting-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div class="setting-meta">
+                                    <label for="miku-mode-japanese">Watashi Miku</label>
+                                    <span class="setting-desc">Miku will sing in Japanese instead of English</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="miku-mode-japanese" class="miku-exclusive-toggle" data-mode="japanese" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                                <div class="setting-meta">
+                                    <label for="miku-mode-inst">Quiet Miku</label>
+                                    <span class="setting-desc">Miku will not sing, you will only hear the music</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="miku-mode-inst" class="miku-exclusive-toggle" data-mode="inst" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="setting-row" style="margin-bottom: 0;">
+                                <div class="setting-meta">
+                                    <label for="miku-mode-nes">8-bit Miku</label>
+                                    <span class="setting-desc">An 8-bit version of the song will play instead</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="miku-mode-nes" class="miku-exclusive-toggle" data-mode="nes" />
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="setting-row">

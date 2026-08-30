@@ -9,6 +9,8 @@ const tabBtns = document.querySelectorAll('.tab-btn');
 const tabPanels = document.querySelectorAll('.tab-panel');
 const gradeSelect = document.getElementById('setting-default-grade');
 const themeSelect = document.getElementById('setting-theme');
+const mikuSettingsGroup = document.getElementById('miku-settings-group');
+const mikuToggles = document.querySelectorAll('.miku-exclusive-toggle');
 const saveGeneralBtn = document.getElementById('save-general-btn');
 
 const profileName = document.getElementById('profile-name');
@@ -87,6 +89,17 @@ function initTabNavigation() {
     });
 }
 
+function getMikuModeCookie() {
+    const match = document.cookie.match(/(?:^|; )spos_miku_mode=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : 'default';
+}
+
+function setMikuModeCookie(mode) {
+    document.cookie = `spos_miku_mode=${encodeURIComponent(mode)}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
+let currentMikuMode = 'default';
+
 function initGeneralSettings() {
     const currentGrade = getGradeCookie();
     if (gradeSelect) gradeSelect.value = currentGrade;
@@ -94,11 +107,43 @@ function initGeneralSettings() {
     const currentTheme = getThemeCookie();
     if (themeSelect) themeSelect.value = currentTheme;
 
+    if (mikuSettingsGroup) {
+        if (currentTheme === 'miku') {
+            mikuSettingsGroup.classList.remove('hidden');
+        } else {
+            mikuSettingsGroup.classList.add('hidden');
+        }
+    }
+
     if (themeSelect) {
         themeSelect.addEventListener('change', () => {
             setThemeCookie(themeSelect.value);
+            if (mikuSettingsGroup) {
+                if (themeSelect.value === 'miku') {
+                    mikuSettingsGroup.classList.remove('hidden');
+                } else {
+                    mikuSettingsGroup.classList.add('hidden');
+                }
+            }
         });
     }
+
+    currentMikuMode = getMikuModeCookie();
+    mikuToggles.forEach(toggle => {
+        if (toggle.dataset.mode === currentMikuMode) {
+            toggle.checked = true;
+        }
+        toggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                mikuToggles.forEach(t => {
+                    if (t !== e.target) t.checked = false;
+                });
+                currentMikuMode = e.target.dataset.mode;
+            } else {
+                currentMikuMode = 'default';
+            }
+        });
+    });
 
     if (saveGeneralBtn) {
         saveGeneralBtn.addEventListener('click', () => {
@@ -107,6 +152,7 @@ function initGeneralSettings() {
 
             const selectedTheme = themeSelect ? themeSelect.value : 'dark';
             setThemeCookie(selectedTheme);
+            setMikuModeCookie(currentMikuMode);
 
             saveGeneralBtn.innerHTML = `<span class="icon">check</span> Saved!`;
             setTimeout(() => {
