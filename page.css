@@ -138,7 +138,7 @@ body {
 
 .skeleton-content {
     flex: 1;
-    width: 900px;
+    max-width: 900px;
 }
 
 .skeleton-item {
@@ -254,7 +254,7 @@ body {
 #main-content {
     flex: 1;
     min-width: 0;
-    max-width: 850px;
+    width: 850px;
     animation: fadeIn 0.4s ease forwards;
 }
 
