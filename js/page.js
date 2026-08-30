@@ -127,11 +127,11 @@ async function loadContent() {
         // Populate metadata sidebar
         if (metaAddedBy) metaAddedBy.textContent = pageData.createdBy || '-';
         if (metaAddedDate) {
-            metaAddedDate.textContent = pageData.createdAt ? new Date(pageData.createdAt).toLocaleString() : '-';
+            metaAddedDate.textContent = pageData.createdAt ? new Date(pageData.createdAt).toLocaleString('cs-CZ') : '-';
         }
         if (metaEditedBy) metaEditedBy.textContent = pageData.lastEditedBy || '-';
         if (metaEditedDate) {
-            metaEditedDate.textContent = pageData.lastEditedAt ? new Date(pageData.lastEditedAt).toLocaleString() : '-';
+            metaEditedDate.textContent = pageData.lastEditedAt ? new Date(pageData.lastEditedAt).toLocaleString('cs-CZ') : '-';
         }
         
         if (metadataSidebar) metadataSidebar.classList.remove('hidden');
