@@ -314,6 +314,7 @@ export function applyTheme(theme = getThemeCookie()) {
     } else if (theme === 'miku') {
         document.documentElement.setAttribute('data-theme', 'miku');
         removeMikeTheme();
+        removeMikuVideo();
         initMikuVideo();
     } else if (theme === 'mike') {
         document.documentElement.setAttribute('data-theme', 'mike');
