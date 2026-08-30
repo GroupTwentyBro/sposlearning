@@ -17,6 +17,11 @@ function getMikuModeCookie() {
     return match ? decodeURIComponent(match[1]) : 'default';
 }
 
+function getMikuProofreadCookie() {
+    const match = document.cookie.match(/(?:^|; )spos_miku_proofread=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : 'true';
+}
+
 function initMikuVideo() {
     if (document.querySelector(".video-background")) return;
 
@@ -88,7 +93,9 @@ function initMikuVideo() {
     }, 100);
     
     // Process words to Miku
-    mikuifyText();
+    if (getMikuProofreadCookie() === 'true') {
+        mikuifyText();
+    }
 }
 
 const originalTextNodes = new Map();

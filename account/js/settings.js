@@ -11,6 +11,7 @@ const gradeSelect = document.getElementById('setting-default-grade');
 const themeSelect = document.getElementById('setting-theme');
 const mikuSettingsGroup = document.getElementById('miku-settings-group');
 const mikuToggles = document.querySelectorAll('.miku-exclusive-toggle');
+const mikuProofreadToggle = document.getElementById('miku-mode-proofread');
 const saveGeneralBtn = document.getElementById('save-general-btn');
 
 const profileName = document.getElementById('profile-name');
@@ -98,7 +99,17 @@ function setMikuModeCookie(mode) {
     document.cookie = `spos_miku_mode=${encodeURIComponent(mode)}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
+function getMikuProofreadCookie() {
+    const match = document.cookie.match(/(?:^|; )spos_miku_proofread=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : 'true';
+}
+
+function setMikuProofreadCookie(enabled) {
+    document.cookie = `spos_miku_proofread=${encodeURIComponent(enabled)}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
 let currentMikuMode = 'default';
+let currentMikuProofread = 'true';
 
 function initGeneralSettings() {
     const currentGrade = getGradeCookie();
@@ -145,6 +156,14 @@ function initGeneralSettings() {
         });
     });
 
+    currentMikuProofread = getMikuProofreadCookie();
+    if (mikuProofreadToggle) {
+        mikuProofreadToggle.checked = (currentMikuProofread === 'true');
+        mikuProofreadToggle.addEventListener('change', (e) => {
+            currentMikuProofread = e.target.checked ? 'true' : 'false';
+        });
+    }
+
     if (saveGeneralBtn) {
         saveGeneralBtn.addEventListener('click', () => {
             const selectedGrade = parseInt(gradeSelect.value, 10);
@@ -153,6 +172,7 @@ function initGeneralSettings() {
             const selectedTheme = themeSelect ? themeSelect.value : 'dark';
             setThemeCookie(selectedTheme);
             setMikuModeCookie(currentMikuMode);
+            setMikuProofreadCookie(currentMikuProofread);
 
             saveGeneralBtn.innerHTML = `<span class="icon">check</span> Saved!`;
             setTimeout(() => {
