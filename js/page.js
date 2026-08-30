@@ -12,6 +12,11 @@ const articleContent = document.getElementById('article-content');
 const errorContainer = document.getElementById('error-container');
 const breadcrumbsDiv = document.getElementById('breadcrumbs');
 const editButton = document.getElementById('edit-button');
+const metadataSidebar = document.getElementById('metadata-sidebar');
+const metaAddedBy = document.getElementById('meta-added-by');
+const metaAddedDate = document.getElementById('meta-added-date');
+const metaEditedBy = document.getElementById('meta-edited-by');
+const metaEditedDate = document.getElementById('meta-edited-date');
 
 let currentPage = null;
 let currentUser = null;
@@ -118,6 +123,18 @@ async function loadContent() {
         generateTableOfContents();
 
         updateBreadcrumbs(pageData.title, fullPath);
+
+        // Populate metadata sidebar
+        if (metaAddedBy) metaAddedBy.textContent = pageData.createdBy || '-';
+        if (metaAddedDate) {
+            metaAddedDate.textContent = pageData.createdAt ? new Date(pageData.createdAt).toLocaleString() : '-';
+        }
+        if (metaEditedBy) metaEditedBy.textContent = pageData.lastEditedBy || '-';
+        if (metaEditedDate) {
+            metaEditedDate.textContent = pageData.updatedAt ? new Date(pageData.updatedAt).toLocaleString() : '-';
+        }
+        
+        if (metadataSidebar) metadataSidebar.classList.remove('hidden');
 
         hideSkeletonLoader();
         showContent();
@@ -230,6 +247,7 @@ function renderError(slug) {
     const pageWrapper = document.getElementById('page-wrapper');
     if (pageWrapper) pageWrapper.classList.add('hidden');
     mainContent.classList.add('hidden');
+    if (metadataSidebar) metadataSidebar.classList.add('hidden');
     skeletonLoader.classList.add('hidden');
 
     const errorMessage = document.getElementById('error-message');
