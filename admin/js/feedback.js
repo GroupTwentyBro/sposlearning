@@ -250,6 +250,7 @@ function renderFilteredFeedback() {
                 (item.message || '').toLowerCase().includes(term) ||
                 (item.page || '').toLowerCase().includes(term) ||
                 (item.contact || '').toLowerCase().includes(term) ||
+                (item.name || '').toLowerCase().includes(term) ||
                 (item.ip || '').toLowerCase().includes(term);
             if (!matchesText) return false;
         }
@@ -301,6 +302,9 @@ function renderFilteredFeedback() {
         } else {
             takeButton = `<button class="btn btn-secondary btn-take-inline" style="padding: 2px 6px; font-size: 0.75rem;" onclick="event.stopPropagation();"><span class="icon" style="font-size: 0.8rem;">front_hand</span> Take</button>`;
         }
+        
+        const submitterDisplayName = item.name || item.contact || 'Anonymous User';
+        const displayIp = item.ip || '';
 
         const card = document.createElement('div');
         card.className = `feedback-card ${priority === 'high' ? 'high-priority' : ''} status-${status}`;
@@ -326,7 +330,7 @@ function renderFilteredFeedback() {
             <div class="card-preview">${escapeHtml(item.message || '')}</div>
 
             <div class="card-bottom">
-                <div>From: <strong>${escapeHtml(item.contact || 'Anonymous')}</strong> ${item.ip ? `(${escapeHtml(item.ip)})` : ''}</div>
+                <div>From: <strong>${escapeHtml(submitterDisplayName)}</strong> ${displayIp ? `(${escapeHtml(displayIp)})` : ''}</div>
                 <div style="display: flex; gap: 8px;" onclick="event.stopPropagation();">
                     <select class="filter-select inline-status-select" data-id="${item.id}" style="padding: 4px 8px; font-size: 0.78rem;">
                         <option value="open" ${status === 'open' ? 'selected' : ''}>Open</option>
@@ -377,13 +381,16 @@ function openModal(item) {
     const priority = item.priority || 'medium';
     const category = item.category || 'other';
 
+    const submitterDisplayName = item.name || item.contact || 'Anonymous User';
+    const displayIp = item.ip || 'Unknown';
+
     modalTitle.textContent = item.title || 'Feedback Details';
     modalPage.innerHTML = item.page
         ? `<a href="/${escapeHtml(item.page.replace(/^\//, ''))}" target="_blank" style="color: var(--accent-primary);">/${escapeHtml(item.page.replace(/^\//, ''))}</a>`
         : 'General Website Feedback';
-    modalContact.textContent = item.contact || 'Anonymous User';
+    modalContact.textContent = submitterDisplayName;
     modalDate.textContent = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A';
-    modalIp.textContent = item.ip || 'Unknown';
+    modalIp.textContent = displayIp;
     modalMessage.textContent = item.message || '(No text content)';
 
     if (item.taken_by) {

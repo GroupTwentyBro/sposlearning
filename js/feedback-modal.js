@@ -545,8 +545,18 @@ async function submitFeedback() {
         submitBtn.innerHTML = `<span class="icon spinner">sync</span> Submitting...`;
     }
 
+    let clientIp = '';
+    try {
+        const ipRes = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipRes.json();
+        clientIp = ipData.ip;
+    } catch(e) {
+        console.warn('Could not fetch IP', e);
+    }
+
     try {
         const token = await getAccessToken();
+        const user = getUser();
         const response = await fetch(`${API_URL}/feedback`, {
             method: 'POST',
             headers: {
@@ -559,7 +569,11 @@ async function submitFeedback() {
                 message: message,
                 category: category,
                 page: page,
-                images: attachedImages
+                images: attachedImages,
+                ip: clientIp,
+                uid: user?.id || '',
+                name: user?.name || '',
+                contact: user?.email || ''
             })
         });
 
