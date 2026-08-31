@@ -23,6 +23,8 @@ const modalContact = document.getElementById('modal-contact');
 const modalDate = document.getElementById('modal-date');
 const modalIp = document.getElementById('modal-ip');
 const modalMessage = document.getElementById('modal-message');
+const modalTakenBy = document.getElementById('modal-taken-by');
+const modalBtnTake = document.getElementById('modal-btn-take');
 const modalStatusSelect = document.getElementById('modal-status-select');
 const modalPrioritySelect = document.getElementById('modal-priority-select');
 const modalCategorySelect = document.getElementById('modal-category-select');
@@ -208,6 +210,17 @@ function setupControls() {
         if (!selectedItem) return;
         await deleteFeedbackItem(selectedItem.id);
     });
+    
+    modalBtnTake?.addEventListener('click', async () => {
+        if (!selectedItem || !currentUser) return;
+        const takenByData = JSON.stringify({
+            uid: currentUser.id,
+            email: currentUser.email,
+            name: currentUser.name
+        });
+        await updateFeedbackItem(selectedItem.id, { taken_by: takenByData });
+        closeModal();
+    });
 }
 
 function renderFilteredFeedback() {
@@ -274,6 +287,21 @@ function renderFilteredFeedback() {
         const category = item.category || 'other';
         const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A';
 
+        let takenByDisplay = '';
+        let takenByBadge = '';
+        let takeButton = '';
+        if (item.taken_by) {
+            try {
+                const tb = JSON.parse(item.taken_by);
+                takenByDisplay = tb.name || tb.email || tb.uid || 'Unknown';
+            } catch(e) {
+                takenByDisplay = item.taken_by;
+            }
+            takenByBadge = `<span class="badge-taken"><span class="icon" style="font-size: 0.8rem; vertical-align: middle;">person</span> ${escapeHtml(takenByDisplay)}</span>`;
+        } else {
+            takeButton = `<button class="btn btn-secondary btn-take-inline" style="padding: 2px 6px; font-size: 0.75rem;" onclick="event.stopPropagation();"><span class="icon" style="font-size: 0.8rem;">front_hand</span> Take</button>`;
+        }
+
         const card = document.createElement('div');
         card.className = `feedback-card ${priority === 'high' ? 'high-priority' : ''} status-${status}`;
         card.innerHTML = `
@@ -282,8 +310,10 @@ function renderFilteredFeedback() {
                     <span class="badge-status ${status}">${escapeHtml(status.replace('-', ' '))}</span>
                     <span class="badge-priority ${priority}">${escapeHtml(priority)} prio</span>
                     <span class="badge-category"><span class="icon" style="font-size: 0.8rem; vertical-align: middle;">label</span> ${escapeHtml(category)}</span>
+                    ${takenByBadge}
                 </div>
                 <div class="card-meta-right">
+                    ${takeButton}
                     <span><span class="icon" style="font-size: 0.85rem; vertical-align: middle;">schedule</span> ${dateStr}</span>
                 </div>
             </div>
@@ -327,6 +357,16 @@ function renderFilteredFeedback() {
             await deleteFeedbackItem(item.id);
         });
 
+        card.querySelector('.btn-take-inline')?.addEventListener('click', async (e) => {
+            if (!currentUser) return;
+            const takenByData = JSON.stringify({
+                uid: currentUser.id,
+                email: currentUser.email,
+                name: currentUser.name
+            });
+            await updateFeedbackItem(item.id, { taken_by: takenByData });
+        });
+
         feedbackList.appendChild(card);
     });
 }
@@ -345,6 +385,19 @@ function openModal(item) {
     modalDate.textContent = item.timestamp ? new Date(item.timestamp).toLocaleString() : 'N/A';
     modalIp.textContent = item.ip || 'Unknown';
     modalMessage.textContent = item.message || '(No text content)';
+
+    if (item.taken_by) {
+        try {
+            const tb = JSON.parse(item.taken_by);
+            modalTakenBy.textContent = tb.name || tb.email || tb.uid || 'Unknown';
+        } catch(e) {
+            modalTakenBy.textContent = item.taken_by;
+        }
+        if (modalBtnTake) modalBtnTake.classList.add('hidden');
+    } else {
+        modalTakenBy.textContent = 'None';
+        if (modalBtnTake) modalBtnTake.classList.remove('hidden');
+    }
 
     modalStatusSelect.value = status;
     modalPrioritySelect.value = priority;

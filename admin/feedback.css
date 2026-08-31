@@ -292,6 +292,15 @@ html, body {
     color: var(--text-secondary);
 }
 
+.badge-taken {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
 .card-meta-right {
     font-size: 0.8rem;
     color: var(--text-tertiary);
