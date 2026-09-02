@@ -15,6 +15,14 @@ const gradeMenu = document.getElementById("grade-menu");
 const searchBox = document.getElementById("search-input");
 const resultsContainer = document.getElementById("search-results-container");
 const loginButton = document.getElementById("login-button");
+const navIcon = document.getElementById("nav-icon");
+
+if (navIcon) {
+    navIcon.style.cursor = "pointer";
+    navIcon.addEventListener("click", () => {
+        window.location.href = "/";
+    });
+}
 
 let user = null;
 
