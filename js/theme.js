@@ -229,6 +229,14 @@ function synchronizeVideos() {
     if (videos.length === 0) return;
     const mainVideo = videos[0];
 
+    let rafId = null;
+    function syncLoop() {
+        if (currentLyricsData.length > 0) {
+            updateLyricsDisplay(mainVideo.currentTime);
+        }
+        rafId = requestAnimationFrame(syncLoop);
+    }
+
     mainVideo.addEventListener("play", () => {
         videos.forEach((video, index) => {
             if (index > 0) {
@@ -239,6 +247,14 @@ function synchronizeVideos() {
         if (audio) {
             audio.currentTime = mainVideo.currentTime;
             audio.play().catch(() => {});
+        }
+        if (!rafId) rafId = requestAnimationFrame(syncLoop);
+    });
+    
+    mainVideo.addEventListener("pause", () => {
+        if (rafId) {
+            cancelAnimationFrame(rafId);
+            rafId = null;
         }
     });
 
@@ -255,7 +271,7 @@ function synchronizeVideos() {
             audio.currentTime = mainVideo.currentTime;
         }
         
-        if (currentLyricsData.length > 0) {
+        if (currentLyricsData.length > 0 && mainVideo.paused) {
             updateLyricsDisplay(mainVideo.currentTime);
         }
     });
@@ -446,8 +462,13 @@ function updateLyricsDisplay(time) {
             const end = parseFloat(span.dataset.end);
             if (time >= begin && time <= end) {
                 span.classList.add("active-word");
+                span.classList.add("visible-word");
+            } else if (time > end) {
+                span.classList.remove("active-word");
+                span.classList.add("visible-word");
             } else {
                 span.classList.remove("active-word");
+                span.classList.remove("visible-word");
             }
         });
     }
