@@ -24,6 +24,13 @@ async function checkAdminAuth() {
             return;
         }
 
+        const AUTHORIZED_EXPORTERS = ['tadeasnosek@sposlearning.cz'];
+        if (AUTHORIZED_EXPORTERS.includes(user.email)) {
+            const exportTools = document.getElementById('admin-export-tools');
+            if (exportTools) exportTools.classList.remove('hidden');
+            setupExportTools();
+        }
+
         loadDashboardData();
     } catch (e) {
         console.error('Auth check failed:', e);
@@ -140,6 +147,62 @@ function escapeHtml(text) {
     if (!text) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+function setupExportTools() {
+    const btn = document.getElementById('dsar-export-btn');
+    const input = document.getElementById('dsar-target-email');
+    const status = document.getElementById('dsar-export-status');
+    if (!btn || !input) return;
+
+    btn.addEventListener('click', async () => {
+        const email = input.value.trim();
+        if (!email) {
+            status.textContent = 'Please enter a valid email address.';
+            status.style.color = 'var(--accent-rose, #f43f5e)';
+            status.classList.remove('hidden');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="icon spinner">sync</span> Exporting...`;
+        status.classList.add('hidden');
+
+        try {
+            const token = await getAccessToken();
+            const res = await fetch(`${API_URL}/export-user-data?email=${encodeURIComponent(email)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                let errData;
+                try { errData = await res.json(); } catch(e) {}
+                throw new Error((errData && errData.error) || 'Export failed or unauthorized.');
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `user_data_export_${email.replace(/[^a-z0-9]/gi, '_')}.json`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            status.textContent = 'Data exported successfully.';
+            status.style.color = '#10b981';
+            status.classList.remove('hidden');
+            input.value = '';
+        } catch (err) {
+            status.textContent = err.message;
+            status.style.color = 'var(--accent-rose, #f43f5e)';
+            status.classList.remove('hidden');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = `<span class="icon">download</span> Export Data`;
+        }
+    });
 }
 
 if (document.readyState === 'loading') {

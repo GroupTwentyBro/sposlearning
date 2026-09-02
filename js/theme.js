@@ -22,6 +22,14 @@ function getMikuProofreadCookie() {
     return match ? decodeURIComponent(match[1]) : 'false';
 }
 
+function getMikuLyricsCookie() {
+    const match = document.cookie.match(/(?:^|; )spos_miku_lyrics=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : 'false';
+}
+
+let currentLyricsData = [];
+let currentActiveLineIndex = -1;
+
 function initMikuVideo() {
     if (document.querySelector(".video-background")) return;
 
@@ -95,6 +103,15 @@ function initMikuVideo() {
     // Process words to Miku
     if (getMikuProofreadCookie() === 'true') {
         mikuifyText();
+    }
+    
+    // Load lyrics if enabled
+    if (getMikuLyricsCookie() === 'true') {
+        if (mode === 'default') {
+            loadTtmlLyrics('/media/miku.ttml', false);
+        } else if (mode === 'japanese') {
+            loadTtmlLyrics('/media/mikujap.ttml', true);
+        }
     }
 }
 
@@ -237,6 +254,10 @@ function synchronizeVideos() {
         if (audio && Math.abs(audio.currentTime - mainVideo.currentTime) > 0.3) {
             audio.currentTime = mainVideo.currentTime;
         }
+        
+        if (currentLyricsData.length > 0) {
+            updateLyricsDisplay(mainVideo.currentTime);
+        }
     });
 }
 
@@ -286,6 +307,14 @@ function removeMikuVideo() {
     if (injectedStyles) {
         injectedStyles.remove();
     }
+    
+    const lyricsContainer = document.getElementById("miku-lyrics-container");
+    if (lyricsContainer) {
+        lyricsContainer.remove();
+    }
+    currentLyricsData = [];
+    currentActiveLineIndex = -1;
+    
     demikuifyText();
 }
 
@@ -303,6 +332,124 @@ function removeMikeTheme() {
     const link = document.getElementById("mike-theme-styles");
     if (link) {
         link.remove();
+    }
+}
+
+async function loadTtmlLyrics(url, isJapanese) {
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "application/xml");
+        
+        const lines = [];
+        const pTags = xml.getElementsByTagName("p");
+        
+        let transliterationSpans = [];
+        if (isJapanese) {
+            const transTags = xml.getElementsByTagName("transliteration");
+            if (transTags.length > 0) {
+                transliterationSpans = Array.from(transTags[0].getElementsByTagName("span"));
+            }
+        }
+
+        for (let i = 0; i < pTags.length; i++) {
+            const p = pTags[i];
+            const lineBegin = parseFloat(p.getAttribute("begin"));
+            const lineEnd = parseFloat(p.getAttribute("end"));
+            const spanTags = p.getElementsByTagName("span");
+            
+            const words = [];
+            for (let j = 0; j < spanTags.length; j++) {
+                const span = spanTags[j];
+                const begin = parseFloat(span.getAttribute("begin"));
+                const end = parseFloat(span.getAttribute("end"));
+                const textContent = span.textContent;
+                
+                let rtContent = null;
+                if (isJapanese && transliterationSpans.length > 0) {
+                    const match = transliterationSpans.find(t => 
+                        Math.abs(parseFloat(t.getAttribute("begin")) - begin) < 0.01 && 
+                        Math.abs(parseFloat(t.getAttribute("end")) - end) < 0.01
+                    );
+                    if (match) {
+                        rtContent = match.textContent.trim();
+                    }
+                }
+                words.push({ begin, end, text: textContent, rt: rtContent });
+            }
+            
+            lines.push({ begin: lineBegin, end: lineEnd, words });
+        }
+        
+        currentLyricsData = lines;
+        renderLyricsContainer(isJapanese);
+    } catch (e) {
+        console.error("Failed to load TTML", e);
+    }
+}
+
+function renderLyricsContainer(isJapanese) {
+    if (document.getElementById("miku-lyrics-container")) {
+        document.getElementById("miku-lyrics-container").remove();
+    }
+    const container = document.createElement("div");
+    container.id = "miku-lyrics-container";
+    container.className = isJapanese ? "miku-lyrics-japanese" : "miku-lyrics-english";
+    document.body.appendChild(container);
+}
+
+function updateLyricsDisplay(time) {
+    const container = document.getElementById("miku-lyrics-container");
+    if (!container) return;
+
+    let activeLineIndex = -1;
+    for (let i = 0; i < currentLyricsData.length; i++) {
+        const line = currentLyricsData[i];
+        if (time >= line.begin && time <= line.end + 0.5) {
+            activeLineIndex = i;
+            break;
+        }
+    }
+
+    if (activeLineIndex !== currentActiveLineIndex) {
+        currentActiveLineIndex = activeLineIndex;
+        if (activeLineIndex === -1) {
+            container.innerHTML = "";
+        } else {
+            const lineData = currentLyricsData[activeLineIndex];
+            container.innerHTML = "";
+            const lineDiv = document.createElement("div");
+            lineDiv.className = "miku-lyric-line active-line";
+            
+            lineData.words.forEach(word => {
+                const wordSpan = document.createElement("span");
+                wordSpan.className = "miku-lyric-word";
+                wordSpan.dataset.begin = word.begin;
+                wordSpan.dataset.end = word.end;
+                
+                if (word.rt) {
+                    wordSpan.innerHTML = `<ruby>${word.text}<rt>${word.rt}</rt></ruby>`;
+                } else {
+                    wordSpan.textContent = word.text;
+                }
+                lineDiv.appendChild(wordSpan);
+            });
+            container.appendChild(lineDiv);
+        }
+    }
+
+    if (currentActiveLineIndex !== -1) {
+        const wordSpans = container.querySelectorAll(".miku-lyric-word");
+        wordSpans.forEach(span => {
+            const begin = parseFloat(span.dataset.begin);
+            const end = parseFloat(span.dataset.end);
+            if (time >= begin && time <= end) {
+                span.classList.add("active-word");
+            } else {
+                span.classList.remove("active-word");
+            }
+        });
     }
 }
 

@@ -12,6 +12,7 @@ const themeSelect = document.getElementById('setting-theme');
 const mikuSettingsGroup = document.getElementById('miku-settings-group');
 const mikuToggles = document.querySelectorAll('.miku-exclusive-toggle');
 const mikuProofreadToggle = document.getElementById('miku-mode-proofread');
+const mikuLyricsToggle = document.getElementById('miku-mode-lyrics');
 const saveGeneralBtn = document.getElementById('save-general-btn');
 
 const profileName = document.getElementById('profile-name');
@@ -108,8 +109,18 @@ function setMikuProofreadCookie(enabled) {
     document.cookie = `spos_miku_proofread=${encodeURIComponent(enabled)}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
+function getMikuLyricsCookie() {
+    const match = document.cookie.match(/(?:^|; )spos_miku_lyrics=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : 'false';
+}
+
+function setMikuLyricsCookie(enabled) {
+    document.cookie = `spos_miku_lyrics=${encodeURIComponent(enabled)}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
 let currentMikuMode = 'default';
 let currentMikuProofread = 'false';
+let currentMikuLyrics = 'false';
 
 function initGeneralSettings() {
     const currentGrade = getGradeCookie();
@@ -164,6 +175,14 @@ function initGeneralSettings() {
         });
     }
 
+    currentMikuLyrics = getMikuLyricsCookie();
+    if (mikuLyricsToggle) {
+        mikuLyricsToggle.checked = (currentMikuLyrics === 'true');
+        mikuLyricsToggle.addEventListener('change', (e) => {
+            currentMikuLyrics = e.target.checked ? 'true' : 'false';
+        });
+    }
+
     if (saveGeneralBtn) {
         saveGeneralBtn.addEventListener('click', () => {
             const selectedGrade = parseInt(gradeSelect.value, 10);
@@ -172,6 +191,7 @@ function initGeneralSettings() {
             const selectedTheme = themeSelect ? themeSelect.value : 'dark';
             setMikuModeCookie(currentMikuMode);
             setMikuProofreadCookie(currentMikuProofread);
+            setMikuLyricsCookie(currentMikuLyrics);
             setThemeCookie(selectedTheme);
 
             saveGeneralBtn.innerHTML = `<span class="icon">check</span> Saved!`;
