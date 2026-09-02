@@ -422,7 +422,11 @@ function updateLyricsDisplay(time) {
     let activeLineIndex = -1;
     for (let i = 0; i < currentLyricsData.length; i++) {
         const line = currentLyricsData[i];
-        if (time >= line.begin && time <= line.end + 0.5) {
+        // Allow a 0.5s linger ONLY if it doesn't bleed into the next line
+        const nextLineBegin = i < currentLyricsData.length - 1 ? currentLyricsData[i+1].begin : Infinity;
+        const endLinger = Math.min(line.end + 0.5, nextLineBegin - 0.01);
+        
+        if (time >= line.begin && time <= endLinger) {
             activeLineIndex = i;
             break;
         }
