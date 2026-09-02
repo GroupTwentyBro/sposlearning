@@ -373,29 +373,31 @@ async function loadTtmlLyrics(url, isJapanese) {
             const p = pTags[i];
             const lineBegin = parseFloat(p.getAttribute("begin"));
             const lineEnd = parseFloat(p.getAttribute("end"));
-            const spanTags = p.getElementsByTagName("span");
-            
-            const words = [];
-            for (let j = 0; j < spanTags.length; j++) {
-                const span = spanTags[j];
-                const begin = parseFloat(span.getAttribute("begin"));
-                const end = parseFloat(span.getAttribute("end"));
-                const textContent = span.textContent;
-                
-                let rtContent = null;
-                if (isJapanese && transliterationSpans.length > 0) {
-                    const match = transliterationSpans.find(t => 
-                        Math.abs(parseFloat(t.getAttribute("begin")) - begin) < 0.01 && 
-                        Math.abs(parseFloat(t.getAttribute("end")) - end) < 0.01
-                    );
-                    if (match) {
-                        rtContent = match.textContent.trim();
+            const nodes = [];
+            for (let j = 0; j < p.childNodes.length; j++) {
+                const node = p.childNodes[j];
+                if (node.nodeType === Node.TEXT_NODE) {
+                    nodes.push({ type: 'text', text: node.textContent });
+                } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName.toLowerCase() === "span") {
+                    const begin = parseFloat(node.getAttribute("begin"));
+                    const end = parseFloat(node.getAttribute("end"));
+                    const textContent = node.textContent;
+                    
+                    let rtContent = null;
+                    if (isJapanese && transliterationSpans.length > 0) {
+                        const match = transliterationSpans.find(t => 
+                            Math.abs(parseFloat(t.getAttribute("begin")) - begin) < 0.01 && 
+                            Math.abs(parseFloat(t.getAttribute("end")) - end) < 0.01
+                        );
+                        if (match) {
+                            rtContent = match.textContent.trim();
+                        }
                     }
+                    nodes.push({ type: 'span', begin, end, text: textContent, rt: rtContent });
                 }
-                words.push({ begin, end, text: textContent, rt: rtContent });
             }
             
-            lines.push({ begin: lineBegin, end: lineEnd, words });
+            lines.push({ begin: lineBegin, end: lineEnd, nodes });
         }
         
         currentLyricsData = lines;
@@ -442,18 +444,22 @@ function updateLyricsDisplay(time) {
             const lineDiv = document.createElement("div");
             lineDiv.className = "miku-lyric-line active-line";
             
-            lineData.words.forEach(word => {
-                const wordSpan = document.createElement("span");
-                wordSpan.className = "miku-lyric-word";
-                wordSpan.dataset.begin = word.begin;
-                wordSpan.dataset.end = word.end;
-                
-                if (word.rt) {
-                    wordSpan.innerHTML = `<ruby>${word.text}<rt>${word.rt}</rt></ruby>`;
-                } else {
-                    wordSpan.textContent = word.text;
+            lineData.nodes.forEach(node => {
+                if (node.type === 'text') {
+                    lineDiv.appendChild(document.createTextNode(node.text));
+                } else if (node.type === 'span') {
+                    const wordSpan = document.createElement("span");
+                    wordSpan.className = "miku-lyric-word";
+                    wordSpan.dataset.begin = node.begin;
+                    wordSpan.dataset.end = node.end;
+                    
+                    if (node.rt) {
+                        wordSpan.innerHTML = `<ruby>${node.text}<rt>${node.rt}</rt></ruby>`;
+                    } else {
+                        wordSpan.textContent = node.text;
+                    }
+                    lineDiv.appendChild(wordSpan);
                 }
-                lineDiv.appendChild(wordSpan);
             });
             container.appendChild(lineDiv);
         }

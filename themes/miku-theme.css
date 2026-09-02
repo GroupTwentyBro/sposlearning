@@ -470,59 +470,44 @@ body {
     align-items: center;
     justify-content: flex-end;
     gap: 16px;
-    padding: 24px;
-    border-radius: 16px;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .miku-lyric-line {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 12px;
+    text-align: center;
     font-size: 2.2rem;
     font-weight: 800;
-    color: rgba(255, 255, 255, 0.5) !important;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
+    color: #ffffff !important;
+    text-shadow: none !important;
+    mix-blend-mode: difference !important;
     transition: all 0.3s ease;
-    opacity: 0.7;
-    margin: 0;
-}
-
-.miku-lyric-line.active-line {
-    color: rgba(255, 255, 255, 0.9) !important;
     opacity: 1;
+    margin: 0;
 }
 
 .miku-lyric-word {
     display: inline-block;
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.2s ease, opacity 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
     opacity: 0;
-    transform: scale(0.9);
+    transform: translate(0) scale(1);
 }
 
 .miku-lyric-word.visible-word {
     opacity: 1;
-    transform: scale(1);
+    transform: translate(0) scale(1);
 }
 
 .miku-lyric-word.active-word {
-    transform: scale(1.15) translateY(-4px);
-    color: #39C5BB !important;
-    text-shadow: 0 0 12px rgba(57, 197, 187, 0.6), 0 2px 6px rgba(0,0,0,0.8) !important;
     opacity: 1;
+    transform: translateY(-0.15em) translateX(0.15em) scale(1.035);
+    color: #ffffff !important;
+    text-shadow: none !important;
 }
 
 .miku-lyric-word rt {
     font-size: 0.45em;
     font-weight: 700;
-    color: #A0D8D3 !important;
-    opacity: 0.9;
+    color: #ffffff !important;
+    opacity: 0.8;
     letter-spacing: 0;
 }
 
