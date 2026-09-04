@@ -68,8 +68,30 @@ async function loadContent() {
 
         let htmlToRender = "";
         if (pageData.type === 'markdown') {
-            const processedMarkdown = pageData.content.replace(/!\[(.*?)\]\((.*?)\)\{width=(.*?) height=(.*?)\}/g, (match, alt, url, w, h) => {
+            let mathBlocks = [];
+            let processedMarkdown = pageData.content.replace(/!\[(.*?)\]\((.*?)\)\{width=(.*?) height=(.*?)\}/g, (match, alt, url, w, h) => {
                 return `<img src="${url}" alt="${alt}" style="width:${w}; height:${h}; max-width: 100%;" />`;
+            });
+
+            processedMarkdown = processedMarkdown.replace(/\$\$([\s\S]+?)\$\$/g, (match) => {
+                mathBlocks.push(match);
+                return `@@MATH_BLOCK_${mathBlocks.length - 1}@@`;
+            });
+            processedMarkdown = processedMarkdown.replace(/\\\[([\s\S]+?)\\\]/g, (match) => {
+                mathBlocks.push(match);
+                return `@@MATH_BLOCK_${mathBlocks.length - 1}@@`;
+            });
+            processedMarkdown = processedMarkdown.replace(/\\\((.+?)\\\)/g, (match) => {
+                mathBlocks.push(match);
+                return `@@MATH_BLOCK_${mathBlocks.length - 1}@@`;
+            });
+            processedMarkdown = processedMarkdown.replace(/\$([^\$\n]+?)\$/g, (match) => {
+                mathBlocks.push(match);
+                return `@@MATH_BLOCK_${mathBlocks.length - 1}@@`;
+            });
+            processedMarkdown = processedMarkdown.replace(/\\begin\{([a-zA-Z0-9*]+)\}([\s\S]+?)\\end\{\1\}/g, (match) => {
+                mathBlocks.push(match);
+                return `@@MATH_BLOCK_${mathBlocks.length - 1}@@`;
             });
 
             // Custom renderer: strip spurious leading/trailing newlines from code blocks
@@ -88,6 +110,11 @@ async function loadContent() {
             };
 
             htmlToRender = marked.parse(processedMarkdown, { breaks: true, renderer });
+            
+            htmlToRender = htmlToRender.replace(/@@MATH_BLOCK_(\d+)@@/g, (match, p1) => {
+                return mathBlocks[parseInt(p1, 10)];
+            });
+            
             articleContent.classList.add('tex2jax_process');
         } else {
             htmlToRender = pageData.content;
