@@ -1,5 +1,5 @@
 import { CONFIG } from "/js/config.js";
-import { initAuth, getUser } from "/js/auth.js";
+import { initAuth, getUser, getAccessToken } from "/js/auth.js";
 import { getGradeCookie } from "/js/search.js";
 
 const API_URL = CONFIG.API_URL;
@@ -48,7 +48,18 @@ async function loadContent() {
 
     try {
         const selectedGrade = getGradeCookie();
-        const res = await fetch(`${API_URL}/page-content?path=${encodeURIComponent(fullPath)}&grade=${selectedGrade}`);
+        
+        const fetchOptions = {};
+        if (currentUser) {
+            try {
+                const token = await getAccessToken();
+                fetchOptions.headers = { 'Authorization': `Bearer ${token}` };
+            } catch (e) {
+                console.warn("Failed to get token for page content request", e);
+            }
+        }
+
+        const res = await fetch(`${API_URL}/page-content?path=${encodeURIComponent(fullPath)}&grade=${selectedGrade}`, fetchOptions);
 
         if (!res.ok) {
             renderError(fullPath);
