@@ -1,5 +1,6 @@
 import { CONFIG } from "/js/config.js";
 import { initAuth, getUser, getAccessToken } from "/js/auth.js";
+import { initAutocorrect } from "/js/autocorrect.js";
 
 const API_URL = CONFIG.API_URL;
 let currentUser = null;
@@ -54,9 +55,9 @@ async function checkAuth() {
 
 async function loadPageFromDB() {
     const urlParams = new URLSearchParams(window.location.search);
-    const idParam   = urlParams.get('id');
+    const idParam = urlParams.get('id');
     const pathParam = urlParams.get('path');
-    const sidParam  = urlParams.get('sid');   // submission id
+    const sidParam = urlParams.get('sid');   // submission id
 
     // ── Load from a submission ──────────────────────────────────────────────
     if (sidParam) {
@@ -68,11 +69,11 @@ async function loadPageFromDB() {
             const sub = await res.json();
 
             const titleEl = document.getElementById('article-title');
-            const pathEl  = document.getElementById('article-path');
+            const pathEl = document.getElementById('article-path');
             const gradeEl = document.getElementById('article-grade');
 
             if (titleEl) titleEl.value = sub.title || '';
-            if (pathEl)  pathEl.value  = (sub.suggested_path || '').replace(/^\/|\/$/g, '');
+            if (pathEl) pathEl.value = (sub.suggested_path || '').replace(/^\/|\/$/g, '');
             if (gradeEl) gradeEl.value = sub.grade ?? 1;
 
             originalPath = sub.suggested_path || '';
@@ -165,7 +166,9 @@ function initializeEditor() {
             },
             lineWrapping: true,
             theme: 'default',
-            viewportMargin: Infinity
+            viewportMargin: Infinity,
+            inputStyle: 'contenteditable',
+            spellcheck: true
         });
 
         cmEditor.addOverlay({
@@ -212,28 +215,8 @@ function initializeEditor() {
         });
     }
 
-    const gradeSelectBtn = document.getElementById('nav-grade-select');
-    if (gradeSelectBtn) {
-        gradeSelectBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.getElementById('grade-menu')?.classList.toggle('hidden');
-        });
-    }
-
-    const accountBtn = document.getElementById('account-button');
-    if (accountBtn) {
-        accountBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            document.getElementById('account-menu')?.classList.toggle('hidden');
-        });
-    }
-
-    document.addEventListener('click', () => {
-        document.getElementById('grade-menu')?.classList.add('hidden');
-        document.getElementById('account-menu')?.classList.add('hidden');
-    });
-
     setupToolbar();
+    initAutocorrect({ cmEditor, titleInputId: 'article-title', toolbarBtnId: 'btn-autocorrect' });
 
     if (toggleViewBtn) {
         toggleViewBtn.addEventListener('click', togglePreview);
@@ -707,7 +690,7 @@ async function deletePage() {
         const pathParam = urlParams.get('path');
 
         const url = idParam ? `${API_URL}/page?id=${idParam}` : `${API_URL}/page?path=${encodeURIComponent(pathParam || originalPath)}`;
-        
+
         const res = await fetch(url, {
             method: 'DELETE',
             headers: {

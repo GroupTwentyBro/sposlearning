@@ -1,5 +1,6 @@
 import { CONFIG } from "/js/config.js";
 import { initAuth, getUser, getAccessToken } from "/js/auth.js";
+import { initAutocorrect } from "/js/autocorrect.js";
 
 const API_URL = CONFIG.API_URL;
 let currentUser = null;
@@ -89,7 +90,9 @@ function initializeEditor() {
             },
             lineWrapping: true,
             theme: 'default',
-            viewportMargin: Infinity
+            viewportMargin: Infinity,
+            inputStyle: 'contenteditable',
+            spellcheck: true
         });
         cmEditor.addOverlay({
             token: function (stream) {
@@ -135,19 +138,8 @@ function initializeEditor() {
             saveDraftSilently();
         });
     }
-    document.getElementById('nav-grade-select')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('grade-menu')?.classList.toggle('hidden');
-    });
-    document.getElementById('account-button')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('account-menu')?.classList.toggle('hidden');
-    });
-    document.addEventListener('click', () => {
-        document.getElementById('grade-menu')?.classList.add('hidden');
-        document.getElementById('account-menu')?.classList.add('hidden');
-    });
     setupToolbar();
+    initAutocorrect({ cmEditor, titleInputId: 'article-title', toolbarBtnId: 'btn-autocorrect' });
     toggleViewBtn?.addEventListener('click', togglePreview);
     document.getElementById('save-draft-btn')?.addEventListener('click', saveDraft);
     document.getElementById('publish-btn')?.addEventListener('click', publishArticle);
