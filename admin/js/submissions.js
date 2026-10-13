@@ -15,7 +15,10 @@ async function checkAuth() {
         const loggedIn = await initAuth();
         if (!loggedIn) { window.location.href = '/login'; return; }
         currentUser = getUser();
-        if (!currentUser?.roles?.includes('admin')) { window.location.href = '/'; return; }
+        if (!currentUser?.roles?.includes('admin') && !currentUser?.roles?.includes('content_manager')) {
+            window.location.href = '/';
+            return;
+        }
     } catch (e) {
         window.location.href = '/login';
         return;

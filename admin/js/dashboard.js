@@ -19,36 +19,67 @@ async function checkAdminAuth() {
         }
 
         const user = getUser();
-        if (!user || !user.roles.includes('admin')) {
+        const isAdmin = user?.roles?.includes('admin');
+        const isContentManager = user?.roles?.includes('content_manager');
+
+        if (!user || (!isAdmin && !isContentManager)) {
             window.location.href = '/';
             return;
         }
 
+        if (!isAdmin && isContentManager) {
+            applyContentManagerDashboardUI();
+        }
+
         const AUTHORIZED_EXPORTERS = ['tadeasnosek@sposlearning.cz'];
-        if (AUTHORIZED_EXPORTERS.includes(user.email)) {
+        if (isAdmin && AUTHORIZED_EXPORTERS.includes(user.email)) {
             const exportTools = document.getElementById('admin-export-tools');
             if (exportTools) exportTools.classList.remove('hidden');
             setupExportTools();
         }
 
-        loadDashboardData();
+        loadDashboardData(isAdmin);
     } catch (e) {
         console.error('Auth check failed:', e);
         window.location.href = '/login';
     }
 }
 
-async function loadDashboardData() {
+function applyContentManagerDashboardUI() {
+    const titleEl = document.querySelector('.dashboard-header h1');
+    if (titleEl) titleEl.textContent = 'Content Control Center';
+    const subEl = document.querySelector('.dashboard-header .subtitle');
+    if (subEl) subEl.textContent = 'Manage educational articles, review user submissions, and view article feedback.';
+
+    document.getElementById('kpi-logs')?.remove();
+    document.getElementById('kpi-auth')?.remove();
+
+    document.querySelector('a[href="/admin/logs"]')?.remove();
+    document.querySelector('a[href*="auth.sposlearning.cz"]')?.remove();
+
+    document.getElementById('recent-logs-list')?.closest('.widget-card')?.remove();
+    document.getElementById('admin-export-tools')?.classList.add('hidden');
+
+    const fbLabel = document.querySelector('#kpi-feedback .kpi-label');
+    if (fbLabel) fbLabel.textContent = 'Article Feedback';
+}
+
+async function loadDashboardData(isAdmin) {
     try {
         const token = await getAccessToken();
         const headers = { 'Authorization': `Bearer ${token}` };
 
-        const [pagesRes, feedbackRes, logsRes, subsRes] = await Promise.all([
+        const fetchPromises = [
             fetch(`${API_URL}/pages`),
             fetch(`${API_URL}/feedback`, { headers }),
-            fetch(`${API_URL}/logs?limit=5&hideViews=true`, { headers }),
             fetch(`${API_URL}/submissions?status=pending`, { headers })
-        ]);
+        ];
+
+        if (isAdmin) {
+            fetchPromises.push(fetch(`${API_URL}/logs?limit=5&hideViews=true`, { headers }));
+        }
+
+        const [pagesRes, feedbackRes, subsRes, logsRes] = await Promise.all(fetchPromises);
 
         if (pagesRes.ok) {
             const pages = await pagesRes.json();
@@ -63,7 +94,7 @@ async function loadDashboardData() {
             renderRecentFeedback(feedbackItems.slice(0, 4));
         }
 
-        if (logsRes.ok) {
+        if (logsRes && logsRes.ok) {
             const logsData = await logsRes.json();
             if (statLogs) statLogs.textContent = logsData.total || 0;
             renderRecentLogs(logsData.logs || []);

@@ -28,7 +28,7 @@ async function fetchSession() {
         const loggedIn = await initAuth();
         if (loggedIn) {
             currentUser = getUser();
-            isAdminUser = currentUser.roles.includes("admin");
+            isAdminUser = currentUser.roles.includes("admin") || currentUser.roles.includes("content_manager");
             if (isAdminUser && editButton) {
                 editButton.classList.remove("nd");
             }

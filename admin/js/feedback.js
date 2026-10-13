@@ -36,7 +36,20 @@ async function checkAuth() {
         const loggedIn = await initAuth();
         if (!loggedIn) { window.location.href = '/login'; return; }
         currentUser = getUser();
-        if (!currentUser.roles.includes('admin')) { window.location.href = '/'; return; }
+        if (!currentUser.roles.includes('admin') && !currentUser.roles.includes('content_manager')) {
+            window.location.href = '/';
+            return;
+        }
+
+        if (!currentUser.roles.includes('admin') && currentUser.roles.includes('content_manager')) {
+            if (categoryFilter) {
+                categoryFilter.innerHTML = '<option value="articles" selected>Zápisy / Articles (Restricted)</option>';
+                categoryFilter.disabled = true;
+            }
+            if (modalDeleteBtn) {
+                modalDeleteBtn.style.display = 'none';
+            }
+        }
 
         setupControls();
         await fetchFeedbackData();

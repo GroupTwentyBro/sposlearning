@@ -74,7 +74,7 @@ export function getFilteredPages(term, userRole = 'user') {
     const selectedGrade = getGradeCookie();
 
     const isMatch = (page) => {
-        if (userRole !== 'admin' && page.accessLevel === 'admin') return false;
+        if (userRole !== 'admin' && userRole !== 'content_manager' && page.accessLevel === 'admin') return false;
         return page.grade === 0 || page.grade === selectedGrade;
     };
 

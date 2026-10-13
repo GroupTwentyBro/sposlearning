@@ -2,6 +2,7 @@ import { initAuth, login, logout, getUser, getAccessToken } from '/js/auth.js';
 import { getPages, getFilteredPages, getGradeCookie, setGradeCookie, getGradeName, applyGradeFromUrl } from "/js/search.js";
 import { initFeedbackModal, openFeedbackModal } from "/js/feedback-modal.js";
 import { applyTheme } from "/js/theme.js";
+import { checkAndShowRoleNotice } from "/js/role-notice.js";
 
 applyTheme();
 
@@ -41,8 +42,10 @@ async function correctNavBar() {
     const navProfile = document.getElementById("nav-profile");
     if (navProfile) navProfile.classList.remove("nd");
 
+    checkAndShowRoleNotice(user);
+
     const dashboardButton = document.getElementById("dashboard-button");
-    if (dashboardButton && user && user.roles.includes("admin")) {
+    if (dashboardButton && user && (user.roles.includes("admin") || user.roles.includes("content_manager"))) {
         dashboardButton.classList.remove("nd");
         dashboardButton.addEventListener("click", () => {
             window.location.href = "/admin/dashboard";
@@ -134,7 +137,7 @@ function initGradeSelector() {
                 if (gradeDropIcon) gradeDropIcon.innerHTML = "arrow_drop_down";
 
                 if (searchBox && searchBox.value.trim() !== '') {
-                    const role = user?.roles?.includes('admin') ? 'admin' : 'user';
+                    const role = (user?.roles?.includes('admin') || user?.roles?.includes('content_manager')) ? 'admin' : 'user';
                     renderResults(getFilteredPages(searchBox.value, role));
                 }
             });
@@ -175,7 +178,7 @@ function renderResults(pages) {
         return;
     }
 
-    const userRole = user?.roles?.includes('admin') ? 'admin' : 'user';
+    const userRole = (user?.roles?.includes('admin') || user?.roles?.includes('content_manager')) ? 'admin' : 'user';
 
     for (const page of pages) {
         if (userRole !== 'admin' && page.accessLevel === 'admin') continue;
@@ -211,7 +214,7 @@ initFeedbackModal();
 
 if (searchBox) {
     searchBox.addEventListener("input", (e) => {
-        const userRole = user?.roles?.includes('admin') ? 'admin' : 'user';
+        const userRole = (user?.roles?.includes('admin') || user?.roles?.includes('content_manager')) ? 'admin' : 'user';
         if (searchBox.value.trim() === '') {
             if (resultsContainer) resultsContainer.classList.add('hidden');
         } else {
