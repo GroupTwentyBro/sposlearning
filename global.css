@@ -160,15 +160,15 @@ div {
 .footer-openblue {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 7px;
     vertical-align: middle;
     font-weight: 500;
 }
 
 .footer-openblue-logo {
-    width: 22px;
-    height: 22px;
-    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 5px;
     object-fit: cover;
     display: inline-block;
     vertical-align: middle;
