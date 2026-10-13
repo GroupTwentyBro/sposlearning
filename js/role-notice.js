@@ -272,7 +272,6 @@ function showRoleNoticeModal(user) {
                     <span class="icon">shield_person</span>
                 </div>
                 <div>
-                    <span class="rn-kicker">OpenBlue Team Restructuring</span>
                     <h2 class="rn-title" id="rn-modal-title">Your role has been updated to Content Manager</h2>
                 </div>
             </div>
