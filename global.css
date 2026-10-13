@@ -156,3 +156,20 @@ div {
     color: var(--text-primary);
     text-decoration: underline;
 }
+
+.footer-openblue {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+    font-weight: 500;
+}
+
+.footer-openblue-logo {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    object-fit: cover;
+    display: inline-block;
+    vertical-align: middle;
+}
