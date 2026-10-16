@@ -43,6 +43,21 @@
     justify-content: center;
     aspect-ratio: 1 / 1;
     border-radius: 10px;
+    cursor: pointer;
+}
+
+#nav-icon img,
+#nav-icon .nav-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+#nav-icon:hover img,
+#nav-icon:hover .nav-logo {
+    transform: scale(1.08);
 }
 
 #nav-icon span {
@@ -400,6 +415,12 @@
 @media (max-width: 480px) {
     #nav {
         padding: 8px;
+    }
+
+    #nav-icon img,
+    #nav-icon .nav-logo {
+        width: 28px;
+        height: 28px;
     }
 
     #nav-icon span {
